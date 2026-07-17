@@ -60,7 +60,6 @@ export const Header = () => {
 
               <Link
                 href={links.sourceCode}
-                prefetch
                 target="_blank"
                 rel="noreferrer noopener"
                 className={isSignedIn ? "pt-1.5" : "pt-3"}
