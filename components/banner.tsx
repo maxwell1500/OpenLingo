@@ -56,6 +56,7 @@ const Banner = ({ hide, setHide }: BannerProps) => {
             due to Clerk&apos;s 500-user limit. To try it out, please{" "}
             <Link
               href={`${links.sourceCode}/fork`}
+              prefetch
               target="_blank"
               rel="noreferrer noopener"
               className="text-green-600 transition-opacity hover:opacity-75"
@@ -65,6 +66,7 @@ const Banner = ({ hide, setHide }: BannerProps) => {
             or{" "}
             <Link
               href={`mailto:${links.email}`}
+              prefetch
               target="_blank"
               rel="noreferrer noopener"
               className="text-green-600 transition-opacity hover:opacity-75"
