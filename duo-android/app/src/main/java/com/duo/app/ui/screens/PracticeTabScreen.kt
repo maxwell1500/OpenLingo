@@ -1,0 +1,469 @@
+package com.duo.app.ui.screens
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+
+data class VocabWord(
+    val foreign: String,
+    val romaji: String? = null,
+    val translation: String,
+    val audioSrc: String? = null,
+    val category: String,
+)
+
+val practiceVocabBank: List<VocabWord> = listOf(
+    VocabWord("Hola", null, "Hello", "asset:///audio/es/hola.ogg", "Spanish Essentials"),
+    VocabWord("Buenos días", null, "Good morning", "asset:///audio/es/buenos_dias.ogg", "Spanish Essentials"),
+    VocabWord("Gracias", null, "Thank you", "asset:///audio/es/gracias.ogg", "Spanish Essentials"),
+    VocabWord("Un café, por favor", null, "A coffee, please", "asset:///audio/es/un_cafe_por_favor.ogg", "Food & Dining"),
+    VocabWord("La cuenta, por favor", null, "The bill, please", "asset:///audio/es/la_cuenta.ogg", "Food & Dining"),
+    VocabWord("Yo hablo español", null, "I speak Spanish", "asset:///audio/es/yo_hablo_espanol.ogg", "Action Verbs"),
+    VocabWord("こんにちは", "Konnichiwa", "Hello / Good day", "asset:///audio/ja/konnichiwa.ogg", "Japanese Greetings"),
+    VocabWord("おはようございます", "Ohayou gozaimasu", "Good morning", "asset:///audio/ja/ohayou.ogg", "Japanese Greetings"),
+    VocabWord("お水", "Mizu", "Water", "asset:///audio/ja/mizu.ogg", "Food & Refreshments"),
+    VocabWord("コーヒー", "Koohii", "Coffee", "asset:///audio/ja/koohii.ogg", "Katakana Loanwords"),
+    VocabWord("パン", "Pan", "Bread", "asset:///audio/ja/pan.ogg", "Katakana Loanwords"),
+    VocabWord("たべます", "Tabemasu", "To eat", "asset:///audio/ja/tabemasu.ogg", "Daily Verbs"),
+    VocabWord("のみます", "Nomimasu", "To drink", "asset:///audio/ja/nomimasu.ogg", "Daily Verbs"),
+    VocabWord("すみません", "Sumimasen", "Excuse me / Sorry", "asset:///audio/ja/sumimasen.ogg", "Polite Expressions"),
+)
+
+@Composable
+fun PracticeTabScreen(
+    onPlayVoice: (String) -> Unit,
+    onStartPractice: () -> Unit,
+    mistakes: List<com.duo.app.data.local.entities.MistakeEntry> = emptyList(),
+    onPracticeMistake: (lessonId: Int) -> Unit = {},
+    modifier: Modifier = Modifier,
+) {
+    var showFlashcards by remember { mutableStateOf(false) }
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .background(Color(0xFFF7F7F7))
+            .padding(horizontal = 20.dp, vertical = 14.dp),
+        verticalArrangement = Arrangement.spacedBy(14.dp),
+    ) {
+        // Practice Session Banner (Dumbbell)
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { showFlashcards = true },
+            shape = RoundedCornerShape(20.dp),
+            colors = CardDefaults.cardColors(containerColor = Color(0xFFE5F5FF)),
+            border = androidx.compose.foundation.BorderStroke(1.5.dp, Color(0xFF1CB0F6)),
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(18.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(54.dp)
+                        .background(Color(0xFF1CB0F6), CircleShape),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text(text = "🏋️", fontSize = 28.sp)
+                }
+
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = "SRS Vocabulary Review",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF1899D6),
+                    )
+                    Text(
+                        text = "Review all learned words with zero heart penalty to lock in long-term memory",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color(0xFF4B4B4B),
+                    )
+                }
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "🃏 Tap to open Flashcards mode",
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF1CB0F6),
+                    )
+            }
+        }
+
+        // Section: Mistakes to review (SRS dumbbell) — retry clears the entry.
+        if (mistakes.isNotEmpty()) {
+            MistakesReviewCard(
+                mistakes = mistakes,
+                onPracticeMistake = onPracticeMistake,
+            )
+        }
+
+        // Section Title: Learned Vocabulary Bank
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = "Vocabulary Bank",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = Color(0xFF4B4B4B),
+            )
+            Text(
+                text = "${practiceVocabBank.size} words unlocked",
+                fontSize = 12.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = Color(0xFF58CC02),
+            )
+        }
+
+        // Vocabulary List
+        LazyColumn(
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            items(practiceVocabBank) { item ->
+                VocabCard(item = item, onPlayVoice = onPlayVoice)
+            }
+        }
+        if (showFlashcards) {
+            VocabFlashcardsDialog(
+                vocabList = practiceVocabBank,
+                onPlayVoice = onPlayVoice,
+                onDismiss = { showFlashcards = false },
+            )
+        }
+    }
+}
+
+@Composable
+private fun VocabFlashcardsDialog(
+    vocabList: List<VocabWord>,
+    onPlayVoice: (String) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    var currentIndex by remember { mutableIntStateOf(0) }
+    var isFlipped by remember { mutableStateOf(false) }
+
+    val rotation by animateFloatAsState(
+        targetValue = if (isFlipped) 180f else 0f,
+        animationSpec = tween(400),
+        label = "cardFlip",
+    )
+
+    androidx.compose.ui.window.Dialog(onDismissRequest = onDismiss) {
+        Surface(
+            shape = RoundedCornerShape(24.dp),
+            color = Color.White,
+            modifier = Modifier.fillMaxWidth().padding(8.dp),
+        ) {
+            Column(
+                modifier = Modifier.padding(20.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+            ) {
+                // Header
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        text = "🃏 Flashcards (${currentIndex + 1}/${vocabList.size})",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 15.sp,
+                    )
+                    Text(
+                        text = "✕",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF777777),
+                        modifier = Modifier.clickable(onClick = onDismiss).padding(4.dp),
+                    )
+                }
+
+                if (currentIndex < vocabList.size) {
+                    val currentWord = vocabList[currentIndex]
+
+                    // 3D Flip Card
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(200.dp)
+                            .graphicsLayer {
+                                rotationY = rotation
+                                cameraDistance = 12f * density
+                            }
+                            .clickable { isFlipped = !isFlipped },
+                        shape = RoundedCornerShape(20.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = if (rotation <= 90f) Color(0xFFF0F9FF) else Color(0xFFFFFBEB),
+                        ),
+                        border = androidx.compose.foundation.BorderStroke(
+                            2.dp,
+                            if (rotation <= 90f) Color(0xFF1CB0F6) else Color(0xFFF59E0B),
+                        ),
+                    ) {
+                        Box(
+                            modifier = Modifier.fillMaxSize().padding(16.dp),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            if (rotation <= 90f) {
+                                // Front of card
+                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                    Text(
+                                        text = currentWord.foreign,
+                                        style = MaterialTheme.typography.headlineMedium,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color(0xFF1E293B),
+                                    )
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    if (currentWord.audioSrc != null) {
+                                        Button(
+                                            onClick = { onPlayVoice(currentWord.audioSrc) },
+                                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1CB0F6)),
+                                            shape = CircleShape,
+                                            contentPadding = androidx.compose.foundation.layout.PaddingValues(8.dp),
+                                            modifier = Modifier.size(40.dp),
+                                        ) {
+                                            Text(text = "🔊", fontSize = 16.sp)
+                                        }
+                                        Spacer(modifier = Modifier.height(4.dp))
+                                    }
+                                    Text(
+                                        text = "Tap to flip 🔄",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = Color(0xFF94A3B8),
+                                    )
+                                }
+                            } else {
+                                // Back of card (mirrored for natural readability)
+                                Column(
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    modifier = Modifier.graphicsLayer { rotationY = 180f },
+                                ) {
+                                    Text(
+                                        text = currentWord.translation,
+                                        style = MaterialTheme.typography.headlineSmall,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color(0xFFB45309),
+                                    )
+                                    if (!currentWord.romaji.isNullOrBlank()) {
+                                        Spacer(modifier = Modifier.height(6.dp))
+                                        Text(
+                                            text = currentWord.romaji,
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = Color(0xFFD97706),
+                                            fontWeight = FontWeight.SemiBold,
+                                        )
+                                    }
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    Text(
+                                        text = "Category: ${currentWord.category}",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = Color(0xFF78350F),
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                    // Answer Actions
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    ) {
+                        Button(
+                            onClick = {
+                                isFlipped = false
+                                if (currentIndex + 1 < vocabList.size) currentIndex++ else currentIndex = 0
+                            },
+                            modifier = Modifier.weight(1f).height(48.dp),
+                            shape = RoundedCornerShape(14.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFDFE0)),
+                        ) {
+                            Text(text = "Review Again", color = Color(0xFFFF4B4B), fontWeight = FontWeight.Bold)
+                        }
+                        Button(
+                            onClick = {
+                                isFlipped = false
+                                if (currentIndex + 1 < vocabList.size) currentIndex++ else onDismiss()
+                            },
+                            modifier = Modifier.weight(1f).height(48.dp),
+                            shape = RoundedCornerShape(14.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF58CC02)),
+                        ) {
+                            Text(text = "Got It! ✓", fontWeight = FontWeight.Bold)
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun VocabCard(
+    item: VocabWord,
+    onPlayVoice: (String) -> Unit,
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(14.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFE5E5E5)),
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = item.foreign,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF4B4B4B),
+                )
+                if (!item.romaji.isNullOrBlank()) {
+                    Text(
+                        text = item.romaji,
+                        style = MaterialTheme.typography.bodySmall,
+                        fontSize = 12.sp,
+                        color = Color(0xFF1CB0F6),
+                    )
+                }
+                Text(
+                    text = "${item.translation} • ${item.category}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Color(0xFF888888),
+                )
+            }
+
+            if (item.audioSrc != null) {
+                Box(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .background(Color(0xFFE5F5FF), CircleShape)
+                        .clickable { onPlayVoice(item.audioSrc) },
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text(text = "🔊", fontSize = 18.sp)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun MistakesReviewCard(
+    mistakes: List<com.duo.app.data.local.entities.MistakeEntry>,
+    onPracticeMistake: (lessonId: Int) -> Unit,
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFFFFEDEF)),
+        border = androidx.compose.foundation.BorderStroke(1.5.dp, Color(0xFFFF9600)),
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
+                Text(text = "🎯", fontSize = 24.sp)
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = "Review your mistakes (${mistakes.size})",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF4B4B4B),
+                    )
+                    Text(
+                        text = "Retry a lesson to clear its misses",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color(0xFF777777),
+                    )
+                }
+            }
+
+            mistakes.take(5).forEach { mistake ->
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                ) {
+                    Text(
+                        text = mistake.question,
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.Medium,
+                        color = Color(0xFF4B4B4B),
+                        modifier = Modifier.weight(1f),
+                        maxLines = 2,
+                    )
+                    Spacer(modifier = Modifier.size(8.dp))
+                    Box(
+                        modifier = Modifier
+                            .background(Color(0xFF58CC02), RoundedCornerShape(10.dp))
+                            .clickable { onPracticeMistake(mistake.lessonId) }
+                            .padding(horizontal = 14.dp, vertical = 8.dp),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Text(
+                            text = "RETRY",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White,
+                        )
+                    }
+                }
+            }
+        }
+    }
+}

@@ -40,3 +40,11 @@ next-env.d.ts
 # testing tools
 /ngrok
 /stripe
+
+# android
+.gradle/
+**/build/
+**/local.properties
+*.iml
+*.apk
+*.aab
