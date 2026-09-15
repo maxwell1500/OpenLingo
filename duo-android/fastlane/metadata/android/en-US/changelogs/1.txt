@@ -1,0 +1,6 @@
+• Interactive Match Pairs exercise type
+• Slow audio (0.6x) button on Listen challenges
+• Offline Profile tab with answer accuracy and achievements
+• Daily quests and practice-based streak repair
+• Settings screen with sound, haptics, and romaji toggles
+• System dark theme support
