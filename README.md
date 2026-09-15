@@ -82,8 +82,19 @@ duolingo-clone/
     |-- drizzle.ts
     |-- queries.ts
     |-- schema.ts
+  |- docs/
+  |- duo-android/
+    |-- app/
+    |-- docs/
+    |-- fastlane/
+    |-- keystore/
+    |-- .gitignore
+    |-- build.gradle.kts
+    |-- gradle.properties
+    |-- settings.gradle.kts
   |- lib/
     |-- admin.ts
+    |-- mobile-auth.ts
     |-- stripe.ts
     |-- utils.ts
   |- public/
