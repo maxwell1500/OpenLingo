@@ -45,4 +45,6 @@ interface UserProgressDao {
     suspend fun setOnboardingSeen(userId: String, seen: Boolean, timestamp: Long = System.currentTimeMillis())
     @Query("UPDATE user_progress SET brokenStreak = :value, lastSynced = :timestamp WHERE userId = :userId")
     suspend fun setBrokenStreak(userId: String, value: Int, timestamp: Long = System.currentTimeMillis())
+    @Query("UPDATE user_progress SET themeAccent = :accent, lastSynced = :timestamp WHERE userId = :userId")
+    suspend fun setThemeAccent(userId: String, accent: String, timestamp: Long = System.currentTimeMillis())
 }

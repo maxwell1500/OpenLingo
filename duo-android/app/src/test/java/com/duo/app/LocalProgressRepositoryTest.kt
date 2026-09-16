@@ -20,7 +20,7 @@ import org.robolectric.annotation.Config
 /**
  * Repository integration tests against an in-memory Room database.
  *
- * Locks the content contract (16 units / 30 lessons / 94 challenges) and the
+ * Locks the content contract (20 units / 38 lessons / 123 challenges) and the
  * hearts / XP / streak / mistake write paths that previously regressed
  * silently until manual on-device checks.
  */
@@ -54,10 +54,10 @@ class LocalProgressRepositoryTest {
 
         val spanishUnits = db.courseDao().getUnitsForCourseDirect(1)
         val japaneseUnits = db.courseDao().getUnitsForCourseDirect(2)
-        assertEquals(8, spanishUnits.size)
-        assertEquals(8, japaneseUnits.size)
-        assertEquals((0 until 8).toList(), spanishUnits.map { it.orderIndex })
-        assertEquals((0 until 8).toList(), japaneseUnits.map { it.orderIndex })
+        assertEquals(10, spanishUnits.size)
+        assertEquals(10, japaneseUnits.size)
+        assertEquals((0 until 10).toList(), spanishUnits.map { it.orderIndex })
+        assertEquals((0 until 10).toList(), japaneseUnits.map { it.orderIndex })
 
         var lessons = 0
         var challenges = 0
@@ -70,13 +70,13 @@ class LocalProgressRepositoryTest {
                 }
             }
         }
-        assertEquals(30, lessons)
-        assertEquals(98, challenges)
+        assertEquals(38, lessons)
+        assertEquals(123, challenges)
 
         // Re-running the seed must not duplicate or drop rows.
         repository.initializeIfNeeded()
-        assertEquals(8, db.courseDao().getUnitsForCourseDirect(1).size)
-        assertEquals(8, db.courseDao().getUnitsForCourseDirect(2).size)
+        assertEquals(10, db.courseDao().getUnitsForCourseDirect(1).size)
+        assertEquals(10, db.courseDao().getUnitsForCourseDirect(2).size)
     }
     @Test
     fun `sound and haptics toggles persist`() = runTest {
@@ -112,7 +112,7 @@ class LocalProgressRepositoryTest {
         repository.getMistakes().test { assertTrue(awaitItem().isEmpty()) }
         repository.getCharacterMastery().test { assertTrue(awaitItem().isEmpty()) }
         // Curriculum seeds survive the wipe.
-        assertEquals(8, db.courseDao().getUnitsForCourseDirect(1).size)
+        assertEquals(10, db.courseDao().getUnitsForCourseDirect(1).size)
     }
     @Test
     fun `lesson count starts at zero and completes a full lesson`() = runTest {

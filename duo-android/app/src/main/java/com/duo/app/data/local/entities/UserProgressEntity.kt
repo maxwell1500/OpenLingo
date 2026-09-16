@@ -18,5 +18,6 @@ data class UserProgressEntity(
     val hapticsEnabled: Boolean = true,
     val onboardingSeen: Boolean = false,
     val brokenStreak: Int = 0,
+    val themeAccent: String = "TEAL",
     val lastSynced: Long = System.currentTimeMillis(),
 )

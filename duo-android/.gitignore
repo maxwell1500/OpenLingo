@@ -13,4 +13,4 @@
 /app/release/
 keystore/*.jks
 keystore/*.keystore
-!keystore/openlingo-release.jks
+keystore.properties

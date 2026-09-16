@@ -14,6 +14,24 @@ val DuoYellow = Color(0xFFFFC800)
 val DuoRed = Color(0xFFFF4B4B)
 val DuoOrange = Color(0xFFFF9600)
 
+enum class ThemeAccent(
+    val label: String,
+    val primaryColor: Color,
+    val secondaryColor: Color,
+    val swatchColor: Color,
+) {
+    TEAL("Onsen Teal (🦫)", Color(0xFF0D9488), Color(0xFF14B8A6), Color(0xFF0D9488)),
+    MATCHA("Matcha Green", Color(0xFF58CC02), Color(0xFF1CB0F6), Color(0xFF58CC02)),
+    SAKURA("Sakura Pink", Color(0xFFEC4899), Color(0xFFF472B6), Color(0xFFEC4899)),
+    YUZU("Yuzu Citrus", Color(0xFFF59E0B), Color(0xFFEAB308), Color(0xFFF59E0B));
+
+    companion object {
+        fun fromName(name: String?): ThemeAccent {
+            return entries.firstOrNull { it.name.equals(name, ignoreCase = true) } ?: TEAL
+        }
+    }
+}
+
 private val LightColorScheme = lightColorScheme(
     primary = DuoGreen,
     onPrimary = Color.White,
@@ -42,12 +60,36 @@ private val DarkColorScheme = darkColorScheme(
 
 @Composable
 fun DuoTheme(
+    accent: ThemeAccent = ThemeAccent.TEAL,
     darkTheme: Boolean = isSystemInDarkTheme(),
     content: @Composable () -> Unit,
 ) {
-    val colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme
+    val light = lightColorScheme(
+        primary = accent.primaryColor,
+        onPrimary = Color.White,
+        secondary = accent.secondaryColor,
+        onSecondary = Color.White,
+        tertiary = DuoYellow,
+        background = Color.White,
+        surface = Color.White,
+        surfaceVariant = Color(0xFFF7F7F7),
+        onSurface = Color(0xFF4B4B4B),
+        onBackground = Color(0xFF4B4B4B),
+    )
+    val dark = darkColorScheme(
+        primary = accent.primaryColor,
+        onPrimary = Color.White,
+        secondary = accent.secondaryColor,
+        onSecondary = Color.White,
+        tertiary = DuoYellow,
+        background = Color(0xFF131F24),
+        surface = Color(0xFF1A2A30),
+        surfaceVariant = Color(0xFF243640),
+        onSurface = Color(0xFFE5E5E5),
+        onBackground = Color(0xFFE5E5E5),
+    )
     MaterialTheme(
-        colorScheme = colorScheme,
+        colorScheme = if (darkTheme) dark else light,
         content = content,
     )
 }

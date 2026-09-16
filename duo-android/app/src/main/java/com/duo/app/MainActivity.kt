@@ -41,6 +41,7 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.core.view.WindowCompat
 import androidx.compose.foundation.rememberScrollState
@@ -122,7 +123,11 @@ class MainActivity : ComponentActivity() {
             val showRomaji = userProgress?.showRomaji ?: true
             val isJapanese = (userProgress?.activeCourseId ?: 1) == 2
 
-            DuoTheme {
+            val currentProgress by viewModel.userProgress.collectAsStateWithLifecycle()
+            val themeAccent = remember(currentProgress?.themeAccent) {
+                com.duo.app.ui.theme.ThemeAccent.fromName(currentProgress?.themeAccent)
+            }
+            DuoTheme(accent = themeAccent) {
                 val context = LocalContext.current
                 val onFreeRefill: () -> Unit = {
                     viewModel.refillHearts()
@@ -231,6 +236,8 @@ class MainActivity : ComponentActivity() {
                                     completedStrokes = screen.completedStrokes,
                                     isCompleted = screen.isCompleted,
                                     onStrokeCompleted = viewModel::onStrokeCompleted,
+                                    onPlayVoice = { text -> viewModel.speakText(text) },
+                                    onReset = viewModel::resetCharacterDrawing,
                                     onExit = viewModel::exitCharacterDrawing,
                                 )
                             }
@@ -271,6 +278,7 @@ class MainActivity : ComponentActivity() {
                                     onToggleSound = viewModel::setSoundEnabled,
                                     onToggleHaptics = viewModel::setHapticsEnabled,
                                     onToggleRomaji = { viewModel.toggleRomaji() },
+                                    onSelectThemeAccent = viewModel::setThemeAccent,
                                     onResetProgress = viewModel::resetAllProgress,
                                     onExportBackup = viewModel::exportBackup,
                                     onImportBackup = viewModel::importBackup,
@@ -1744,6 +1752,7 @@ private fun SettingsScreen(
     onToggleSound: (Boolean) -> Unit,
     onToggleHaptics: (Boolean) -> Unit,
     onToggleRomaji: () -> Unit,
+    onSelectThemeAccent: (String) -> Unit,
     onResetProgress: () -> Unit,
     onExportBackup: ((String) -> Unit) -> Unit,
     onImportBackup: (String, (Boolean) -> Unit) -> Unit,
@@ -1810,6 +1819,52 @@ private fun SettingsScreen(
                 prefs.edit().putBoolean("reminders_enabled", enabled).apply()
             },
         )
+
+
+        // Theme Accent Selector
+        Text(
+            text = "Theme Accent",
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
+            color = Color(0xFF4B4B4B),
+        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            com.duo.app.ui.theme.ThemeAccent.entries.forEach { accent ->
+                val isSelected = userProgress?.themeAccent?.equals(accent.name, ignoreCase = true) == true ||
+                    (userProgress?.themeAccent == null && accent == com.duo.app.ui.theme.ThemeAccent.TEAL)
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(if (isSelected) accent.swatchColor.copy(alpha = 0.15f) else Color(0xFFF7F7F7))
+                        .border(
+                            width = if (isSelected) 2.dp else 1.dp,
+                            color = if (isSelected) accent.swatchColor else Color(0xFFE5E5E5),
+                            shape = RoundedCornerShape(12.dp),
+                        )
+                        .clickable { onSelectThemeAccent(accent.name) }
+                        .padding(vertical = 10.dp, horizontal = 4.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Box(
+                            modifier = Modifier
+                                .size(24.dp)
+                                .background(accent.swatchColor, CircleShape)
+                        )
+                        Text(
+                            text = accent.name.lowercase().replaceFirstChar { it.uppercase() },
+                            fontSize = 11.sp,
+                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                            color = if (isSelected) accent.swatchColor else Color(0xFF777777),
+                        )
+                    }
+                }
+            }
+        }
 
         Spacer(modifier = Modifier.height(8.dp))
 

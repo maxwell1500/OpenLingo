@@ -23,6 +23,7 @@ data class UserProgressBackup(
     val showRomaji: Boolean = true,
     val soundEnabled: Boolean = true,
     val hapticsEnabled: Boolean = true,
+    val themeAccent: String = "TEAL",
 )
 
 @Serializable

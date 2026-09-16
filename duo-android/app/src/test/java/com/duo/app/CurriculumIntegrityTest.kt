@@ -2,6 +2,7 @@ package com.duo.app
 
 import com.duo.app.data.local.character.KanaRepository
 import com.duo.app.data.local.curriculum.AdvancedCurriculumData
+import com.duo.app.data.local.curriculum.B1CurriculumData
 import com.duo.app.data.local.curriculum.ExpandedCurriculumData
 import com.duo.app.data.local.curriculum.UnitPayload
 import java.io.File
@@ -21,7 +22,9 @@ class CurriculumIntegrityTest {
         ExpandedCurriculumData.spanishExpandedUnits +
             ExpandedCurriculumData.japaneseExpandedUnits +
             AdvancedCurriculumData.spanishAdvancedUnits +
-            AdvancedCurriculumData.japaneseAdvancedUnits
+            AdvancedCurriculumData.japaneseAdvancedUnits +
+            B1CurriculumData.spanishB1Units +
+            B1CurriculumData.japaneseB1Units
 
     @Test
     fun `all entity ids are globally unique`() {

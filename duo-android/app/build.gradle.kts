@@ -1,3 +1,4 @@
+import java.util.Properties
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
@@ -25,16 +26,27 @@ android {
         buildConfigField("String", "BACKEND_BASE_URL", "\"$backendUrl\"")
     }
 
+    // Release signing: credentials live ONLY in a local (gitignored)
+    // keystore.properties or in CI environment properties — never in source.
+    val keystorePropertiesFile = rootProject.file("keystore.properties")
+    val keystoreProperties = Properties().apply {
+        if (keystorePropertiesFile.exists()) {
+            keystorePropertiesFile.inputStream().use { load(it) }
+        }
+    }
+    val hasReleaseKey = keystorePropertiesFile.exists() &&
+        keystoreProperties.getProperty("storePassword") != null &&
+        keystoreProperties.getProperty("keyPassword") != null
+
     signingConfigs {
         create("release") {
-            val keystoreProp = project.findProperty("OPENLINGO_KEYSTORE_PATH") as String?
-            val defaultKeystore = rootProject.file("keystore/openlingo-release.jks")
-            val targetFile = if (keystoreProp != null) file(keystoreProp) else defaultKeystore
-            if (targetFile.exists()) {
-                storeFile = targetFile
-                storePassword = (project.findProperty("OPENLINGO_KEYSTORE_PASSWORD") as String?) ?: "openlingo123"
-                keyAlias = (project.findProperty("OPENLINGO_KEY_ALIAS") as String?) ?: "openlingo"
-                keyPassword = (project.findProperty("OPENLINGO_KEY_PASSWORD") as String?) ?: "openlingo123"
+            if (hasReleaseKey) {
+                storeFile = rootProject.file(
+                    keystoreProperties.getProperty("storeFile", "keystore/openlingo-release.jks"),
+                )
+                storePassword = keystoreProperties.getProperty("storePassword")
+                keyAlias = keystoreProperties.getProperty("keyAlias", "openlingo")
+                keyPassword = keystoreProperties.getProperty("keyPassword")
             }
         }
     }
@@ -43,7 +55,9 @@ android {
         release {
             isMinifyEnabled = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-            signingConfig = signingConfigs.getByName("release")
+            // Unsigned release (local test builds) falls back to the debug key;
+            // CI with the local keystore.properties produces the real signature.
+            signingConfig = if (hasReleaseKey) signingConfigs.getByName("release") else signingConfigs.getByName("debug")
         }
     }
     testOptions {

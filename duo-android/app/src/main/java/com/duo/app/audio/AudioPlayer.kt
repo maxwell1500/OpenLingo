@@ -4,15 +4,16 @@ import android.content.Context
 import android.media.AudioAttributes
 import android.media.AudioFormat
 import android.media.AudioTrack
+import android.speech.tts.TextToSpeech
 import androidx.annotation.OptIn
 import androidx.media3.common.MediaItem
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
+import java.util.Locale
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlin.math.sin
-
 class AudioPlayer(private val context: Context) {
 
     private val scope = CoroutineScope(Dispatchers.Default)
@@ -21,21 +22,48 @@ class AudioPlayer(private val context: Context) {
         ExoPlayer.Builder(context).build()
     }
 
+    private var tts: TextToSpeech? = null
+    private var ttsReady = false
+
+    init {
+        try {
+            tts = TextToSpeech(context.applicationContext) { status ->
+                if (status == TextToSpeech.SUCCESS) {
+                    ttsReady = true
+                }
+            }
+        } catch (_: Exception) {}
+    }
     /**
      * Plays a speech/voice audio clip from a URL, local file path, or asset URI.
      */
     @OptIn(UnstableApi::class)
-    fun playVoice(audioSource: String, speed: Float = 1.0f) {
-        if (audioSource.isBlank()) return
+    fun playVoice(
+        audioSource: String,
+        speed: Float = 1.0f,
+        fallbackText: String? = null,
+        languageCode: String = "ja",
+    ) {
+        if (audioSource.isBlank()) {
+            if (!fallbackText.isNullOrBlank()) {
+                speakText(fallbackText, languageCode, speed)
+            }
+            return
+        }
         // Fail fast on missing bundled assets: ExoPlayer reports these
-        // asynchronously, so pre-check to avoid player-state churn.
+        // asynchronously, so pre-check and fall back to TextToSpeech if needed.
         if (audioSource.startsWith("asset:///")) {
             val assetPath = audioSource.removePrefix("asset:///")
             val exists = runCatching {
                 context.assets.open(assetPath).close()
                 true
             }.getOrDefault(false)
-            if (!exists) return
+            if (!exists) {
+                if (!fallbackText.isNullOrBlank()) {
+                    speakText(fallbackText, languageCode, speed)
+                }
+                return
+            }
         }
         try {
             val uri = when {
@@ -52,6 +80,29 @@ class AudioPlayer(private val context: Context) {
             exoPlayer.setMediaItem(mediaItem)
             exoPlayer.prepare()
             exoPlayer.play()
+        } catch (e: Exception) {
+            e.printStackTrace()
+            if (!fallbackText.isNullOrBlank()) {
+                speakText(fallbackText, languageCode, speed)
+            }
+        }
+    }
+
+    /**
+     * Native offline TextToSpeech fallback. Ensures 100% audio coverage
+     * even when a specific sentence audio file is not bundled in assets.
+     */
+    fun speakText(text: String, languageCode: String = "ja", speed: Float = 1.0f) {
+        if (text.isBlank() || tts == null) return
+        try {
+            val locale = when (languageCode.lowercase()) {
+                "es", "spanish" -> Locale.forLanguageTag("es-ES")
+                "ja", "japanese" -> Locale.JAPANESE
+                else -> Locale.getDefault()
+            }
+            tts?.language = locale
+            tts?.setSpeechRate(speed)
+            tts?.speak(text, TextToSpeech.QUEUE_FLUSH, null, "openlingo_tts_${System.currentTimeMillis()}")
         } catch (e: Exception) {
             e.printStackTrace()
         }
@@ -182,6 +233,9 @@ class AudioPlayer(private val context: Context) {
     fun release() {
         try {
             exoPlayer.release()
+            tts?.stop()
+            tts?.shutdown()
+            tts = null
         } catch (_: Exception) {}
     }
 }

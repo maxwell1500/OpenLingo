@@ -35,7 +35,7 @@ import com.duo.app.data.local.entities.UserProgressEntity
         CharacterMasteryEntity::class,
         MistakeEntity::class,
     ],
-    version = 7,
+    version = 8,
     exportSchema = false,
 )
 abstract class DuoDatabase : RoomDatabase() {
@@ -85,6 +85,11 @@ abstract class DuoDatabase : RoomDatabase() {
             }
         }
 
+        val MIGRATION_7_8 = object : Migration(7, 8) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE `user_progress` ADD COLUMN `themeAccent` TEXT NOT NULL DEFAULT 'TEAL'")
+            }
+        }
 
         fun getInstance(context: Context): DuoDatabase {
             return INSTANCE ?: synchronized(this) {
@@ -93,7 +98,7 @@ abstract class DuoDatabase : RoomDatabase() {
                     DuoDatabase::class.java,
                     "duo_local.db",
                 )
-                    .addMigrations(MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7)
+                    .addMigrations(MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8)
                     .build()
                     .also { INSTANCE = it }
             }

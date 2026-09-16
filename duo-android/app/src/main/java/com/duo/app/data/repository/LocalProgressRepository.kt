@@ -86,6 +86,7 @@ class LocalProgressRepository(private val database: DuoDatabase) {
         // added challenges/units roll out without requiring a full wipe.
         seedExpandedCurricula()
         seedAdvancedCurricula()
+        seedB1Curricula()
     }
     /**
      * Day rollover: reset streak when a full day was missed, refill hearts every
@@ -255,6 +256,10 @@ class LocalProgressRepository(private val database: DuoDatabase) {
         userProgressDao.setHapticsEnabled(GUEST_USER_ID, enabled)
     }
 
+    suspend fun setThemeAccent(accent: String) = withContext(Dispatchers.IO) {
+        userProgressDao.setThemeAccent(GUEST_USER_ID, accent)
+    }
+
     suspend fun setOnboardingSeen() = withContext(Dispatchers.IO) {
         userProgressDao.setOnboardingSeen(GUEST_USER_ID, true)
     }
@@ -277,6 +282,7 @@ class LocalProgressRepository(private val database: DuoDatabase) {
                 points = 0,
                 streak = 1,
                 lastActiveDate = java.time.LocalDate.now().toString(),
+                themeAccent = "TEAL",
             )
         )
     }
@@ -294,6 +300,7 @@ class LocalProgressRepository(private val database: DuoDatabase) {
                 showRomaji = it.showRomaji,
                 soundEnabled = it.soundEnabled,
                 hapticsEnabled = it.hapticsEnabled,
+                themeAccent = it.themeAccent,
             )
         }
         val completed = challengeProgressDao.getCompletedChallengeIdsDirect(GUEST_USER_ID)
@@ -337,6 +344,7 @@ class LocalProgressRepository(private val database: DuoDatabase) {
                         showRomaji = u.showRomaji,
                         soundEnabled = u.soundEnabled,
                         hapticsEnabled = u.hapticsEnabled,
+                        themeAccent = u.themeAccent,
                     )
                 )
             }
@@ -748,6 +756,18 @@ class LocalProgressRepository(private val database: DuoDatabase) {
     private suspend fun seedAdvancedCurricula() {
         val spanishUnits = com.duo.app.data.local.curriculum.AdvancedCurriculumData.spanishAdvancedUnits
         val japaneseUnits = com.duo.app.data.local.curriculum.AdvancedCurriculumData.japaneseAdvancedUnits
+
+        for (payload in (spanishUnits + japaneseUnits)) {
+            courseDao.insertUnits(listOf(payload.unit))
+            courseDao.insertLessons(payload.lessons)
+            lessonDao.insertChallenges(payload.challenges)
+            lessonDao.insertOptions(payload.options)
+        }
+    }
+
+    private suspend fun seedB1Curricula() {
+        val spanishUnits = com.duo.app.data.local.curriculum.B1CurriculumData.spanishB1Units
+        val japaneseUnits = com.duo.app.data.local.curriculum.B1CurriculumData.japaneseB1Units
 
         for (payload in (spanishUnits + japaneseUnits)) {
             courseDao.insertUnits(listOf(payload.unit))

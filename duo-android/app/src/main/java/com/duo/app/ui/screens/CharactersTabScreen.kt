@@ -441,6 +441,8 @@ fun CharacterDrawingScreen(
     completedStrokes: Int,
     isCompleted: Boolean,
     onStrokeCompleted: (Int) -> Unit,
+    onPlayVoice: (String) -> Unit = {},
+    onReset: () -> Unit = {},
     onExit: () -> Unit,
 ) {
     val totalStrokes = character.strokes.size
@@ -477,6 +479,14 @@ fun CharacterDrawingScreen(
                             .background(Color(0xFFE5E5E5), RoundedCornerShape(6.dp)),
                         color = Color(0xFF58CC02),
                         trackColor = Color(0xFFE5E5E5),
+                    )
+
+                    Text(
+                        text = "🔄",
+                        fontSize = 18.sp,
+                        modifier = Modifier
+                            .clickable(onClick = onReset)
+                            .padding(4.dp),
                     )
                 }
             }
@@ -531,9 +541,9 @@ fun CharacterDrawingScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             // Character Title and Pronunciation
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(4.dp),
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 Text(
                     text = "Draw: ${character.character}",
@@ -542,12 +552,19 @@ fun CharacterDrawingScreen(
                     color = Color(0xFF4B4B4B),
                 )
                 Text(
+                    text = "🔊",
+                    fontSize = 24.sp,
+                    modifier = Modifier
+                        .clickable { onPlayVoice(character.character) }
+                        .padding(4.dp),
+                )
+            }
+                Text(
                     text = "${character.scriptType.name.lowercase().replaceFirstChar { it.uppercase() }} • '${character.romaji}' (${character.group})",
                     style = MaterialTheme.typography.titleMedium,
                     color = Color(0xFF1CB0F6),
                     fontWeight = FontWeight.SemiBold,
                 )
-            }
 
             // Interactive Tracing Canvas
             StrokeDrawingCanvas(

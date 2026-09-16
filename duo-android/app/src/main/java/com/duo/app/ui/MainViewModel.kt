@@ -125,8 +125,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private fun soundOn(): Boolean = userProgress.value?.soundEnabled != false
     private fun hapticsOn(): Boolean = userProgress.value?.hapticsEnabled != false
 
-    private fun playVoiceIfEnabled(audioSrc: String, speed: Float = 1.0f) {
-        if (soundOn()) audioPlayer.playVoice(audioSrc, speed)
+    private fun playVoiceIfEnabled(audioSrc: String, speed: Float = 1.0f, fallbackText: String? = null) {
+        val lang = if (userProgress.value?.activeCourseId == 2) "ja" else "es"
+        if (soundOn()) audioPlayer.playVoice(audioSrc, speed, fallbackText, lang)
     }
 
     fun setSoundEnabled(enabled: Boolean) {
@@ -135,6 +136,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     fun setHapticsEnabled(enabled: Boolean) {
         viewModelScope.launch { repository.setHapticsEnabled(enabled) }
+    }
+
+    fun setThemeAccent(accent: String) {
+        viewModelScope.launch { repository.setThemeAccent(accent) }
     }
 
     fun completeOnboarding() {
@@ -216,6 +221,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             completedStrokes = 0,
             isCompleted = false,
         )
+        if (soundOn()) audioPlayer.speakText(character.character, "ja")
     }
     fun onStrokeCompleted(strokeIndex: Int) {
         val current = _activeScreen.value as? ActiveScreen.CharacterDrawing ?: return
@@ -234,15 +240,24 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 isCompleted = true,
             )
         } else {
+            if (soundOn()) audioPlayer.playCorrectSound()
+            if (hapticsOn()) com.duo.app.feedback.Haptics.tick(getApplication())
             _activeScreen.value = current.copy(
                 completedStrokes = nextStrokes,
             )
         }
     }
-
     fun exitCharacterDrawing() {
         _activeScreen.value = ActiveScreen.LessonMap
     }
+    fun resetCharacterDrawing() {
+        val current = _activeScreen.value as? ActiveScreen.CharacterDrawing ?: return
+        _activeScreen.value = current.copy(
+            completedStrokes = 0,
+            isCompleted = false,
+        )
+    }
+
 
     fun toggleRomaji() {
         viewModelScope.launch {
@@ -429,10 +444,14 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun playVoice(audioSrc: String, speed: Float = 1.0f) {
-        playVoiceIfEnabled(audioSrc, speed)
+    fun playVoice(audioSrc: String, speed: Float = 1.0f, fallbackText: String? = null) {
+        playVoiceIfEnabled(audioSrc, speed, fallbackText)
     }
 
+    fun speakText(text: String, speed: Float = 1.0f) {
+        val lang = if (userProgress.value?.activeCourseId == 2) "ja" else "es"
+        if (soundOn()) audioPlayer.speakText(text, lang, speed)
+    }
     fun stopVoice() {
         audioPlayer.stopVoice()
     }
