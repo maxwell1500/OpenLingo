@@ -37,14 +37,6 @@ interface ChallengeProgressDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun markChallengeCompleted(progress: ChallengeProgressEntity)
 
-    @Query("SELECT * FROM challenge_progress WHERE userId = :userId AND synced = 0")
-    suspend fun getUnsyncedProgress(userId: String): List<ChallengeProgressEntity>
-
-    @Query("UPDATE challenge_progress SET synced = 1, lastSynced = :timestamp WHERE id IN (:ids)")
-    suspend fun markSynced(ids: List<Int>, timestamp: Long = System.currentTimeMillis())
-
-    @Query("UPDATE challenge_progress SET userId = :newUserId, lastSynced = :timestamp WHERE userId = :oldUserId")
-    suspend fun rekeyProgress(oldUserId: String, newUserId: String, timestamp: Long = System.currentTimeMillis())
     @Query("DELETE FROM challenge_progress WHERE userId = :userId")
     suspend fun clearProgressForUser(userId: String)
 }

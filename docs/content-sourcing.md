@@ -1,7 +1,7 @@
 # Real Course Content Pipeline — Research & Design Report
 
 **Date:** 2026-09-13  
-**Target:** Duolingo-clone web app (Next.js 16) transitioning to native Android  
+**Target:** OpenLingo, native Android app (Kotlin + Jetpack Compose)  
 **Goal:** Replace toy seed data with real, legally-redistributable multi-unit Spanish and Japanese courses
 
 ---

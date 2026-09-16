@@ -1,4 +1,4 @@
-# Code of Conduct - Lingo
+# Code of Conduct - OpenLingo
 
 ## Our Pledge
 

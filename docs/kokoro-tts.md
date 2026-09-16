@@ -75,11 +75,11 @@ python -c "import kokoro; print(kokoro.__version__)"
 
 ### Option A: Pre-Generate Offline (RECOMMENDED ⭐)
 
-**Approach:** Generate all lesson audio at build/seed time. Ship as static files via CDN.
+**Approach:** Generate all lesson audio at build/seed time. Ship as static files bundled in the app's assets (`app/src/main/assets/audio/`).
 
 | Factor | Assessment |
 |--------|------------|
-| ✅ **Offline support** | Trivial — files download once, play forever |
+| ✅ **Offline support** | Trivial — assets ship with the APK, play forever |
 | ✅ **Determinism** | Same audio every time; no runtime variability |
 | ✅ **No runtime cost** | Zero TTS inference at app runtime |
 | ✅ **Battery friendly** | Just decode and play |
@@ -93,12 +93,12 @@ Build server (one-time / on content change):
   For each challengeOption with text:
     kokoro.generate(text, voice=lang_voice) → .wav
     ffmpeg convert → .ogg (Opus, 48kbps)
-    Upload to CDN: public/audio/{lang}/{option_id}.ogg
-    Set audioSrc = "/audio/es/42.ogg"
+    Copy to app assets: app/src/main/assets/audio/{lang}/{name}.ogg
+    Set audioSrc = "asset:///audio/es/42.ogg"
 
 Android client:
   Standard audio playback via Media3/ExoPlayer
-  Download-once, cache in ExoPlayer DownloadManager
+  Play directly from bundled assets — no download, no network
 ```
 
 ### Option B: Runtime Server-Side TTS
@@ -131,11 +131,11 @@ Android client:
 
 ### File Naming Convention
 ```
-public/audio/{lang}/{challengeOption_id}.{ext}
+app/src/main/assets/audio/{lang}/{name}.ogg
 ```
-Examples:
-- `/audio/es/12345.ogg`
-- `/audio/ja/67890.ogg`
+Examples (as referenced in `audioSrc` fields):
+- `asset:///audio/es/el_dormitorio.ogg`
+- `asset:///audio/ja/konnichiwa.ogg`
 
 ### Audio Format
 | Parameter | Recommendation | Reason |
@@ -147,29 +147,16 @@ Examples:
 
 **File size estimate:** ~800 bytes per second of audio (Opus)
 
-### Caching Headers (CDN)
-```
-Cache-Control: public, max-age=31536000, immutable
-ETag: "{sha256_of_file}"
-Content-Type: audio/ogg
-Accept-Ranges: bytes
-```
+### Caching Headers
+
+No longer applicable — audio ships inside the APK as bundled assets, so no CDN cache headers are needed.
 
 ### Android Offline Storage
-Use **ExoPlayer DownloadManager** or **OkHttp DownloadManager**:
+
+Not needed — audio ships in `app/src/main/assets/audio/{lang}/` and plays straight from the APK:
 
 ```kotlin
-// Download once, store in app data directory
-val downloadManager = DownloadManager.getInstance(context)
-val request = DownloadRequest.Builder()
-    .setUri(audioUri)
-    .setDestinationDirectory(context.cacheDir)
-    .setRetryOnFailure(true)
-    .build()
-downloadManager.enqueue(request)
-
-// Playback from local file after download
-val mediaItem = MediaItem.fromFile(localAudioFile)
+val mediaItem = MediaItem.fromUri("asset:///audio/es/el_dormitorio.ogg")
 ```
 
 ### audioSrc Migration
@@ -202,7 +189,7 @@ WHERE audio_src LIKE '/%.mp3';
 
 **Commercial use:** Fully allowed. Kokoro-82M is explicitly Apache-2.0 licensed for commercial deployment.
 
-**LGPL caveat:** pyopenjtalk/unidic are LGPL. For Android app, this is fine — load as shared libraries (`.so`) and don't statically link. The Android app itself remains proprietary.
+**LGPL caveat:** pyopenjtalk/unidic are LGPL. For Android app, this is fine — load as shared libraries (`.so`) and don't statically link. The Android app itself is open source (MIT).
 
 ---
 
@@ -267,17 +254,17 @@ Output: 24000 Hz, mono, WAV (PCM 16-bit)
 
 ## 7. Recommendation
 
-### 🏆 Primary: Pre-Generate + CDN (Option A)
+### 🏆 Primary: Pre-Generate + Bundled Assets (Option A)
 
 **Rationale:**
-1. **Offline-first requirement** met trivially — download once, play forever
+1. **Offline-first requirement** met trivially — assets ship with the APK, play forever
 2. **Zero runtime ML complexity** on Android
 3. **Deterministic audio** — same clip every lesson
-4. **Trivial caching** — immutable CDN URLs with long cache headers
-5. **Cost effective** — generate 1000 clips once, free CDN tier serves them
+4. **No hosting or network** — audio ships inside the APK, nothing to cache
+5. **Cost effective** — generate clips once, no CDN needed
 6. **Latency acceptable** for batch generation (not user-facing)
 
-**Hybrid enhancement:** Use Option B (runtime server-side) ONLY for:
+**Hybrid enhancement (not currently possible — the app has no `INTERNET` permission):** Use Option B (runtime server-side) ONLY for:
 - Dynamic quiz explanations generated from correct answers
 - Pronunciation comparison feedback
 - Anything that changes per user
@@ -285,7 +272,7 @@ Output: 24000 Hz, mono, WAV (PCM 16-bit)
 ### Migration Path
 1. Generate all audio offline (use `.scratch/tts_test.py` as template)
 2. Convert WAV → OGG Opus with ffmpeg: `ffmpeg -i input.wav -c:a libopus -b:a 48k output.ogg`
-3. Upload to CDN with immutable cache headers
+3. Copy the files into `app/src/main/assets/audio/{lang}/`
 4. Update `audio_src` paths in `challenge_options` table
 5. Android client: no changes beyond standard audio playback
 

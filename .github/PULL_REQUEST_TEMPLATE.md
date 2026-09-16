@@ -18,10 +18,10 @@
 
 <!-- Check the commands you ran. Leave items unchecked when they do not apply. -->
 
-- [ ] `pnpm lint` (use `pnpm lint:fix` if it fails)
-- [ ] `pnpm format` (use `pnpm format:fix` if it fails)
-- [ ] `pnpm build`
-- [ ] Manually tested the affected flow
+- [ ] `gradle :app:testDebugUnitTest` (pure-JVM suite incl. curriculum integrity)
+- [ ] `gradle :app:assembleDebug` (or `assembleRelease` for signing changes)
+- [ ] Manually tested the affected flow on a device/emulator
+- [ ] No new permissions, network calls, accounts, or tracking added
 
 ## Checklist
 

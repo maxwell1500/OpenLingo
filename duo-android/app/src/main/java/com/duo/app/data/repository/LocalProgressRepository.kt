@@ -122,10 +122,6 @@ class LocalProgressRepository(private val database: DuoDatabase) {
         userProgressDao.getUserProgressDirect(GUEST_USER_ID)
     }
 
-    suspend fun getCompletedChallengeIdsDirect(): List<Int> = withContext(Dispatchers.IO) {
-        challengeProgressDao.getCompletedChallengeIdsDirect(GUEST_USER_ID)
-    }
-
     fun getUnitsForCourse(courseId: Int): Flow<List<UnitEntity>> =
         courseDao.getUnitsForCourse(courseId).flowOn(Dispatchers.IO)
 
@@ -413,11 +409,6 @@ class LocalProgressRepository(private val database: DuoDatabase) {
 
     fun getMistakeCount(): Flow<Int> =
         mistakeDao.getMistakeCount().flowOn(Dispatchers.IO)
-
-    suspend fun rekeyToClerkUser(clerkUserId: String) = withContext(Dispatchers.IO) {
-        userProgressDao.rekeyUserProgress(GUEST_USER_ID, clerkUserId)
-        challengeProgressDao.rekeyProgress(GUEST_USER_ID, clerkUserId)
-    }
 
     private suspend fun seedSpanishCourse() {
         courseDao.insertCourses(

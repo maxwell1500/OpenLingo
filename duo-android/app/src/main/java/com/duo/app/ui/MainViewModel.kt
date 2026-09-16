@@ -3,20 +3,12 @@ package com.duo.app.ui
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.clerk.api.Clerk
-import com.clerk.api.network.serialization.ClerkResult
-import com.clerk.api.session.Session
-import com.clerk.api.session.fetchToken
 import com.duo.app.DuoApplication
 import com.duo.app.data.local.entities.CourseEntity
 import com.duo.app.data.local.entities.LessonEntity
 import com.duo.app.data.local.entities.UnitEntity
 import com.duo.app.data.local.entities.UserProgressEntity
 import com.duo.app.data.local.entities.UnitWithLessons
-import com.duo.app.data.network.ApiClient
-import com.duo.app.data.network.AuthTokenHolder
-import com.duo.app.data.network.models.MeResponse
-import com.duo.app.data.network.models.SyncRequest
 import com.duo.app.data.repository.AnswerResult
 import com.duo.app.data.repository.ChallengeWithOptions
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -55,7 +47,6 @@ sealed interface ActiveScreen {
         val isCompleted: Boolean = false,
     ) : ActiveScreen
     data class LessonComplete(val lessonId: Int, val pointsGained: Int, val perfectBonus: Int = 0) : ActiveScreen
-    data object CloudAuthSheet : ActiveScreen
     data object Settings : ActiveScreen
 }
 
@@ -64,12 +55,6 @@ sealed interface FeedbackState {
     data class Incorrect(val correctAnswer: String) : FeedbackState
 }
 
-sealed interface CloudSyncStatus {
-    data object Guest : CloudSyncStatus
-    data object Connecting : CloudSyncStatus
-    data class Connected(val user: MeResponse) : CloudSyncStatus
-    data class Error(val message: String) : CloudSyncStatus
-}
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class MainViewModel(application: Application) : AndroidViewModel(application) {
@@ -119,8 +104,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     val mistakes: StateFlow<List<com.duo.app.data.local.entities.MistakeEntry>> =
         repository.getMistakes()
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
-    private val _cloudSyncStatus = MutableStateFlow<CloudSyncStatus>(CloudSyncStatus.Guest)
-    val cloudSyncStatus: StateFlow<CloudSyncStatus> = _cloudSyncStatus.asStateFlow()
     // Sound/haptics gates: user settings, defaulting to on for fresh installs.
     private fun soundOn(): Boolean = userProgress.value?.soundEnabled != false
     private fun hapticsOn(): Boolean = userProgress.value?.hapticsEnabled != false
@@ -185,19 +168,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private var lessonCombo: Int = 0
     val todayXp: StateFlow<Int> = repository.getTodayXp()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
-
-    init {
-        // Observe Clerk session if cloud sync is engaged
-        viewModelScope.launch {
-            Clerk.sessionFlow.collect { session ->
-                if (session != null && session.status == Session.SessionStatus.ACTIVE) {
-                    performCloudSync(session)
-                } else {
-                    _cloudSyncStatus.value = CloudSyncStatus.Guest
-                }
-            }
-        }
-    }
 
 
     fun switchCourse(courseId: Int) {
@@ -463,51 +433,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     fun refillHearts() {
         viewModelScope.launch {
             repository.refillHearts()
-        }
-    }
-
-    fun openCloudSync() {
-        _activeScreen.value = ActiveScreen.CloudAuthSheet
-    }
-
-    fun closeCloudSync() {
-        _activeScreen.value = ActiveScreen.LessonMap
-    }
-
-    private suspend fun performCloudSync(session: Session) {
-        _cloudSyncStatus.value = CloudSyncStatus.Connecting
-        when (val tokenResult = session.fetchToken()) {
-            is ClerkResult.Success -> {
-                val jwt = tokenResult.value.jwt
-                AuthTokenHolder.token = jwt
-                try {
-                    val me = ApiClient.api.getMe()
-                    // 1. Gather local SQLite progress
-                    val localProgress = repository.getUserProgressDirect()
-                    val completedChallenges = repository.getCompletedChallengeIdsDirect()
-
-                    // 2. Batch-sync guest progress to Postgres backend
-                    ApiClient.api.syncProgress(
-                        SyncRequest(
-                            activeCourseId = localProgress?.activeCourseId ?: 1,
-                            points = localProgress?.points ?: 0,
-                            hearts = localProgress?.hearts ?: 5,
-                            completedChallengeIds = completedChallenges,
-                        )
-                    )
-
-                    // 3. Re-key local progress to Clerk user ID
-                    repository.rekeyToClerkUser(me.id)
-                    _cloudSyncStatus.value = CloudSyncStatus.Connected(me)
-                } catch (e: Exception) {
-                    _cloudSyncStatus.value = CloudSyncStatus.Error(
-                        e.localizedMessage ?: "Failed to sync with backend"
-                    )
-                }
-            }
-            is ClerkResult.Failure -> {
-                _cloudSyncStatus.value = CloudSyncStatus.Error("Failed to fetch session token")
-            }
         }
     }
 }

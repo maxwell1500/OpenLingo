@@ -30,8 +30,6 @@ interface UserProgressDao {
 
     @Query("UPDATE user_progress SET streak = :streak, lastActiveDate = :date, lastSynced = :timestamp WHERE userId = :userId")
     suspend fun updateStreak(userId: String, streak: Int, date: String, timestamp: Long = System.currentTimeMillis())
-    @Query("UPDATE user_progress SET userId = :newUserId, lastSynced = :timestamp WHERE userId = :oldUserId")
-    suspend fun rekeyUserProgress(oldUserId: String, newUserId: String, timestamp: Long = System.currentTimeMillis())
 
     @Query("UPDATE user_progress SET showRomaji = :showRomaji, lastSynced = :timestamp WHERE userId = :userId")
     suspend fun setShowRomaji(userId: String, showRomaji: Boolean, timestamp: Long = System.currentTimeMillis())

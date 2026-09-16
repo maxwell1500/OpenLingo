@@ -81,7 +81,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.clerk.ui.auth.AuthView
 import com.duo.app.data.local.entities.ChallengeOptionEntity
 import com.duo.app.data.local.entities.CourseEntity
 import com.duo.app.data.local.entities.LessonEntity
@@ -90,7 +89,6 @@ import com.duo.app.data.local.entities.UnitWithLessons
 import com.duo.app.data.local.entities.UserProgressEntity
 import com.duo.app.data.repository.ChallengeWithOptions
 import com.duo.app.ui.ActiveScreen
-import com.duo.app.ui.CloudSyncStatus
 import com.duo.app.ui.FeedbackState
 import com.duo.app.ui.MainViewModel
 import com.duo.app.ui.MainTab
@@ -114,7 +112,6 @@ class MainActivity : ComponentActivity() {
             val completedChallengeIds by viewModel.completedChallengeIds.collectAsStateWithLifecycle()
             val activeScreen by viewModel.activeScreen.collectAsStateWithLifecycle()
             val currentTab by viewModel.currentTab.collectAsStateWithLifecycle()
-            val cloudSyncStatus by viewModel.cloudSyncStatus.collectAsStateWithLifecycle()
             val masteredCharacters by viewModel.masteredCharacters.collectAsStateWithLifecycle()
             val mistakes by viewModel.mistakes.collectAsStateWithLifecycle()
             val completedLessonCount by viewModel.completedLessonCount.collectAsStateWithLifecycle()
@@ -146,10 +143,8 @@ class MainActivity : ComponentActivity() {
                             DuoTopAppBar(
                                 courses = courses,
                                 userProgress = userProgress,
-                                cloudSyncStatus = cloudSyncStatus,
                                 onSelectCourse = viewModel::switchCourse,
                                 onRefillHearts = onFreeRefill,
-                                onOpenSync = viewModel::openCloudSync,
                                 onOpenSettings = viewModel::openSettings,
                             )
                         }
@@ -182,7 +177,6 @@ class MainActivity : ComponentActivity() {
                                                 completedChallengeIds = completedChallengeIds.toSet(),
                                                 completedLessonIds = completedLessonIds,
                                                 onStartLesson = viewModel::startLesson,
-                                                onOpenCloudSync = viewModel::openCloudSync,
                                                 todayXp = todayXp,
                                                 questGoal = com.duo.app.data.repository.LocalProgressRepository.DAILY_QUEST_XP,
                                                 brokenStreak = userProgress?.brokenStreak ?: 0,
@@ -264,12 +258,6 @@ class MainActivity : ComponentActivity() {
                                     pointsGained = screen.pointsGained,
                                     perfectBonus = screen.perfectBonus,
                                     onContinue = viewModel::exitExercise,
-                                )
-                            }
-                            is ActiveScreen.CloudAuthSheet -> {
-                                CloudSyncSheet(
-                                    cloudSyncStatus = cloudSyncStatus,
-                                    onClose = viewModel::closeCloudSync,
                                 )
                             }
                             is ActiveScreen.Settings -> {
@@ -395,16 +383,14 @@ private fun DuoBottomNavigationBar(
 }
 
 // -------------------------------------------------------------------------
-// Top App Bar: Course Switcher, Streak, XP, Hearts, Guest/Synced Badge
+// Top App Bar: Course Switcher, Streak, XP, Hearts
 // -------------------------------------------------------------------------
 @Composable
 private fun DuoTopAppBar(
     courses: List<CourseEntity>,
     userProgress: UserProgressEntity?,
-    cloudSyncStatus: CloudSyncStatus,
     onSelectCourse: (Int) -> Unit,
     onRefillHearts: () -> Unit,
-    onOpenSync: () -> Unit,
     onOpenSettings: () -> Unit,
 ) {
     val activeCourseId = userProgress?.activeCourseId ?: 1
@@ -519,32 +505,6 @@ private fun DuoTopAppBar(
                     )
                 }
 
-                // Guest / Cloud Sync Badge
-                Box(
-                    modifier = Modifier
-                        .background(
-                            color = when (cloudSyncStatus) {
-                                is CloudSyncStatus.Connected -> Color(0xFFE8F5E9)
-                                else -> Color(0xFFF0F0F0)
-                            },
-                            shape = CircleShape,
-                        )
-                        .clickable(onClick = onOpenSync)
-                        .padding(horizontal = 6.dp, vertical = 4.dp),
-                ) {
-                    Text(
-                        text = when (cloudSyncStatus) {
-                            is CloudSyncStatus.Connected -> "✓ Synced"
-                            else -> "👤 Guest"
-                        },
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = when (cloudSyncStatus) {
-                            is CloudSyncStatus.Connected -> Color(0xFF2E7D32)
-                            else -> Color(0xFF777777)
-                        },
-                    )
-                }
                 // Settings gear
                 Box(
                     modifier = Modifier
@@ -560,7 +520,7 @@ private fun DuoTopAppBar(
 }
 
 // -------------------------------------------------------------------------
-// Screen 1: Lesson Map (Units, Lesson Nodes, Guest Persistence Badge)
+// Screen 1: Lesson Map (Units, Lesson Nodes, Offline Info Banner)
 // -------------------------------------------------------------------------
 private enum class LessonState {
     COMPLETED,
@@ -574,7 +534,6 @@ private fun LessonMapScreen(
     completedChallengeIds: Set<Int>,
     completedLessonIds: Set<Int>,
     onStartLesson: (Int) -> Unit,
-    onOpenCloudSync: () -> Unit,
     todayXp: Int,
     questGoal: Int,
     brokenStreak: Int,
@@ -671,11 +630,9 @@ private fun LessonMapScreen(
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        // Guest Persistence Info Banner
+        // Offline data banner
         Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable(onClick = onOpenCloudSync),
+            modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(16.dp),
             colors = CardDefaults.cardColors(containerColor = Color(0xFFF7F7F7)),
         ) {
@@ -687,18 +644,17 @@ private fun LessonMapScreen(
                 Text(text = "💾", fontSize = 24.sp)
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = "Guest Mode: 100% Offline",
+                        text = "100% Offline",
                         fontWeight = FontWeight.Bold,
                         fontSize = 14.sp,
                         color = Color(0xFF4B4B4B),
                     )
                     Text(
-                        text = "All XP, hearts, and lessons save automatically to your phone. Tap to link with a cloud account.",
+                        text = "All XP, hearts, and lessons save automatically to your phone. Export a backup in Settings to move them to another device.",
                         fontSize = 12.sp,
                         color = Color(0xFF777777),
                     )
                 }
-                Text(text = "→", fontSize = 18.sp, color = Color(0xFF1CB0F6))
             }
         }
 
@@ -1741,9 +1697,6 @@ private fun CelebrationConfetti(modifier: Modifier = Modifier) {
 }
 
 // -------------------------------------------------------------------------
-// Screen 4: Cloud Sync Sheet (Optional Clerk Authentication)
-// -------------------------------------------------------------------------
-// -------------------------------------------------------------------------
 // Screen: Settings (sound, haptics, romaji, reset, about)
 // -------------------------------------------------------------------------
 @Composable
@@ -1916,7 +1869,7 @@ private fun SettingsScreen(
             Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Text(text = "Free forever", fontWeight = FontWeight.Bold, color = Color(0xFF58CC02))
                 Text(
-                    text = "No ads, no payments, no account needed. Guest progress lives only on this device.",
+                    text = "No ads, no payments, no account needed. Your progress lives only on this device — export a backup in Settings to move it to another phone.",
                     style = MaterialTheme.typography.bodySmall,
                     color = Color(0xFF777777),
                 )
@@ -2017,7 +1970,7 @@ private fun OnboardingPager(onDone: () -> Unit) {
     val pages = listOf(
         Triple("🦫", "Learn free, forever", "Spanish + Japanese lessons work 100% offline with OpenLingo. No ads, no payments, no account needed."),
         Triple("❤️", "Hearts refill free", "Mistakes cost a heart. Tap the pulsing ❤️ pill anytime for a free refill — every midnight refills to full too."),
-        Triple("☁️", "Cloud sync is optional", "Sign in to back up progress to the web app. Skip it and everything stays on your device."),
+        Triple("💾", "Yours to take anywhere", "All progress lives on your device. Export a backup file from Settings and import it on any phone — no account, no cloud."),
     )
     val (emoji, title, body) = pages[page.coerceIn(pages.indices)]
     Surface(
@@ -2080,105 +2033,4 @@ private fun OnboardingPager(onDone: () -> Unit) {
             }
         }
     }
-}
-
-@Composable
-private fun CloudSyncSheet(
-    cloudSyncStatus: CloudSyncStatus,
-    onClose: () -> Unit,
-) {
-    Surface(
-        modifier = Modifier.fillMaxSize(),
-        color = Color.White,
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .statusBarsPadding()
-                .navigationBarsPadding()
-                .padding(20.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-        ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text(
-                text = "Cloud Sync (Optional)",
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold,
-                color = Color(0xFF4B4B4B),
-            )
-            TextButton(onClick = onClose) {
-                Text(text = "Done", fontWeight = FontWeight.Bold, color = Color(0xFF1CB0F6))
-            }
-        }
-
-        when (cloudSyncStatus) {
-            is CloudSyncStatus.Connected -> {
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFFE8F5E9)),
-                ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Text(text = "✓ Account Linked", fontWeight = FontWeight.Bold, color = Color(0xFF2E7D32))
-                        Text(text = "User ID: ${cloudSyncStatus.user.id}", fontSize = 13.sp, color = Color(0xFF1B5E20))
-                        if (!cloudSyncStatus.user.email.isNullOrBlank()) {
-                            Text(text = "Email: ${cloudSyncStatus.user.email}", fontSize = 13.sp, color = Color(0xFF1B5E20))
-                        }
-                    }
-                }
-            }
-            is CloudSyncStatus.Connecting -> {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                ) {
-                    CircularProgressIndicator(modifier = Modifier.size(20.dp), color = Color(0xFF1CB0F6))
-                    Text(text = "Syncing local progress to cloud account...", color = Color(0xFF777777))
-                }
-            }
-            is CloudSyncStatus.Guest, is CloudSyncStatus.Error -> {
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFFF7F7F7)),
-                ) {
-                    Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Text(
-                            text = "Save Progress to Cloud",
-                            fontWeight = FontWeight.Bold,
-                            color = Color(0xFF1CB0F6),
-                        )
-                        Text(
-                            text = "You are currently practicing in 100% offline Guest Mode. All lessons, hearts, and points are saved locally in your phone's SQLite database.",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = Color(0xFF4B4B4B),
-                        )
-                        if (cloudSyncStatus is CloudSyncStatus.Error) {
-                            Text(
-                                text = "Last sync failed: ${cloudSyncStatus.message}. Your local progress is safe — sign in again to retry.",
-                                style = MaterialTheme.typography.bodySmall,
-                                fontWeight = FontWeight.Bold,
-                                color = Color(0xFFFF4B4B),
-                            )
-                        }
-                        Text(
-                            text = "When you connect a Clerk account, all your local XP and completed lessons will be automatically synced with the Next.js web application.",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = Color(0xFF4B4B4B),
-                        )
-                    }
-                }
-
-                // If Clerk key is configured, show AuthView
-                if (!com.duo.app.BuildConfig.CLERK_PUBLISHABLE_KEY.contains("example.clerk")) {
-                    AuthView(isDismissible = true, onDismiss = onClose)
-                }
-            }
-        }
-    }
-}
 }

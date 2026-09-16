@@ -17,14 +17,14 @@ A short description of what went wrong.
 What you expected to happen.
 
 **Screenshots / logs**
-If useful, add a screenshot or the terminal/browser error.
+If useful, add a screenshot or the relevant logcat/terminal output.
 
 **Environment**
-- OS: [e.g. Windows 11, macOS 15, Ubuntu 24.04]
-- Browser: [e.g. Chrome 128] (skip for non-browser apps)
-- Node.js: [e.g. 20.11]
-- Package manager: [npm / pnpm / yarn / bun]
-- Framework: [e.g. Next.js 14, Vite 5, CRA, vanilla HTML]
+- OS (host): [e.g. Windows 11, Ubuntu 24.04]
+- Android version: [e.g. Android 15 (API 35)]
+- Device model: [e.g. Pixel 8, Galaxy S24, emulator]
+- App version: [e.g. 1.0.0 (build 1)]
+- Gradle version (build issues only): [e.g. 9.6.0]
 
 **Additional context**
 Anything else, including whether you followed a tutorial.

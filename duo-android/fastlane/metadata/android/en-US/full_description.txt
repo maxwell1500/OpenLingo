@@ -1,4 +1,4 @@
-OpenLingo is a 100% free, privacy-first, open-source language learning client for Android with rich offline Spanish (CEFR A1) and Japanese (JLPT N5) curricula.
+OpenLingo is a 100% free, privacy-first, open-source language learning client for Android with rich offline Spanish (CEFR A1–B1) and Japanese (JLPT N5–N4) curricula.
 
 Guided by our chill Capybara mascot (🦫), learn at your own pace without stress, streaks anxiety, or ads.
 
@@ -15,4 +15,3 @@ Key Features:
 • Free Heart Refills: tap your hearts pill anytime for an instant free refill, or wake up to full hearts at midnight.
 • Accountless Data Ownership: export and import your full progress anytime as a portable local JSON file.
 • Private Local Reminders: optional 7 PM offline reminder to keep your streak alive.
-• Optional Cloud Sync: sign in with Clerk to sync progress across multiple devices if desired.

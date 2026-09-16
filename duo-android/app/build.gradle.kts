@@ -18,12 +18,6 @@ android {
         targetSdk = 36
         versionCode = 1
         versionName = "0.1.0"
-
-        val clerkKey = (project.findProperty("CLERK_PUBLISHABLE_KEY") as String?) ?: "pk_test_placeholder"
-        buildConfigField("String", "CLERK_PUBLISHABLE_KEY", "\"$clerkKey\"")
-
-        val backendUrl = (project.findProperty("BACKEND_BASE_URL") as String?) ?: "http://10.0.2.2:3000/"
-        buildConfigField("String", "BACKEND_BASE_URL", "\"$backendUrl\"")
     }
 
     // Release signing: credentials live ONLY in a local (gitignored)
@@ -72,7 +66,6 @@ android {
 
     buildFeatures {
         compose = true
-        buildConfig = true
     }
 }
 
@@ -95,14 +88,7 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.10.0")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2")
 
-    // Auth (Clerk Android SDK - MIT, F-Droid compliant)
-    implementation("com.clerk:clerk-android-ui:1.1.6")
-    implementation("com.clerk:clerk-android-api:1.1.6")
-
-    // Network & Serialization
-    implementation("com.squareup.retrofit2:retrofit:3.0.0")
-    implementation("com.squareup.retrofit2:converter-kotlinx-serialization:3.0.0")
-    implementation("com.squareup.okhttp3:okhttp:5.4.0")
+    // Serialization (backup JSON export/import)
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.11.0")
 
     // Room Database (Local Persistence)

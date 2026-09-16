@@ -1,8 +1,6 @@
 package com.duo.app
 
 import android.app.Application
-import com.clerk.api.Clerk
-import com.clerk.api.ClerkConfigurationOptions
 import com.duo.app.data.local.DuoDatabase
 import com.duo.app.data.repository.LocalProgressRepository
 import com.duo.app.audio.AudioPlayer
@@ -27,19 +25,5 @@ class DuoApplication : Application() {
         // also runs on every app start, so a missed alarm is harmless).
         com.duo.app.alarm.DailyResetScheduler.schedule(this)
         com.duo.app.alarm.StreakReminderScheduler.schedule(this)
-
-        // Initialize Clerk with F-Droid compliant configuration (telemetry disabled)
-        try {
-            Clerk.initialize(
-                context = this,
-                publishableKey = BuildConfig.CLERK_PUBLISHABLE_KEY,
-                options = ClerkConfigurationOptions(
-                    telemetryEnabled = false,
-                    enableDebugMode = BuildConfig.DEBUG,
-                ),
-            )
-        } catch (e: Exception) {
-            android.util.Log.e("DuoApplication", "Clerk SDK init note: ${e.message}")
-        }
     }
 }
