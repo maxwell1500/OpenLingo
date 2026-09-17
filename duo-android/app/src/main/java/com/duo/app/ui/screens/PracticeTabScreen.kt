@@ -80,7 +80,62 @@ fun PracticeTabScreen(
             .padding(horizontal = 20.dp, vertical = 14.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
-        // Practice Session Banner (Dumbbell)
+        // Primary action: practice weaknesses (missed challenges) or general review.
+        if (mistakes.isNotEmpty()) {
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { onStartPractice() },
+                shape = RoundedCornerShape(20.dp),
+                colors = CardDefaults.cardColors(containerColor = Color(0xFFFFF3E0)),
+                border = androidx.compose.foundation.BorderStroke(1.5.dp, Color(0xFFFF9600)),
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(18.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(54.dp)
+                            .background(Color(0xFFFF9600), CircleShape),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Text(text = "🎯", fontSize = 28.sp)
+                    }
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = "Practice your ${mistakes.size} weakness${if (mistakes.size == 1) "" else "es"}",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFFE67E22),
+                        )
+                        Text(
+                            text = "Only the challenges you missed — no heart penalty, clears on success",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Color(0xFF4B4B4B),
+                        )
+                    }
+                    Box(
+                        modifier = Modifier
+                            .background(Color(0xFF58CC02), RoundedCornerShape(12.dp))
+                            .padding(horizontal = 14.dp, vertical = 10.dp),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Text(
+                            text = "GO",
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White,
+                        )
+                    }
+                }
+            }
+        }
+
+        // Flashcards / vocab review banner (always available).
         Card(
             modifier = Modifier
                 .fillMaxWidth()
@@ -102,7 +157,7 @@ fun PracticeTabScreen(
                         .background(Color(0xFF1CB0F6), CircleShape),
                     contentAlignment = Alignment.Center,
                 ) {
-                    Text(text = "🏋️", fontSize = 28.sp)
+                    Text(text = "🃏", fontSize = 28.sp)
                 }
 
                 Column(modifier = Modifier.weight(1f)) {
@@ -118,13 +173,13 @@ fun PracticeTabScreen(
                         color = Color(0xFF4B4B4B),
                     )
                 }
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = "🃏 Tap to open Flashcards mode",
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFF1CB0F6),
-                    )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = "Tap to open Flashcards mode",
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF1CB0F6),
+                )
             }
         }
 

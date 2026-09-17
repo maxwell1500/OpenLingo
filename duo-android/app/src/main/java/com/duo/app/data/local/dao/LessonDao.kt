@@ -16,6 +16,9 @@ interface LessonDao {
     @Query("SELECT * FROM challenges WHERE id = :challengeId LIMIT 1")
     suspend fun getChallengeById(challengeId: Int): ChallengeEntity?
 
+    @Query("SELECT * FROM challenges WHERE id IN (:challengeIds) ORDER BY lessonId ASC, orderIndex ASC")
+    suspend fun getChallengesByIds(challengeIds: List<Int>): List<ChallengeEntity>
+
 
     @Query("SELECT * FROM challenge_options WHERE challengeId = :challengeId")
     suspend fun getOptionsForChallenge(challengeId: Int): List<ChallengeOptionEntity>

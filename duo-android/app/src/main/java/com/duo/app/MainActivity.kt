@@ -205,7 +205,13 @@ class MainActivity : ComponentActivity() {
                                     is MainTab.Practice -> {
                                         com.duo.app.ui.screens.PracticeTabScreen(
                                             onPlayVoice = viewModel::playVoice,
-                                            onStartPractice = { viewModel.startLesson(if (isJapanese) 200 else 100) },
+                                            onStartPractice = {
+                                                if (mistakes.isNotEmpty()) {
+                                                    viewModel.startMistakePractice()
+                                                } else {
+                                                    viewModel.startLesson(if (isJapanese) 200 else 100)
+                                                }
+                                            },
                                             mistakes = mistakes,
                                             onPracticeMistake = viewModel::startLesson,
                                         )

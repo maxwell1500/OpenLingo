@@ -240,7 +240,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    private var isInPracticeSession = false
+
     fun startLesson(lessonId: Int) {
+        isInPracticeSession = false
         viewModelScope.launch {
             val challenges = repository.getChallengesForLesson(lessonId)
             if (challenges.isNotEmpty()) {
@@ -260,6 +263,26 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    fun startMistakePractice() {
+        viewModelScope.launch {
+            val challenges = repository.getMistakeChallenges()
+            if (challenges.isNotEmpty()) {
+                isInPracticeSession = true
+                currentLessonChallenges = challenges
+                lessonPointsAccumulated = 0
+                lessonMistakes = 0
+                lessonCombo = 0
+                val firstChallenge = challenges[0]
+                firstChallenge.challenge.audioSrc?.let { playVoiceIfEnabled(it) }
+                _activeScreen.value = ActiveScreen.Exercise(
+                    lessonId = -1,
+                    challengeIndex = 0,
+                    totalChallenges = challenges.size,
+                    currentChallenge = firstChallenge,
+                )
+            }
+        }
+    }
     fun selectOption(optionId: Int) {
         val current = _activeScreen.value as? ActiveScreen.Exercise ?: return
         if (current.feedback != null) return // Already checked
@@ -357,7 +380,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
 
         viewModelScope.launch {
-            when (val result = repository.submitAnswer(current.currentChallenge.challenge.id, isCorrect)) {
+            when (val result = repository.submitAnswer(current.currentChallenge.challenge.id, isCorrect, isPractice = isInPracticeSession)) {
                 is AnswerResult.Correct -> {
                     if (soundOn()) audioPlayer.playCorrectSound()
                     if (hapticsOn()) com.duo.app.feedback.Haptics.correct(getApplication())
@@ -402,18 +425,29 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 currentChallenge = nextChallenge,
             )
         } else {
-            // Lesson completed!
-            if (soundOn()) audioPlayer.playFanfare()
-            if (hapticsOn()) com.duo.app.feedback.Haptics.celebrate(getApplication())
-            refreshProfileStats()
-            viewModelScope.launch {
-                val bonus = if (lessonMistakes == 0) repository.awardPerfectBonus() else 0
-                _activeScreen.value = ActiveScreen.LessonComplete(
-                    lessonId = current.lessonId,
-                    pointsGained = lessonPointsAccumulated + bonus,
-                    perfectBonus = bonus,
-                )
+            if (isInPracticeSession) {
+                // Practice session done — back to Practice tab, no lesson credit.
+                isInPracticeSession = false
+                if (soundOn()) audioPlayer.playCorrectSound()
+                if (hapticsOn()) com.duo.app.feedback.Haptics.correct(getApplication())
+                refreshProfileStats()
+                _activeScreen.value = ActiveScreen.LessonMap
+                _currentTab.value = MainTab.Practice
                 com.duo.app.widget.OpenLingoWidgetProvider.updateAll(getApplication())
+            } else {
+                // Regular lesson completed.
+                if (soundOn()) audioPlayer.playFanfare()
+                if (hapticsOn()) com.duo.app.feedback.Haptics.celebrate(getApplication())
+                refreshProfileStats()
+                viewModelScope.launch {
+                    val bonus = if (lessonMistakes == 0) repository.awardPerfectBonus() else 0
+                    _activeScreen.value = ActiveScreen.LessonComplete(
+                        lessonId = current.lessonId,
+                        pointsGained = lessonPointsAccumulated + bonus,
+                        perfectBonus = bonus,
+                    )
+                    com.duo.app.widget.OpenLingoWidgetProvider.updateAll(getApplication())
+                }
             }
         }
     }

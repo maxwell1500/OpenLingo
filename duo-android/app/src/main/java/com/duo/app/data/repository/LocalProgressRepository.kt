@@ -159,6 +159,23 @@ class LocalProgressRepository(private val database: DuoDatabase) {
             }
         }
 
+    suspend fun getMistakeChallenges(): List<ChallengeWithOptions> =
+        withContext(Dispatchers.IO) {
+            val mistakes = mistakeDao.getAllMistakesDirect()
+            val challengeIds = mistakes.map { it.challengeId }.distinct()
+            if (challengeIds.isEmpty()) return@withContext emptyList()
+            val challenges = lessonDao.getChallengesByIds(challengeIds)
+            challenges.map { challenge ->
+                val options = lessonDao.getOptionsForChallenge(challenge.id)
+                val isCompleted = challengeProgressDao.isChallengeCompleted(GUEST_USER_ID, challenge.id)
+                ChallengeWithOptions(
+                    challenge = challenge,
+                    options = options,
+                    isCompleted = isCompleted,
+                )
+            }
+        }
+
     suspend fun switchCourse(courseId: Int) = withContext(Dispatchers.IO) {
         userProgressDao.setActiveCourse(GUEST_USER_ID, courseId)
     }
@@ -169,63 +186,84 @@ class LocalProgressRepository(private val database: DuoDatabase) {
         userProgressDao.setShowRomaji(userId, showRomaji)
     }
 
-    suspend fun submitAnswer(challengeId: Int, isCorrect: Boolean): AnswerResult =
+    suspend fun submitAnswer(challengeId: Int, isCorrect: Boolean, isPractice: Boolean = false): AnswerResult =
         withContext(Dispatchers.IO) {
             val user = userProgressDao.getUserProgressDirect(GUEST_USER_ID)
                 ?: UserProgressEntity(userId = GUEST_USER_ID, activeCourseId = 1, hearts = MAX_HEARTS, points = 0)
 
             if (isCorrect) {
-                challengeProgressDao.markChallengeCompleted(
-                    ChallengeProgressEntity(
-                        userId = GUEST_USER_ID,
-                        challengeId = challengeId,
-                        completed = true,
-                        synced = false,
-                    )
-                )
-                // Answered right: clear any pending mistake for this challenge.
-                mistakeDao.clearMistake(challengeId)
-                val today = java.time.LocalDate.now().toString()
-                userProgressDao.addPoints(GUEST_USER_ID, POINTS_PER_CHALLENGE)
-                dailyActivityDao.addXp(today, POINTS_PER_CHALLENGE)
-                val newPoints = user.points + POINTS_PER_CHALLENGE
-                // First activity of a new day extends the streak.
-                var streakRepaired = false
-                if (user.lastActiveDate != today) {
-                    val lastActive = runCatching { java.time.LocalDate.parse(user.lastActiveDate) }.getOrNull()
-                    val consecutive = lastActive?.plusDays(1)?.toString() == today
-                    userProgressDao.updateStreak(
-                        GUEST_USER_ID,
-                        if (consecutive) user.streak + 1 else 1,
-                        today,
-                    )
-                }
-                // Streak repair: a pending broken streak is restored on the next
-                // completed challenge, whatever lesson it came from.
-                if (user.brokenStreak > 0) {
-                    userProgressDao.updateStreak(GUEST_USER_ID, user.brokenStreak + 1, today)
-                    userProgressDao.setBrokenStreak(GUEST_USER_ID, 0)
-                    streakRepaired = true
-                }
-                AnswerResult.Correct(
-                    pointsGained = POINTS_PER_CHALLENGE,
-                    totalPoints = newPoints,
-                    hearts = user.hearts,
-                    streakRepaired = streakRepaired,
-                )
-            } else {
-                val newHearts = (user.hearts - 1).coerceAtLeast(0)
-                userProgressDao.updateHearts(GUEST_USER_ID, newHearts)
-                // Record the miss for SRS review (drawing drills use synthetic ids, skip those).
-                lessonDao.getChallengeById(challengeId)?.let { challenge ->
-                    mistakeDao.upsertMistake(
-                        com.duo.app.data.local.entities.MistakeEntity(
+                if (!isPractice) {
+                    challengeProgressDao.markChallengeCompleted(
+                        ChallengeProgressEntity(
+                            userId = GUEST_USER_ID,
                             challengeId = challengeId,
-                            lessonId = challenge.lessonId,
+                            completed = true,
+                            synced = false,
                         )
                     )
                 }
-                AnswerResult.Incorrect(remainingHearts = newHearts)
+                // Answered right: clear any pending mistake for this challenge.
+                mistakeDao.clearMistake(challengeId)
+                val today = java.time.LocalDate.now().toString()
+                var streakRepaired = false
+                if (!isPractice) {
+                    userProgressDao.addPoints(GUEST_USER_ID, POINTS_PER_CHALLENGE)
+                    dailyActivityDao.addXp(today, POINTS_PER_CHALLENGE)
+                    val newPoints = user.points + POINTS_PER_CHALLENGE
+                    if (user.lastActiveDate != today) {
+                        val lastActive = runCatching { java.time.LocalDate.parse(user.lastActiveDate) }.getOrNull()
+                        val consecutive = lastActive?.plusDays(1)?.toString() == today
+                        userProgressDao.updateStreak(
+                            GUEST_USER_ID,
+                            if (consecutive) user.streak + 1 else 1,
+                            today,
+                        )
+                    }
+                    if (user.brokenStreak > 0) {
+                        userProgressDao.updateStreak(GUEST_USER_ID, user.brokenStreak + 1, today)
+                        userProgressDao.setBrokenStreak(GUEST_USER_ID, 0)
+                        streakRepaired = true
+                    }
+                    AnswerResult.Correct(
+                        pointsGained = POINTS_PER_CHALLENGE,
+                        totalPoints = newPoints,
+                        hearts = user.hearts,
+                        streakRepaired = streakRepaired,
+                    )
+                } else {
+                    AnswerResult.Correct(
+                        pointsGained = 0,
+                        totalPoints = user.points,
+                        hearts = user.hearts,
+                        streakRepaired = false,
+                    )
+                }
+            } else {
+                if (!isPractice) {
+                    val newHearts = (user.hearts - 1).coerceAtLeast(0)
+                    userProgressDao.updateHearts(GUEST_USER_ID, newHearts)
+                    lessonDao.getChallengeById(challengeId)?.let { challenge ->
+                        mistakeDao.upsertMistake(
+                            com.duo.app.data.local.entities.MistakeEntity(
+                                challengeId = challengeId,
+                                lessonId = challenge.lessonId,
+                            )
+                        )
+                    }
+                    AnswerResult.Incorrect(remainingHearts = newHearts)
+                } else {
+                    // Practice mode: still record the miss so it stays in the queue,
+                    // but no heart loss.
+                    lessonDao.getChallengeById(challengeId)?.let { challenge ->
+                        mistakeDao.upsertMistake(
+                            com.duo.app.data.local.entities.MistakeEntity(
+                                challengeId = challengeId,
+                                lessonId = challenge.lessonId,
+                            )
+                        )
+                    }
+                    AnswerResult.Incorrect(remainingHearts = user.hearts)
+                }
             }
         }
     /** XP earned today (local date); backs the daily quest card. */
