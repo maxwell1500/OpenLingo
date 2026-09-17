@@ -12,6 +12,7 @@ import com.duo.app.data.local.entities.UnitWithLessons
 import com.duo.app.data.repository.AnswerResult
 import com.duo.app.data.repository.ChallengeWithOptions
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -81,6 +82,14 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         .map { it.toSet() }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptySet())
 
+    val courseComplete: StateFlow<Boolean> = combine(
+        unitsWithLessons,
+        completedLessonIds,
+    ) { units, completed ->
+        val allLessonIds = units.flatMap { it.lessons.map { l -> l.id } }
+        allLessonIds.isNotEmpty() && allLessonIds.all { completed.contains(it) }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+
 
     private val _activeScreen = MutableStateFlow<ActiveScreen>(ActiveScreen.LessonMap)
     val activeScreen: StateFlow<ActiveScreen> = _activeScreen.asStateFlow()
@@ -131,6 +140,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     fun completeOnboarding() {
         viewModelScope.launch { repository.setOnboardingSeen() }
+    }
+
+    fun clearAllMistakes() {
+        viewModelScope.launch { repository.clearAllMistakes() }
     }
 
     fun resetAllProgress() {
@@ -265,7 +278,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     fun startMistakePractice() {
         viewModelScope.launch {
-            val challenges = repository.getMistakeChallenges()
+            val challenges = repository.getMistakeChallenges().shuffled()
             if (challenges.isNotEmpty()) {
                 isInPracticeSession = true
                 currentLessonChallenges = challenges

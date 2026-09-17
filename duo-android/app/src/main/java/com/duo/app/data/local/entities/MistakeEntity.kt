@@ -15,6 +15,7 @@ data class MistakeEntity(
 data class MistakeEntry(
     val challengeId: Int,
     val lessonId: Int,
+    val lessonName: String,
     val question: String,
     val type: String,
     val timestamp: Long,

@@ -119,6 +119,7 @@ class MainActivity : ComponentActivity() {
             val completedLessonCount by viewModel.completedLessonCount.collectAsStateWithLifecycle()
             val todayXp by viewModel.todayXp.collectAsStateWithLifecycle()
             val completedLessonIds by viewModel.completedLessonIds.collectAsStateWithLifecycle()
+            val courseComplete by viewModel.courseComplete.collectAsStateWithLifecycle()
             val showRomaji = userProgress?.showRomaji ?: true
             val isJapanese = (userProgress?.activeCourseId ?: 1) == 2
 
@@ -213,6 +214,8 @@ class MainActivity : ComponentActivity() {
                                                 }
                                             },
                                             mistakes = mistakes,
+                                            onClearAllMistakes = viewModel::clearAllMistakes,
+                                            courseComplete = courseComplete,
                                         )
                                     }
                                     is MainTab.Profile -> {

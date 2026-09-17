@@ -176,6 +176,10 @@ class LocalProgressRepository(private val database: DuoDatabase) {
             }
         }
 
+    suspend fun clearAllMistakes() = withContext(Dispatchers.IO) {
+        mistakeDao.clearAllMistakes()
+    }
+
     suspend fun switchCourse(courseId: Int) = withContext(Dispatchers.IO) {
         userProgressDao.setActiveCourse(GUEST_USER_ID, courseId)
     }

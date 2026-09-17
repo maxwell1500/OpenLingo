@@ -13,8 +13,11 @@ interface MistakeDao {
 
     @Query(
         "SELECT m.challengeId AS challengeId, m.lessonId AS lessonId, " +
+            "l.title AS lessonName, " +
             "c.question AS question, c.type AS type, m.timestamp AS timestamp " +
-            "FROM mistakes AS m INNER JOIN challenges AS c ON c.id = m.challengeId " +
+            "FROM mistakes AS m " +
+            "INNER JOIN challenges AS c ON c.id = m.challengeId " +
+            "INNER JOIN lessons AS l ON l.id = m.lessonId " +
             "ORDER BY m.timestamp DESC"
     )
     fun getMistakeEntries(): Flow<List<MistakeEntry>>

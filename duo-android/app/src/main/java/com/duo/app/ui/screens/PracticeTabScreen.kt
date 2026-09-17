@@ -69,6 +69,8 @@ fun PracticeTabScreen(
     onPlayVoice: (String) -> Unit,
     onStartPractice: () -> Unit,
     mistakes: List<com.duo.app.data.local.entities.MistakeEntry> = emptyList(),
+    onClearAllMistakes: () -> Unit = {},
+    courseComplete: Boolean = false,
     modifier: Modifier = Modifier,
 ) {
     var showFlashcards by remember { mutableStateOf(false) }
@@ -79,6 +81,45 @@ fun PracticeTabScreen(
             .padding(horizontal = 20.dp, vertical = 14.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
+        // Course complete celebration — shown when all lessons done and no mistakes.
+        if (courseComplete && mistakes.isEmpty()) {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(20.dp),
+                colors = CardDefaults.cardColors(containerColor = Color(0xFFE8F5E9)),
+                border = androidx.compose.foundation.BorderStroke(1.5.dp, Color(0xFF58CC02)),
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(18.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(54.dp)
+                            .background(Color(0xFF58CC02), CircleShape),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Text(text = "🎉", fontSize = 28.sp)
+                    }
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = "Course mastered!",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF3E8E01),
+                        )
+                        Text(
+                            text = "All lessons complete and no pending mistakes. Keep reviewing with flashcards to stay sharp.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Color(0xFF4B4B4B),
+                        )
+                    }
+                }
+            }
+        }
         // Primary action: practice weaknesses (missed challenges) or general review.
         if (mistakes.isNotEmpty()) {
             Card(
@@ -186,6 +227,7 @@ fun PracticeTabScreen(
         if (mistakes.isNotEmpty()) {
             MistakesReviewCard(
                 mistakes = mistakes,
+                onClearAllMistakes = onClearAllMistakes,
             )
         }
 
@@ -452,6 +494,7 @@ private fun VocabCard(
 @Composable
 private fun MistakesReviewCard(
     mistakes: List<com.duo.app.data.local.entities.MistakeEntry>,
+    onClearAllMistakes: () -> Unit = {},
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -496,14 +539,23 @@ private fun MistakesReviewCard(
                         fontSize = 14.sp,
                         color = Color(0xFFFF9600),
                     )
-                    Text(
-                        text = mistake.question,
-                        style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = FontWeight.Medium,
-                        color = Color(0xFF4B4B4B),
-                        modifier = Modifier.weight(1f),
-                        maxLines = 2,
-                    )
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = mistake.question,
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Medium,
+                            color = Color(0xFF4B4B4B),
+                            maxLines = 2,
+                        )
+                        if (mistake.lessonName.isNotBlank()) {
+                            Text(
+                                text = mistake.lessonName,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = Color(0xFF999999),
+                                maxLines = 1,
+                            )
+                        }
+                    }
                 }
             }
             if (mistakes.size > 5) {
@@ -511,6 +563,19 @@ private fun MistakesReviewCard(
                     text = "+${mistakes.size - 5} more…",
                     style = MaterialTheme.typography.bodySmall,
                     color = Color(0xFF999999),
+                )
+            }
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End,
+            ) {
+                Text(
+                    text = "Clear all",
+                    style = MaterialTheme.typography.bodySmall,
+                    fontWeight = FontWeight.SemiBold,
+                    color = Color(0xFF999999),
+                    modifier = Modifier.clickable { onClearAllMistakes() },
                 )
             }
         }
