@@ -14,6 +14,9 @@ interface VocabScheduleDao {
     @Query("SELECT * FROM vocab_schedule ORDER BY due ASC")
     fun getAllVocab(): Flow<List<VocabScheduleEntity>>
 
+    @Query("SELECT * FROM vocab_schedule")
+    suspend fun getAllVocabDirect(): List<VocabScheduleEntity>
+
     @Query("SELECT * FROM vocab_schedule WHERE language = :language ORDER BY due ASC")
     fun getVocabForLanguage(language: String): Flow<List<VocabScheduleEntity>>
 

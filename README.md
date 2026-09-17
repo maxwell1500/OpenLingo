@@ -4,17 +4,22 @@ OpenLingo is a 100% free, open-source, native Android app for learning Spanish (
 
 ## Features
 
-- Offline curricula: 20 units, 38 lessons, 123 challenges across Spanish and Japanese
+- Offline curricula: 20 units, 38 lessons, 124 challenges across Spanish and Japanese
 - Bundled Kokoro-82M TTS audio (Ogg) — every word and phrase is pronounceable, no network needed
+- **Checkpoint tests**: CEFR A1/B1 and JLPT N5/N4 level mastery tests with celebratory pass badges and auto-queueing of missed questions
+- **FSRS-4.5 spaced repetition**: Modern Free Spaced Repetition Scheduler algorithm for vocabulary review with 4-grade rating (Again, Hard, Good, Easy) and due-count badges
+- **Adaptive difficulty**: Real-time accuracy tracking across challenge types (`SELECT`, `WORD_BANK`, `LISTEN`, `MATCH_PAIRS`, `STORY`) with weakest-area prioritization in practice and profile breakdown
+- **Story mode**: Interactive narrative reading comprehension challenges with character dialogue, offline audio, and question prompts
+- **Placement test**: Quick cross-curriculum assessment on first launch allowing experienced learners to test out of earlier levels
 - Winding S-curve lesson map with golden crowns per completed unit
 - Hearts with an instant free refill, plus a daily refill at midnight
 - Daily quests (30 XP goal) and streaks with streak repair after a missed day
 - Spaced-repetition mistakes review (Practice tab)
 - Kana tracing for all 46 hiragana + 46 katakana, plus 60-second Kana Blitz
-- 4 theme accents: Onsen Teal, Matcha Green, Sakura Pink, Yuzu Citrus
+- Dark mode (System / Light / Dark) and 4 theme accents: Onsen Teal, Matcha Green, Sakura Pink, Yuzu Citrus
 - Home-screen widget showing your streak and daily quest progress
 - Optional 7 PM offline streak reminder
-- JSON backup export/import for moving progress between devices — no cloud required
+- JSON backup export/import (v2 with checkpoints and FSRS schedules) for moving progress between devices — no cloud required
 - Fully offline: no `INTERNET` permission, no telemetry, nothing leaves your device
 
 ## Curriculum
@@ -29,7 +34,7 @@ Every lesson mixes exercise types: multiple choice, assisted translation, word b
 ## Tech stack
 
 - Kotlin + Jetpack Compose (Material 3)
-- Room (v8, with data-preserving migrations)
+- Room (v12, with data-preserving migrations MIGRATION_4_5 through MIGRATION_11_12)
 - Media3 ExoPlayer for audio playback
 - KotlinX Serialization for progress backups
 - AlarmManager for the midnight reset and 7 PM reminder

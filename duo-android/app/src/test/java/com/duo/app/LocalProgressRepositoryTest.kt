@@ -200,12 +200,20 @@ class LocalProgressRepositoryTest {
         repository.submitAnswer(challengeId = 2001, isCorrect = true)
         repository.submitAnswer(challengeId = 2002, isCorrect = false)
         repository.markCharacterMastered("あ", "HIRAGANA")
+        repository.saveCheckpointScore("guest_local", 1, "A1", 20, 25)
+        val sampleVocab = db.vocabScheduleDao().getAllVocabDirect().firstOrNull()
+        if (sampleVocab != null) {
+            repository.reviewVocab(sampleVocab, 3)
+        }
 
         val json = repository.exportBackupJson()
         assertTrue(json.contains("\"points\": 10"))
         assertTrue(json.contains("2001"))
         assertTrue(json.contains("2002"))
         assertTrue(json.contains("\"character\": \"あ\""))
+        assertTrue(json.contains("\"level\": \"A1\""))
+        assertTrue(json.contains("checkpointScores"))
+        assertTrue(json.contains("vocabSchedule"))
 
         // Wipe progress to test restoration
         repository.resetAllProgress()
@@ -226,6 +234,10 @@ class LocalProgressRepositoryTest {
             val mastery = awaitItem()
             assertTrue(mastery.any { it.character == "あ" })
         }
+        val restoredCheckpoints = db.checkpointScoreDao().getAllScoresDirect("guest_local")
+        assertEquals(1, restoredCheckpoints.size)
+        assertEquals("A1", restoredCheckpoints[0].level)
+        assertEquals(20, restoredCheckpoints[0].correct)
     }
 
     @Test

@@ -17,4 +17,10 @@ interface CheckpointScoreDao {
 
     @Query("SELECT * FROM checkpoint_scores WHERE userId = :userId AND courseId = :courseId ORDER BY timestamp DESC")
     fun getAllScores(userId: String, courseId: Int): Flow<List<CheckpointScoreEntity>>
+
+    @Query("SELECT * FROM checkpoint_scores WHERE userId = :userId")
+    suspend fun getAllScoresDirect(userId: String): List<CheckpointScoreEntity>
+
+    @Query("DELETE FROM checkpoint_scores WHERE userId = :userId")
+    suspend fun clearAllScoresForUser(userId: String)
 }

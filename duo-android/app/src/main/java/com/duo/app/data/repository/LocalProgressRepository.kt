@@ -21,6 +21,8 @@ import com.duo.app.data.local.models.DailyActivityBackup
 import com.duo.app.data.local.models.MistakeBackup
 import com.duo.app.data.local.models.OpenLingoBackup
 import com.duo.app.data.local.models.UserProgressBackup
+import com.duo.app.data.local.models.CheckpointScoreBackup
+import com.duo.app.data.local.models.VocabScheduleBackup
 import com.duo.app.data.local.entities.CharacterMasteryEntity
 import com.duo.app.data.local.entities.MistakeEntity
 import com.duo.app.data.local.entities.CheckpointScoreEntity
@@ -411,12 +413,35 @@ class LocalProgressRepository(private val database: DuoDatabase) {
         val daily = dailyActivityDao.getAllDailyActivityDirect().map {
             DailyActivityBackup(it.date, it.xp)
         }
+        val checkpoints = checkpointScoreDao.getAllScoresDirect(GUEST_USER_ID).map {
+            CheckpointScoreBackup(it.courseId, it.level, it.correct, it.total, it.timestamp)
+        }
+        val vocab = vocabScheduleDao.getAllVocabDirect().map {
+            VocabScheduleBackup(
+                id = it.id,
+                language = it.language,
+                foreign = it.foreign,
+                romaji = it.romaji,
+                translation = it.translation,
+                audioSrc = it.audioSrc,
+                category = it.category,
+                difficulty = it.difficulty,
+                stability = it.stability,
+                reps = it.reps,
+                lapses = it.lapses,
+                state = it.state,
+                lastReview = it.lastReview,
+                due = it.due,
+            )
+        }
         val backup = OpenLingoBackup(
             userProgress = userBackup,
             completedChallengeIds = completed,
             characterMastery = mastery,
             mistakes = mistakes,
             dailyActivity = daily,
+            checkpointScores = checkpoints,
+            vocabSchedule = vocab,
         )
         BackupJson.format.encodeToString(OpenLingoBackup.serializer(), backup)
     }
@@ -485,6 +510,41 @@ class LocalProgressRepository(private val database: DuoDatabase) {
 
             backup.dailyActivity.forEach { d ->
                 dailyActivityDao.addXp(d.date, d.xp)
+            }
+
+            checkpointScoreDao.clearAllScoresForUser(GUEST_USER_ID)
+            backup.checkpointScores.forEach { cp ->
+                checkpointScoreDao.insert(
+                    com.duo.app.data.local.entities.CheckpointScoreEntity(
+                        userId = GUEST_USER_ID,
+                        courseId = cp.courseId,
+                        level = cp.level,
+                        correct = cp.correct,
+                        total = cp.total,
+                        timestamp = cp.timestamp,
+                    )
+                )
+            }
+
+            backup.vocabSchedule.forEach { vs ->
+                vocabScheduleDao.update(
+                    VocabScheduleEntity(
+                        id = vs.id,
+                        language = vs.language,
+                        foreign = vs.foreign,
+                        romaji = vs.romaji,
+                        translation = vs.translation,
+                        audioSrc = vs.audioSrc,
+                        category = vs.category,
+                        difficulty = vs.difficulty,
+                        stability = vs.stability,
+                        reps = vs.reps,
+                        lapses = vs.lapses,
+                        state = vs.state,
+                        lastReview = vs.lastReview,
+                        due = vs.due,
+                    )
+                )
             }
         }
     }
