@@ -24,6 +24,7 @@ data class UserProgressBackup(
     val soundEnabled: Boolean = true,
     val hapticsEnabled: Boolean = true,
     val themeAccent: String = "TEAL",
+    val themeMode: String = "SYSTEM",
 )
 
 @Serializable

@@ -256,6 +256,10 @@ class LocalProgressRepository(private val database: DuoDatabase) {
         userProgressDao.setThemeAccent(GUEST_USER_ID, accent)
     }
 
+    suspend fun setThemeMode(mode: String) = withContext(Dispatchers.IO) {
+        userProgressDao.setThemeMode(GUEST_USER_ID, mode)
+    }
+
     suspend fun setOnboardingSeen() = withContext(Dispatchers.IO) {
         userProgressDao.setOnboardingSeen(GUEST_USER_ID, true)
     }
@@ -279,6 +283,7 @@ class LocalProgressRepository(private val database: DuoDatabase) {
                 streak = 1,
                 lastActiveDate = java.time.LocalDate.now().toString(),
                 themeAccent = "TEAL",
+                themeMode = "SYSTEM",
             )
         )
     }
@@ -297,6 +302,7 @@ class LocalProgressRepository(private val database: DuoDatabase) {
                 soundEnabled = it.soundEnabled,
                 hapticsEnabled = it.hapticsEnabled,
                 themeAccent = it.themeAccent,
+                themeMode = it.themeMode,
             )
         }
         val completed = challengeProgressDao.getCompletedChallengeIdsDirect(GUEST_USER_ID)
@@ -341,6 +347,7 @@ class LocalProgressRepository(private val database: DuoDatabase) {
                         soundEnabled = u.soundEnabled,
                         hapticsEnabled = u.hapticsEnabled,
                         themeAccent = u.themeAccent,
+                        themeMode = u.themeMode,
                     )
                 )
             }

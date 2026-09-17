@@ -125,6 +125,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch { repository.setThemeAccent(accent) }
     }
 
+    fun setThemeMode(mode: String) {
+        viewModelScope.launch { repository.setThemeMode(mode) }
+    }
+
     fun completeOnboarding() {
         viewModelScope.launch { repository.setOnboardingSeen() }
     }

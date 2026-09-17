@@ -94,6 +94,21 @@ class LocalProgressRepositoryTest {
     }
 
     @Test
+    fun `theme mode defaults to system, persists, and survives backup round-trip`() = runTest {
+        repository.initializeIfNeeded()
+
+        assertEquals("SYSTEM", db.userProgressDao().getUserProgressDirect("guest_local")?.themeMode)
+
+        repository.setThemeMode("DARK")
+        assertEquals("DARK", db.userProgressDao().getUserProgressDirect("guest_local")?.themeMode)
+
+        val json = repository.exportBackupJson()
+        repository.setThemeMode("LIGHT")
+        assertTrue(repository.importBackupJson(json).isSuccess)
+        assertEquals("DARK", db.userProgressDao().getUserProgressDirect("guest_local")?.themeMode)
+    }
+
+    @Test
     fun `reset wipes progress but keeps curriculum`() = runTest {
         repository.initializeIfNeeded()
         repository.submitAnswer(challengeId = 2001, isCorrect = false)

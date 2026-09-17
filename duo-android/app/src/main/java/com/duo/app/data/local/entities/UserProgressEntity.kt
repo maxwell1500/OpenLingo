@@ -19,5 +19,6 @@ data class UserProgressEntity(
     val onboardingSeen: Boolean = false,
     val brokenStreak: Int = 0,
     val themeAccent: String = "TEAL",
+    val themeMode: String = "SYSTEM", // SYSTEM, LIGHT, DARK
     val lastSynced: Long = System.currentTimeMillis(),
 )

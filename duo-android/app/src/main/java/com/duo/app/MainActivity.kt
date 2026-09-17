@@ -22,6 +22,7 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -68,6 +69,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -124,7 +126,18 @@ class MainActivity : ComponentActivity() {
             val themeAccent = remember(currentProgress?.themeAccent) {
                 com.duo.app.ui.theme.ThemeAccent.fromName(currentProgress?.themeAccent)
             }
-            DuoTheme(accent = themeAccent) {
+            val useDarkTheme = when (com.duo.app.ui.theme.ThemeMode.fromName(currentProgress?.themeMode)) {
+                com.duo.app.ui.theme.ThemeMode.LIGHT -> false
+                com.duo.app.ui.theme.ThemeMode.DARK -> true
+                else -> isSystemInDarkTheme()
+            }
+            DuoTheme(accent = themeAccent, darkTheme = useDarkTheme) {
+                SideEffect {
+                    WindowCompat.getInsetsController(window, window.decorView).apply {
+                        isAppearanceLightStatusBars = !useDarkTheme
+                        isAppearanceLightNavigationBars = !useDarkTheme
+                    }
+                }
                 val context = LocalContext.current
                 val onFreeRefill: () -> Unit = {
                     viewModel.refillHearts()
@@ -267,6 +280,7 @@ class MainActivity : ComponentActivity() {
                                     onToggleHaptics = viewModel::setHapticsEnabled,
                                     onToggleRomaji = { viewModel.toggleRomaji() },
                                     onSelectThemeAccent = viewModel::setThemeAccent,
+                                    onSelectThemeMode = viewModel::setThemeMode,
                                     onResetProgress = viewModel::resetAllProgress,
                                     onExportBackup = viewModel::exportBackup,
                                     onImportBackup = viewModel::importBackup,
@@ -293,9 +307,9 @@ private fun DuoBottomNavigationBar(
 ) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        color = Color.White,
+        color = MaterialTheme.colorScheme.surface,
         shadowElevation = 8.dp,
-        border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFE5E5E5)),
+        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
     ) {
         Row(
             modifier = Modifier
@@ -318,7 +332,7 @@ private fun DuoBottomNavigationBar(
                     text = "Learn",
                     fontSize = 12.sp,
                     fontWeight = if (isLearn) FontWeight.Bold else FontWeight.Medium,
-                    color = if (isLearn) Color(0xFF58CC02) else Color(0xFF777777),
+                    color = if (isLearn) Color(0xFF58CC02) else MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
 
@@ -335,13 +349,13 @@ private fun DuoBottomNavigationBar(
                         text = "あ",
                         fontSize = 22.sp,
                         fontWeight = FontWeight.Bold,
-                        color = if (isChars) Color(0xFF1CB0F6) else Color(0xFF777777),
+                        color = if (isChars) Color(0xFF1CB0F6) else MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                     Text(
                         text = "Characters",
                         fontSize = 12.sp,
                         fontWeight = if (isChars) FontWeight.Bold else FontWeight.Medium,
-                        color = if (isChars) Color(0xFF1CB0F6) else Color(0xFF777777),
+                        color = if (isChars) Color(0xFF1CB0F6) else MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
             }
@@ -359,7 +373,7 @@ private fun DuoBottomNavigationBar(
                     text = "Practice",
                     fontSize = 12.sp,
                     fontWeight = if (isPractice) FontWeight.Bold else FontWeight.Medium,
-                    color = if (isPractice) Color(0xFF1CB0F6) else Color(0xFF777777),
+                    color = if (isPractice) Color(0xFF1CB0F6) else MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
             // 4. Profile Tab
@@ -375,7 +389,7 @@ private fun DuoBottomNavigationBar(
                     text = "Profile",
                     fontSize = 12.sp,
                     fontWeight = if (isProfile) FontWeight.Bold else FontWeight.Medium,
-                    color = if (isProfile) Color(0xFF1CB0F6) else Color(0xFF777777),
+                    color = if (isProfile) Color(0xFF1CB0F6) else MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
         }
@@ -399,7 +413,7 @@ private fun DuoTopAppBar(
     val streak = userProgress?.streak ?: 1
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        color = Color.White,
+        color = MaterialTheme.colorScheme.surface,
         shadowElevation = 2.dp,
     ) {
         Row(
@@ -416,12 +430,12 @@ private fun DuoTopAppBar(
                     Box(
                         modifier = Modifier
                             .background(
-                                color = if (isSelected) Color(0xFFE5F5FF) else Color(0xFFF7F7F7),
+                                color = if (isSelected) Color(0xFFE5F5FF) else MaterialTheme.colorScheme.surfaceVariant,
                                 shape = RoundedCornerShape(12.dp),
                             )
                             .border(
                                 width = if (isSelected) 2.dp else 1.dp,
-                                color = if (isSelected) Color(0xFF1CB0F6) else Color(0xFFE5E5E5),
+                                color = if (isSelected) Color(0xFF1CB0F6) else MaterialTheme.colorScheme.outlineVariant,
                                 shape = RoundedCornerShape(12.dp),
                             )
                             .clickable { onSelectCourse(course.id) }
@@ -431,7 +445,7 @@ private fun DuoTopAppBar(
                             text = "${course.imageSrc} ${course.title}",
                             fontSize = 12.sp,
                             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                            color = if (isSelected) Color(0xFF1899D6) else Color(0xFF4B4B4B),
+                            color = if (isSelected) Color(0xFF1899D6) else MaterialTheme.colorScheme.onSurface,
                         )
                     }
                 }
@@ -867,13 +881,16 @@ private fun ExerciseScreen(
         isWordBank -> exercise.selectedWordTileIds.isNotEmpty()
         else -> exercise.selectedOptionId != null
     }
+    // Transcript fallback for LISTEN: resets with each new challenge.
+    var transcriptShown by remember(challenge.id) { mutableStateOf(false) }
+    val listenAnswer = options.firstOrNull { it.correct }
 
     Scaffold(
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {
             Surface(
                 modifier = Modifier.fillMaxWidth(),
-                color = Color.White,
+                color = MaterialTheme.colorScheme.surface,
                 shadowElevation = 2.dp,
             ) {
                 Row(
@@ -998,6 +1015,47 @@ private fun ExerciseScreen(
                         color = Color(0xFF1CB0F6),
                         fontWeight = FontWeight.SemiBold,
                     )
+                    if (!transcriptShown) {
+                        Text(
+                            text = "🔇 Can't listen right now? Show text",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = Color(0xFF777777),
+                            fontWeight = FontWeight.Medium,
+                            modifier = Modifier.clickable { transcriptShown = true },
+                        )
+                    } else if (listenAnswer != null) {
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(16.dp),
+                            colors = CardDefaults.cardColors(containerColor = Color(0xFFF7F7F7)),
+                        ) {
+                            Column(
+                                modifier = Modifier.padding(16.dp),
+                                verticalArrangement = Arrangement.spacedBy(4.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                            ) {
+                                Text(
+                                    text = "What you'll hear:",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color(0xFF777777),
+                                )
+                                Text(
+                                    text = listenAnswer.text,
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color(0xFF4B4B4B),
+                                )
+                                if (showRomaji && listenAnswer.romaji != null) {
+                                    Text(
+                                        text = listenAnswer.romaji,
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = Color(0xFF777777),
+                                    )
+                                }
+                            }
+                        }
+                    }
                 }
             } else {
                 Row(
@@ -1706,6 +1764,7 @@ private fun SettingsScreen(
     onToggleHaptics: (Boolean) -> Unit,
     onToggleRomaji: () -> Unit,
     onSelectThemeAccent: (String) -> Unit,
+    onSelectThemeMode: (String) -> Unit,
     onResetProgress: () -> Unit,
     onExportBackup: ((String) -> Unit) -> Unit,
     onImportBackup: (String, (Boolean) -> Unit) -> Unit,
@@ -1815,6 +1874,49 @@ private fun SettingsScreen(
                             color = if (isSelected) accent.swatchColor else Color(0xFF777777),
                         )
                     }
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // Appearance (System / Light / Dark)
+        Text(
+            text = "Appearance",
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
+            color = Color(0xFF4B4B4B),
+        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            listOf(
+                com.duo.app.ui.theme.ThemeMode.SYSTEM to "📱 System",
+                com.duo.app.ui.theme.ThemeMode.LIGHT to "🌞 Light",
+                com.duo.app.ui.theme.ThemeMode.DARK to "🌙 Dark",
+            ).forEach { (mode, label) ->
+                val isSelected = com.duo.app.ui.theme.ThemeMode.fromName(userProgress?.themeMode) == mode
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(if (isSelected) Color(0xFF1CB0F6).copy(alpha = 0.15f) else Color(0xFFF7F7F7))
+                        .border(
+                            width = if (isSelected) 2.dp else 1.dp,
+                            color = if (isSelected) Color(0xFF1CB0F6) else Color(0xFFE5E5E5),
+                            shape = RoundedCornerShape(12.dp),
+                        )
+                        .clickable { onSelectThemeMode(mode.name) }
+                        .padding(vertical = 10.dp, horizontal = 4.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text(
+                        text = label,
+                        fontSize = 13.sp,
+                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                        color = if (isSelected) Color(0xFF1CB0F6) else Color(0xFF777777),
+                    )
                 }
             }
         }
@@ -1975,7 +2077,7 @@ private fun OnboardingPager(onDone: () -> Unit) {
     val (emoji, title, body) = pages[page.coerceIn(pages.indices)]
     Surface(
         modifier = Modifier.fillMaxSize(),
-        color = Color.White,
+        color = MaterialTheme.colorScheme.background,
     ) {
         Column(
             modifier = Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding().padding(32.dp),

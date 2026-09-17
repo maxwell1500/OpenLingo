@@ -31,6 +31,15 @@ enum class ThemeAccent(
         }
     }
 }
+enum class ThemeMode {
+    SYSTEM, LIGHT, DARK;
+
+    companion object {
+        fun fromName(name: String?): ThemeMode {
+            return entries.firstOrNull { it.name.equals(name, ignoreCase = true) } ?: SYSTEM
+        }
+    }
+}
 
 private val LightColorScheme = lightColorScheme(
     primary = DuoGreen,
@@ -73,6 +82,7 @@ fun DuoTheme(
         background = Color.White,
         surface = Color.White,
         surfaceVariant = Color(0xFFF7F7F7),
+        onSurfaceVariant = Color(0xFF777777),
         onSurface = Color(0xFF4B4B4B),
         onBackground = Color(0xFF4B4B4B),
     )
@@ -85,6 +95,7 @@ fun DuoTheme(
         background = Color(0xFF131F24),
         surface = Color(0xFF1A2A30),
         surfaceVariant = Color(0xFF243640),
+        onSurfaceVariant = Color(0xFFAAB4C0),
         onSurface = Color(0xFFE5E5E5),
         onBackground = Color(0xFFE5E5E5),
     )
