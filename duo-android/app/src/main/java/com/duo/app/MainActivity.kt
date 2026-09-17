@@ -213,7 +213,6 @@ class MainActivity : ComponentActivity() {
                                                 }
                                             },
                                             mistakes = mistakes,
-                                            onPracticeMistake = viewModel::startLesson,
                                         )
                                     }
                                     is MainTab.Profile -> {

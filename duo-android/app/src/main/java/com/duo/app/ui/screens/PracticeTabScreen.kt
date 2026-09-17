@@ -69,7 +69,6 @@ fun PracticeTabScreen(
     onPlayVoice: (String) -> Unit,
     onStartPractice: () -> Unit,
     mistakes: List<com.duo.app.data.local.entities.MistakeEntry> = emptyList(),
-    onPracticeMistake: (lessonId: Int) -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     var showFlashcards by remember { mutableStateOf(false) }
@@ -187,7 +186,6 @@ fun PracticeTabScreen(
         if (mistakes.isNotEmpty()) {
             MistakesReviewCard(
                 mistakes = mistakes,
-                onPracticeMistake = onPracticeMistake,
             )
         }
 
@@ -454,7 +452,6 @@ private fun VocabCard(
 @Composable
 private fun MistakesReviewCard(
     mistakes: List<com.duo.app.data.local.entities.MistakeEntry>,
-    onPracticeMistake: (lessonId: Int) -> Unit,
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -472,16 +469,16 @@ private fun MistakesReviewCard(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
             ) {
-                Text(text = "🎯", fontSize = 24.sp)
+                Text(text = "📋", fontSize = 24.sp)
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = "Review your mistakes (${mistakes.size})",
+                        text = "Your missed challenges (${mistakes.size})",
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
                         color = Color(0xFF4B4B4B),
                     )
                     Text(
-                        text = "Retry a lesson to clear its misses",
+                        text = "Answer them correctly in a practice session to clear them",
                         style = MaterialTheme.typography.bodySmall,
                         color = Color(0xFF777777),
                     )
@@ -492,8 +489,13 @@ private fun MistakesReviewCard(
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
+                    Text(
+                        text = "•",
+                        fontSize = 14.sp,
+                        color = Color(0xFFFF9600),
+                    )
                     Text(
                         text = mistake.question,
                         style = MaterialTheme.typography.bodyMedium,
@@ -502,22 +504,14 @@ private fun MistakesReviewCard(
                         modifier = Modifier.weight(1f),
                         maxLines = 2,
                     )
-                    Spacer(modifier = Modifier.size(8.dp))
-                    Box(
-                        modifier = Modifier
-                            .background(Color(0xFF58CC02), RoundedCornerShape(10.dp))
-                            .clickable { onPracticeMistake(mistake.lessonId) }
-                            .padding(horizontal = 14.dp, vertical = 8.dp),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        Text(
-                            text = "RETRY",
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White,
-                        )
-                    }
                 }
+            }
+            if (mistakes.size > 5) {
+                Text(
+                    text = "+${mistakes.size - 5} more…",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Color(0xFF999999),
+                )
             }
         }
     }
