@@ -23,6 +23,10 @@ import com.duo.app.data.local.models.OpenLingoBackup
 import com.duo.app.data.local.models.UserProgressBackup
 import com.duo.app.data.local.entities.CharacterMasteryEntity
 import com.duo.app.data.local.entities.MistakeEntity
+import com.duo.app.data.local.entities.CheckpointScoreEntity
+import com.duo.app.data.local.entities.VocabScheduleEntity
+import com.duo.app.data.local.entities.ExerciseTypeStatsEntity
+import com.duo.app.data.fsrs.FsrsScheduler
 
 data class ChallengeWithOptions(
     val challenge: ChallengeEntity,
@@ -52,6 +56,9 @@ class LocalProgressRepository(private val database: DuoDatabase) {
     private val characterMasteryDao = database.characterMasteryDao()
     private val mistakeDao = database.mistakeDao()
     private val dailyActivityDao = database.dailyActivityDao()
+    private val checkpointScoreDao = database.checkpointScoreDao()
+    private val exerciseTypeStatsDao = database.exerciseTypeStatsDao()
+    private val vocabScheduleDao = database.vocabScheduleDao()
     /**
      * Initializes the local database: seeds courses and ensures a guest user profile exists.
      */
@@ -87,6 +94,7 @@ class LocalProgressRepository(private val database: DuoDatabase) {
         seedExpandedCurricula()
         seedAdvancedCurricula()
         seedB1Curricula()
+        seedInitialVocabSchedule()
     }
     /**
      * Day rollover: reset streak when a full day was missed, refill hearts every
@@ -165,7 +173,12 @@ class LocalProgressRepository(private val database: DuoDatabase) {
             val challengeIds = mistakes.map { it.challengeId }.distinct()
             if (challengeIds.isEmpty()) return@withContext emptyList()
             val challenges = lessonDao.getChallengesByIds(challengeIds)
-            challenges.map { challenge ->
+            val statsMap = exerciseTypeStatsDao.getAllStatsDirect().associateBy { it.type }
+            // Sort weakest type first (lowest accuracy percent), then by challenge order
+            val sortedChallenges = challenges.sortedBy { challenge ->
+                statsMap[challenge.type]?.accuracyPercent ?: 100
+            }
+            sortedChallenges.map { challenge ->
                 val options = lessonDao.getOptionsForChallenge(challenge.id)
                 val isCompleted = challengeProgressDao.isChallengeCompleted(GUEST_USER_ID, challenge.id)
                 ChallengeWithOptions(
@@ -175,7 +188,6 @@ class LocalProgressRepository(private val database: DuoDatabase) {
                 )
             }
         }
-
     suspend fun clearAllMistakes() = withContext(Dispatchers.IO) {
         mistakeDao.clearAllMistakes()
     }
@@ -194,6 +206,21 @@ class LocalProgressRepository(private val database: DuoDatabase) {
         withContext(Dispatchers.IO) {
             val user = userProgressDao.getUserProgressDirect(GUEST_USER_ID)
                 ?: UserProgressEntity(userId = GUEST_USER_ID, activeCourseId = 1, hearts = MAX_HEARTS, points = 0)
+
+            // Track accuracy per exercise type
+            lessonDao.getChallengeById(challengeId)?.let { challenge ->
+                val typeName = challenge.type
+                val currentStats = exerciseTypeStatsDao.getStatsForType(typeName)
+                val newAttempts = (currentStats?.attempts ?: 0) + 1
+                val newCorrect = (currentStats?.correct ?: 0) + if (isCorrect) 1 else 0
+                exerciseTypeStatsDao.upsertStats(
+                    ExerciseTypeStatsEntity(
+                        type = typeName,
+                        attempts = newAttempts,
+                        correct = newCorrect,
+                    )
+                )
+            }
 
             if (isCorrect) {
                 if (!isPractice) {
@@ -304,6 +331,33 @@ class LocalProgressRepository(private val database: DuoDatabase) {
 
     suspend fun setOnboardingSeen() = withContext(Dispatchers.IO) {
         userProgressDao.setOnboardingSeen(GUEST_USER_ID, true)
+    }
+
+    /**
+     * Fast-tracks learner up to a starting unit by marking earlier challenges complete.
+     * Used by the Placement Test.
+     */
+    suspend fun completeChallengesUpToUnit(unitId: Int) = withContext(Dispatchers.IO) {
+        val unitIds = when (unitId) {
+            // Placement skipped into Intermediate (B1/N4): mark A1/N5 units complete
+            18 -> listOf(1, 2, 10, 11, 12, 13, 14, 15, 16, 17)
+            14 -> listOf(1, 2, 10, 11, 12, 13)
+            else -> emptyList()
+        }
+        if (unitIds.isNotEmpty()) {
+            val challenges = lessonDao.getChallengesForUnits(unitIds)
+            for (c in challenges) {
+                challengeProgressDao.markChallengeCompleted(
+                    ChallengeProgressEntity(
+                        userId = GUEST_USER_ID,
+                        challengeId = c.id,
+                        completed = true,
+                        synced = false,
+                    )
+                )
+            }
+            userProgressDao.addPoints(GUEST_USER_ID, challenges.size * POINTS_PER_CHALLENGE)
+        }
     }
 
     /**
@@ -455,6 +509,9 @@ class LocalProgressRepository(private val database: DuoDatabase) {
 
     fun getMistakes(): Flow<List<com.duo.app.data.local.entities.MistakeEntry>> =
         mistakeDao.getMistakeEntries().flowOn(Dispatchers.IO)
+
+    fun getExerciseTypeStats(): Flow<List<ExerciseTypeStatsEntity>> =
+        exerciseTypeStatsDao.getAllStats().flowOn(Dispatchers.IO)
 
     fun getMistakeCount(): Flow<Int> =
         mistakeDao.getMistakeCount().flowOn(Dispatchers.IO)
@@ -815,5 +872,96 @@ class LocalProgressRepository(private val database: DuoDatabase) {
             lessonDao.insertChallenges(payload.challenges)
             lessonDao.insertOptions(payload.options)
         }
+    }
+
+    /**
+     * Retrieves all challenges for the given unit IDs, with options loaded.
+     */
+    suspend fun getChallengesForUnits(unitIds: List<Int>): List<ChallengeWithOptions> =
+        withContext(Dispatchers.IO) {
+            val challenges = lessonDao.getChallengesForUnits(unitIds)
+            challenges.map { challenge ->
+                ChallengeWithOptions(
+                    challenge = challenge,
+                    options = lessonDao.getOptionsForChallenge(challenge.id),
+                    isCompleted = false,
+                )
+            }
+        }
+
+    /**
+     * Saves a checkpoint assessment score.
+     */
+    suspend fun saveCheckpointScore(
+        userId: String,
+        courseId: Int,
+        level: String,
+        correct: Int,
+        total: Int,
+    ) = withContext(Dispatchers.IO) {
+        checkpointScoreDao.insert(
+            CheckpointScoreEntity(
+                userId = userId,
+                courseId = courseId,
+                level = level,
+                correct = correct,
+                total = total,
+            )
+        )
+    }
+
+    /**
+     * Queues missed challenge IDs into the mistakes table for focused practice.
+     */
+    suspend fun queueMistakes(missedChallengeIds: List<Int>) =
+        withContext(Dispatchers.IO) {
+            for (challengeId in missedChallengeIds) {
+                val lessonId = lessonDao.getChallengeById(challengeId)?.lessonId ?: -1
+                mistakeDao.upsertMistake(
+                    MistakeEntity(
+                        challengeId = challengeId,
+                        lessonId = lessonId,
+                        timestamp = System.currentTimeMillis(),
+                    )
+                )
+            }
+        }
+
+    private suspend fun seedInitialVocabSchedule() {
+        if (vocabScheduleDao.getTotalCount() > 0) return
+        val initialItems = listOf(
+            VocabScheduleEntity("es:hola", "es", "Hola", null, "Hello", "asset:///audio/es/hola.ogg", "Spanish Essentials"),
+            VocabScheduleEntity("es:buenos_dias", "es", "Buenos días", null, "Good morning", "asset:///audio/es/buenos_dias.ogg", "Spanish Essentials"),
+            VocabScheduleEntity("es:gracias", "es", "Gracias", null, "Thank you", "asset:///audio/es/gracias.ogg", "Spanish Essentials"),
+            VocabScheduleEntity("es:un_cafe", "es", "Un café, por favor", null, "A coffee, please", "asset:///audio/es/un_cafe_por_favor.ogg", "Food & Dining"),
+            VocabScheduleEntity("es:la_cuenta", "es", "La cuenta, por favor", null, "The bill, please", "asset:///audio/es/la_cuenta.ogg", "Food & Dining"),
+            VocabScheduleEntity("es:yo_hablo", "es", "Yo hablo español", null, "I speak Spanish", "asset:///audio/es/yo_hablo_espanol.ogg", "Action Verbs"),
+            VocabScheduleEntity("ja:konnichiwa", "ja", "こんにちは", "Konnichiwa", "Hello / Good day", "asset:///audio/ja/konnichiwa.ogg", "Japanese Greetings"),
+            VocabScheduleEntity("ja:ohayou", "ja", "おはようございます", "Ohayou gozaimasu", "Good morning", "asset:///audio/ja/ohayou.ogg", "Japanese Greetings"),
+            VocabScheduleEntity("ja:mizu", "ja", "お水", "Mizu", "Water", "asset:///audio/ja/mizu.ogg", "Food & Refreshments"),
+            VocabScheduleEntity("ja:koohii", "ja", "コーヒー", "Koohii", "Coffee", "asset:///audio/ja/koohii.ogg", "Katakana Loanwords"),
+            VocabScheduleEntity("ja:pan", "ja", "パン", "Pan", "Bread", "asset:///audio/ja/pan.ogg", "Katakana Loanwords"),
+            VocabScheduleEntity("ja:tabemasu", "ja", "たべます", "Tabemasu", "To eat", "asset:///audio/ja/tabemasu.ogg", "Daily Verbs"),
+            VocabScheduleEntity("ja:nomimasu", "ja", "のみます", "Nomimasu", "To drink", "asset:///audio/ja/nomimasu.ogg", "Daily Verbs"),
+            VocabScheduleEntity("ja:sumimasen", "ja", "すみません", "Sumimasen", "Excuse me / Sorry", "asset:///audio/ja/sumimasen.ogg", "Polite Expressions"),
+        )
+        vocabScheduleDao.insertAll(initialItems)
+    }
+
+    fun getDueVocab(language: String): Flow<List<VocabScheduleEntity>> {
+        return vocabScheduleDao.getDueVocabForLanguage(language)
+    }
+
+    fun getDueVocabCount(language: String): Flow<Int> {
+        return vocabScheduleDao.getDueCountForLanguage(language)
+    }
+
+    fun getAllVocab(language: String): Flow<List<VocabScheduleEntity>> {
+        return vocabScheduleDao.getVocabForLanguage(language)
+    }
+
+    suspend fun reviewVocab(item: VocabScheduleEntity, rating: Int) = withContext(Dispatchers.IO) {
+        val updated = FsrsScheduler.schedule(item, rating)
+        vocabScheduleDao.update(updated)
     }
 }

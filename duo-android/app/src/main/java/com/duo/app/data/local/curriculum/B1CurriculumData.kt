@@ -38,7 +38,14 @@ object B1CurriculumData {
 
                 ChallengeEntity(id = 1085, lessonId = 117, type = "SELECT", question = "Which one means 'I bought the train ticket'?", audioSrc = "asset:///audio/es/compre_el_billete.ogg", orderIndex = 0),
                 ChallengeEntity(id = 1086, lessonId = 117, type = "WORD_BANK", question = "Assemble: 'I spoke with him yesterday'", orderIndex = 1),
-                ChallengeEntity(id = 1087, lessonId = 117, type = "SELECT", question = "Un viaje a Sevilla:\nViajera: \"Compré el billete de tren ayer.\"\nWhat did the traveler do?", audioSrc = "asset:///audio/es/compre_el_billete.ogg", orderIndex = 2),
+                ChallengeEntity(
+                    id = 1087,
+                    lessonId = 117,
+                    type = "STORY",
+                    question = "📖 Un Viaje en Tren\n\nAna: \"¡Hola Carlos! ¿A dónde vas?\"\nCarlos: \"Voy a Sevilla. Compré el billete ayer en la estación.\"\nAna: \"¡Qué bien! Yo viajé a Sevilla el año pasado. Llegamos a tiempo y la comida fue fantástica.\"\nCarlos: \"Espero tener suerte también.\"\n\n❓ What is Carlos planning to do?",
+                    audioSrc = "asset:///audio/es/compre_el_billete.ogg",
+                    orderIndex = 2,
+                ),
             ),
             options = listOf(
                 ChallengeOptionEntity(id = 10309, challengeId = 1082, text = "Hablé con él ayer", correct = true, audioSrc = "asset:///audio/es/hable_con_el.ogg"),
@@ -91,6 +98,14 @@ object B1CurriculumData {
                 ChallengeEntity(id = 1091, lessonId = 119, type = "SELECT", question = "Which one means 'The weather was nice every day'?", audioSrc = "asset:///audio/es/hacia_buen_tiempo.ogg", orderIndex = 0),
                 ChallengeEntity(id = 1092, lessonId = 119, type = "WORD_BANK", question = "Assemble: 'The weather was nice every day'", orderIndex = 1),
                 ChallengeEntity(id = 1093, lessonId = 119, type = "LISTEN", question = "Tap what you hear", audioSrc = "asset:///audio/es/hacia_buen_tiempo.ogg", orderIndex = 2),
+                ChallengeEntity(
+                    id = 1094,
+                    lessonId = 119,
+                    type = "STORY",
+                    question = "📖 Recuerdos de Infancia\n\nAbuela: \"Cuando era niña, vivía en Madrid con mis padres y hermanos.\"\nNieto: \"¿Y hacía buen tiempo?\"\nAbuela: \"Hacía buen tiempo todos los días en verano. Jugábamos en el parque hasta la noche.\"\nNieto: \"¡Sonaba maravilloso!\"\n\n❓ Where did the grandmother live as a child?",
+                    audioSrc = "asset:///audio/es/cuando_era_nino.ogg",
+                    orderIndex = 3,
+                ),
             ),
             options = listOf(
                 ChallengeOptionEntity(id = 10330, challengeId = 1088, text = "Cuando era niño vivía en Madrid", correct = true, audioSrc = "asset:///audio/es/cuando_era_nino.ogg"),
@@ -124,6 +139,10 @@ object B1CurriculumData {
                 ChallengeOptionEntity(id = 10353, challengeId = 1093, text = "The weather was nice every day", correct = true),
                 ChallengeOptionEntity(id = 10354, challengeId = 1093, text = "When I was a child I lived in Madrid", correct = false),
                 ChallengeOptionEntity(id = 10355, challengeId = 1093, text = "We arrived on time", correct = false),
+
+                ChallengeOptionEntity(id = 10356, challengeId = 1094, text = "In Madrid with her family", correct = true),
+                ChallengeOptionEntity(id = 10357, challengeId = 1094, text = "In Sevilla alone", correct = false),
+                ChallengeOptionEntity(id = 10358, challengeId = 1094, text = "In a train station", correct = false),
             )
         )
     )

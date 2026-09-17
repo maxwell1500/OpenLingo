@@ -120,6 +120,9 @@ class MainActivity : ComponentActivity() {
             val todayXp by viewModel.todayXp.collectAsStateWithLifecycle()
             val completedLessonIds by viewModel.completedLessonIds.collectAsStateWithLifecycle()
             val courseComplete by viewModel.courseComplete.collectAsStateWithLifecycle()
+            val allVocab by viewModel.allVocab.collectAsStateWithLifecycle()
+            val dueVocabCount by viewModel.dueVocabCount.collectAsStateWithLifecycle()
+            val typeStats by viewModel.exerciseTypeStats.collectAsStateWithLifecycle()
             val showRomaji = userProgress?.showRomaji ?: true
             val isJapanese = (userProgress?.activeCourseId ?: 1) == 2
 
@@ -194,6 +197,8 @@ class MainActivity : ComponentActivity() {
                                                 todayXp = todayXp,
                                                 questGoal = com.duo.app.data.repository.LocalProgressRepository.DAILY_QUEST_XP,
                                                 brokenStreak = userProgress?.brokenStreak ?: 0,
+                                                courseId = userProgress?.activeCourseId ?: 1,
+                                                onStartCheckpoint = viewModel::startCheckpoint,
                                             )
                                         }
                                     }
@@ -216,6 +221,9 @@ class MainActivity : ComponentActivity() {
                                             mistakes = mistakes,
                                             onClearAllMistakes = viewModel::clearAllMistakes,
                                             courseComplete = courseComplete,
+                                            vocabList = allVocab,
+                                            dueVocabCount = dueVocabCount,
+                                            onReviewVocab = viewModel::reviewVocab,
                                         )
                                     }
                                     is MainTab.Profile -> {
@@ -238,11 +246,15 @@ class MainActivity : ComponentActivity() {
                                                 completedChallenges = completedChallengeIds.size,
                                                 completedLessons = completedLessonCount,
                                             ),
+                                            typeStats = typeStats,
                                         )
                                     }
                                 }
                                 if (userProgress?.onboardingSeen == false) {
-                                    OnboardingPager(onDone = viewModel::completeOnboarding)
+                                    OnboardingPager(
+                                        onDone = viewModel::completeOnboarding,
+                                        onTakePlacement = viewModel::startPlacementTest,
+                                    )
                                 }
                             }
                             is ActiveScreen.CharacterDrawing -> {
@@ -279,6 +291,14 @@ class MainActivity : ComponentActivity() {
                                     pointsGained = screen.pointsGained,
                                     perfectBonus = screen.perfectBonus,
                                     onContinue = viewModel::exitExercise,
+                                )
+                            }
+                            is ActiveScreen.CheckpointResult -> {
+                                CheckpointScreen(
+                                    level = screen.level,
+                                    correct = screen.correct,
+                                    total = screen.total,
+                                    onDone = viewModel::closeCheckpointResult,
                                 )
                             }
                             is ActiveScreen.Settings -> {
@@ -559,6 +579,8 @@ private fun LessonMapScreen(
     todayXp: Int,
     questGoal: Int,
     brokenStreak: Int,
+    courseId: Int,
+    onStartCheckpoint: (String) -> Unit,
 ) {
     val scrollState = rememberScrollState()
     val allLessons = remember(unitsWithLessons) {
@@ -648,6 +670,45 @@ private fun LessonMapScreen(
                 completedLessonIds = completedLessonIds,
                 onStartLesson = onStartLesson,
             )
+        }
+
+        // Checkpoint tests section
+        val levels = if (courseId == 1) listOf("A1", "B1") else listOf("N5", "N4")
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(16.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.35f),
+            ),
+        ) {
+            Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Text(
+                    text = "📝 Checkpoint Tests",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 15.sp,
+                    color = MaterialTheme.colorScheme.primary,
+                )
+                Text(
+                    text = "Test your mastery of each level. Missed questions are added to your practice list.",
+                    fontSize = 12.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    levels.forEach { level ->
+                        Button(
+                            onClick = { onStartCheckpoint(level) },
+                            modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(12.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2E7D32)),
+                        ) {
+                            Text(text = "$level Test", fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                        }
+                    }
+                }
+            }
         }
 
         Spacer(modifier = Modifier.height(12.dp))
@@ -979,6 +1040,7 @@ private fun ExerciseScreen(
                     "SELECT" -> "Select the correct meaning"
                     "WORD_BANK" -> "Tap the matching tiles"
                     "LISTEN" -> "Tap what you hear"
+                    "STORY" -> "Read the story and answer the question"
                     else -> "Translate this phrase"
                 },
                 style = MaterialTheme.typography.titleMedium,
@@ -1063,6 +1125,35 @@ private fun ExerciseScreen(
                                 }
                             }
                         }
+                    }
+                }
+            } else if (challenge.type == "STORY") {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFFFBF8EE)),
+                    border = androidx.compose.foundation.BorderStroke(1.5.dp, Color(0xFFE5D8B8)),
+                ) {
+                    Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Text(text = "STORY MODE", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color(0xFF8C6B1F))
+                            if (challenge.audioSrc != null) {
+                                AudioSpeakerButton(
+                                    size = 36.dp,
+                                    onClick = { challenge.audioSrc.let(onPlayVoice) },
+                                )
+                            }
+                        }
+                        Text(
+                            text = challenge.question,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = Color(0xFF2C2C2C),
+                            lineHeight = 22.sp,
+                        )
                     }
                 }
             } else {
@@ -1708,6 +1799,103 @@ private fun LessonCompleteScreen(
     }
 }
 
+// -------------------------------------------------------------------------
+// Checkpoint result screen — shows score, pass/fail, and missed count
+// -------------------------------------------------------------------------
+@Composable
+private fun CheckpointScreen(
+    level: String,
+    correct: Int,
+    total: Int,
+    onDone: () -> Unit,
+) {
+    val percent = if (total > 0) (correct * 100) / total else 0
+    val passed = percent >= 70
+    val missed = total - correct
+
+    val trophyScale by animateFloatAsState(
+        targetValue = 1f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessLow,
+        ),
+        label = "checkpoint_trophy",
+    )
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .statusBarsPadding()
+                .navigationBarsPadding()
+                .padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(112.dp)
+                    .scale(trophyScale)
+                    .background(if (passed) Color(0xFF58CC02) else Color(0xFFFF9600), CircleShape),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(text = if (passed) "✅" else "📝", fontSize = 56.sp)
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Text(
+                text = "$level Checkpoint",
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.Bold,
+                color = if (passed) Color(0xFF58CC02) else Color(0xFFFF9600),
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Text(
+                text = "$correct / $total correct",
+                style = MaterialTheme.typography.displaySmall,
+                fontWeight = FontWeight.Bold,
+            )
+
+            Spacer(modifier = Modifier.height(4.dp))
+
+            Text(
+                text = "$percent%",
+                style = MaterialTheme.typography.titleLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+
+            if (missed > 0) {
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    text = "$missed question${if (missed > 1) "s" else ""} added to your practice list",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center,
+                )
+            }
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            Button(
+                onClick = onDone,
+                modifier = Modifier
+                    .height(56.dp)
+                    .fillMaxWidth(0.7f),
+            ) {
+                Text(
+                    text = if (passed) "Continue" else "Review Mistakes",
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold,
+                )
+            }
+        }
+        CelebrationConfetti(modifier = Modifier.fillMaxSize())
+    }
+}
+
 private data class ConfettiParticle(
     val x: Float,
     val y0: Float,
@@ -2075,7 +2263,10 @@ private fun SettingRow(
 // First-run onboarding: 3 pages, shown once until dismissed.
 // -------------------------------------------------------------------------
 @Composable
-private fun OnboardingPager(onDone: () -> Unit) {
+private fun OnboardingPager(
+    onDone: () -> Unit,
+    onTakePlacement: () -> Unit,
+) {
     var page by remember { androidx.compose.runtime.mutableStateOf(0) }
     val pages = listOf(
         Triple("🦫", "Learn free, forever", "Spanish + Japanese lessons work 100% offline with OpenLingo. No ads, no payments, no account needed."),
@@ -2129,17 +2320,45 @@ private fun OnboardingPager(onDone: () -> Unit) {
                 }
             }
             Spacer(modifier = Modifier.height(24.dp))
-            Button(
-                onClick = { if (page < pages.lastIndex) page++ else onDone() },
-                modifier = Modifier.fillMaxWidth().height(50.dp),
-                shape = RoundedCornerShape(14.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF58CC02)),
-            ) {
-                Text(
-                    text = if (page < pages.lastIndex) "NEXT" else "START LEARNING ✓",
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 16.sp,
-                )
+            if (page == pages.lastIndex) {
+                Button(
+                    onClick = onTakePlacement,
+                    modifier = Modifier.fillMaxWidth().height(50.dp),
+                    shape = RoundedCornerShape(14.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1CB0F6)),
+                ) {
+                    Text(
+                        text = "🎯 TAKE PLACEMENT TEST",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 15.sp,
+                    )
+                }
+                Spacer(modifier = Modifier.height(8.dp))
+                Button(
+                    onClick = onDone,
+                    modifier = Modifier.fillMaxWidth().height(50.dp),
+                    shape = RoundedCornerShape(14.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF58CC02)),
+                ) {
+                    Text(
+                        text = "START FROM BEGINNING ✓",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 15.sp,
+                    )
+                }
+            } else {
+                Button(
+                    onClick = { page++ },
+                    modifier = Modifier.fillMaxWidth().height(50.dp),
+                    shape = RoundedCornerShape(14.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF58CC02)),
+                ) {
+                    Text(
+                        text = "NEXT",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 16.sp,
+                    )
+                }
             }
         }
     }

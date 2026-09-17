@@ -48,6 +48,11 @@ sealed interface ActiveScreen {
         val isCompleted: Boolean = false,
     ) : ActiveScreen
     data class LessonComplete(val lessonId: Int, val pointsGained: Int, val perfectBonus: Int = 0) : ActiveScreen
+    data class CheckpointResult(
+        val level: String,
+        val correct: Int,
+        val total: Int,
+    ) : ActiveScreen
     data object Settings : ActiveScreen
 }
 
@@ -113,6 +118,37 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     val mistakes: StateFlow<List<com.duo.app.data.local.entities.MistakeEntry>> =
         repository.getMistakes()
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    val exerciseTypeStats: StateFlow<List<com.duo.app.data.local.entities.ExerciseTypeStatsEntity>> =
+        repository.getExerciseTypeStats()
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    val dueVocab: StateFlow<List<com.duo.app.data.local.entities.VocabScheduleEntity>> = userProgress
+        .flatMapLatest { progress ->
+            val lang = if (progress?.activeCourseId == 2) "ja" else "es"
+            repository.getDueVocab(lang)
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    val allVocab: StateFlow<List<com.duo.app.data.local.entities.VocabScheduleEntity>> = userProgress
+        .flatMapLatest { progress ->
+            val lang = if (progress?.activeCourseId == 2) "ja" else "es"
+            repository.getAllVocab(lang)
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    val dueVocabCount: StateFlow<Int> = userProgress
+        .flatMapLatest { progress ->
+            val lang = if (progress?.activeCourseId == 2) "ja" else "es"
+            repository.getDueVocabCount(lang)
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
+
+    fun reviewVocab(item: com.duo.app.data.local.entities.VocabScheduleEntity, rating: Int) {
+        viewModelScope.launch {
+            repository.reviewVocab(item, rating)
+        }
+    }
     // Sound/haptics gates: user settings, defaulting to on for fresh installs.
     private fun soundOn(): Boolean = userProgress.value?.soundEnabled != false
     private fun hapticsOn(): Boolean = userProgress.value?.hapticsEnabled != false
@@ -255,6 +291,103 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     private var isInPracticeSession = false
 
+
+    private var isInCheckpoint = false
+    private var checkpointLevel: String = ""
+    private var checkpointCourseId: Int = 0
+    private var checkpointCorrect: Int = 0
+    private var checkpointMissedIds: List<Int> = emptyList()
+
+    /**
+     * Starts a checkpoint assessment for a given level.
+     * Loads a shuffled sample of challenges from all units in that level,
+     * runs them as a practice session (no XP, no hearts), and shows a score at the end.
+     */
+    fun startCheckpoint(level: String) {
+        val courseId = userProgress.value?.activeCourseId ?: 1
+        isInCheckpoint = true
+        checkpointLevel = level
+        checkpointCourseId = courseId
+        checkpointCorrect = 0
+        checkpointMissedIds = emptyList()
+        viewModelScope.launch {
+            // Determine unit IDs for this level
+            val unitIds = getUnitIdsForLevel(courseId, level)
+            if (unitIds.isEmpty()) return@launch
+            val challenges = repository.getChallengesForUnits(unitIds)
+            if (challenges.isEmpty()) return@launch
+            // Shuffle and cap at 30 for a manageable session
+            val sample = if (challenges.size > 30) challenges.shuffled().take(30) else challenges.shuffled()
+            isInPracticeSession = true
+            currentLessonChallenges = sample
+            lessonPointsAccumulated = 0
+            lessonMistakes = 0
+            lessonCombo = 0
+            val firstChallenge = sample[0]
+            firstChallenge.challenge.audioSrc?.let { playVoiceIfEnabled(it) }
+            _activeScreen.value = ActiveScreen.Exercise(
+                lessonId = -1,
+                challengeIndex = 0,
+                totalChallenges = sample.size,
+                currentChallenge = firstChallenge,
+            )
+        }
+    }
+
+    /** Maps a CEFR/JLPT level name to the unit IDs that belong to it. */
+    private fun getUnitIdsForLevel(courseId: Int, level: String): List<Int> {
+        return when (level) {
+            "A1" -> if (courseId == 1) listOf(1, 2, 12, 13, 14, 15, 16, 17) else emptyList()
+            "B1" -> if (courseId == 1) listOf(18, 19) else emptyList()
+            "N5" -> if (courseId == 2) listOf(1, 2, 12, 13, 14, 15, 16, 17) else emptyList()
+            "N4" -> if (courseId == 2) listOf(18, 19) else emptyList()
+            else -> emptyList()
+        }
+    }
+
+    fun startPlacementTest() {
+        isInPracticeSession = true
+        isInCheckpoint = true
+        checkpointCourseId = userProgress.value?.activeCourseId ?: 1
+        checkpointLevel = "Placement"
+        checkpointCorrect = 0
+        checkpointMissedIds = emptyList()
+
+        viewModelScope.launch {
+            val courseId = checkpointCourseId
+            val allUnitIds = if (courseId == 1) listOf(10, 11, 12, 13, 14, 15, 16, 17, 18, 19)
+                             else listOf(10, 11, 12, 13, 14, 15, 16, 17, 18, 19)
+            val sample = repository.getChallengesForUnits(allUnitIds).shuffled().take(25)
+            if (sample.isNotEmpty()) {
+                currentLessonChallenges = sample
+                lessonPointsAccumulated = 0
+                lessonMistakes = 0
+                lessonCombo = 0
+                val first = sample[0]
+                first.challenge.audioSrc?.let { playVoiceIfEnabled(it) }
+                _activeScreen.value = ActiveScreen.Exercise(
+                    lessonId = -1,
+                    challengeIndex = 0,
+                    totalChallenges = sample.size,
+                    currentChallenge = first,
+                )
+            }
+        }
+    }
+
+    fun applyPlacementScore(correct: Int, total: Int) {
+        val percent = if (total > 0) (correct * 100) / total else 0
+        viewModelScope.launch {
+            when {
+                percent >= 80 -> repository.completeChallengesUpToUnit(18) // Jump to B1 / N4
+                percent >= 50 -> repository.completeChallengesUpToUnit(14) // Jump to mid-A1 / mid-N5
+                else -> { /* Start at beginning */ }
+            }
+            repository.setOnboardingSeen()
+            refreshProfileStats()
+            _activeScreen.value = ActiveScreen.LessonMap
+        }
+    }
     fun startLesson(lessonId: Int) {
         isInPracticeSession = false
         viewModelScope.launch {
@@ -278,7 +411,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     fun startMistakePractice() {
         viewModelScope.launch {
-            val challenges = repository.getMistakeChallenges().shuffled()
+            val challenges = repository.getMistakeChallenges()
             if (challenges.isNotEmpty()) {
                 isInPracticeSession = true
                 currentLessonChallenges = challenges
@@ -393,10 +526,11 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
 
         viewModelScope.launch {
+            val isCheckpoint = isInCheckpoint
             when (val result = repository.submitAnswer(current.currentChallenge.challenge.id, isCorrect, isPractice = isInPracticeSession)) {
                 is AnswerResult.Correct -> {
+                    if (isCheckpoint) checkpointCorrect += 1
                     if (soundOn()) audioPlayer.playCorrectSound()
-                    if (hapticsOn()) com.duo.app.feedback.Haptics.correct(getApplication())
                     lessonPointsAccumulated += result.pointsGained
                     lessonCombo += 1
                     if (result.streakRepaired) {
@@ -411,6 +545,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     )
                 }
                 is AnswerResult.Incorrect -> {
+                    if (isCheckpoint) checkpointMissedIds = checkpointMissedIds + current.currentChallenge.challenge.id
                     if (soundOn()) audioPlayer.playIncorrectSound()
                     if (hapticsOn()) com.duo.app.feedback.Haptics.incorrect(getApplication())
                     lessonMistakes += 1
@@ -437,36 +572,68 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 totalChallenges = currentLessonChallenges.size,
                 currentChallenge = nextChallenge,
             )
-        } else {
-            if (isInPracticeSession) {
-                // Practice session done — back to Practice tab, no lesson credit.
-                isInPracticeSession = false
-                if (soundOn()) audioPlayer.playCorrectSound()
-                if (hapticsOn()) com.duo.app.feedback.Haptics.correct(getApplication())
-                refreshProfileStats()
-                _activeScreen.value = ActiveScreen.LessonMap
-                _currentTab.value = MainTab.Practice
-                com.duo.app.widget.OpenLingoWidgetProvider.updateAll(getApplication())
-            } else {
-                // Regular lesson completed.
-                if (soundOn()) audioPlayer.playFanfare()
-                if (hapticsOn()) com.duo.app.feedback.Haptics.celebrate(getApplication())
-                refreshProfileStats()
-                viewModelScope.launch {
-                    val bonus = if (lessonMistakes == 0) repository.awardPerfectBonus() else 0
-                    _activeScreen.value = ActiveScreen.LessonComplete(
-                        lessonId = current.lessonId,
-                        pointsGained = lessonPointsAccumulated + bonus,
-                        perfectBonus = bonus,
-                    )
-                    com.duo.app.widget.OpenLingoWidgetProvider.updateAll(getApplication())
+        } else if (isInCheckpoint) {
+            // Checkpoint done — save score, show results.
+            isInCheckpoint = false
+            isInPracticeSession = false
+            val total = currentLessonChallenges.size
+            val correct = checkpointCorrect
+            val missedIds = checkpointMissedIds
+            val level = checkpointLevel
+            val courseId = checkpointCourseId
+            if (soundOn()) audioPlayer.playFanfare()
+            if (hapticsOn()) com.duo.app.feedback.Haptics.celebrate(getApplication())
+            refreshProfileStats()
+            viewModelScope.launch {
+                val userId = userProgress.value?.userId ?: "guest_local"
+                repository.saveCheckpointScore(userId, courseId, level, correct, total)
+                if (missedIds.isNotEmpty()) {
+                    repository.queueMistakes(missedIds)
                 }
+                _activeScreen.value = ActiveScreen.CheckpointResult(
+                    level = level,
+                    correct = correct,
+                    total = total,
+                )
+                com.duo.app.widget.OpenLingoWidgetProvider.updateAll(getApplication())
+            }
+        } else if (isInPracticeSession) {
+            // Practice session done — back to Practice tab, no lesson credit.
+            isInPracticeSession = false
+            if (soundOn()) audioPlayer.playCorrectSound()
+            if (hapticsOn()) com.duo.app.feedback.Haptics.correct(getApplication())
+            refreshProfileStats()
+            _activeScreen.value = ActiveScreen.LessonMap
+            _currentTab.value = MainTab.Practice
+            com.duo.app.widget.OpenLingoWidgetProvider.updateAll(getApplication())
+        } else {
+            // Regular lesson completed.
+            if (soundOn()) audioPlayer.playFanfare()
+            if (hapticsOn()) com.duo.app.feedback.Haptics.celebrate(getApplication())
+            refreshProfileStats()
+            viewModelScope.launch {
+                val bonus = if (lessonMistakes == 0) repository.awardPerfectBonus() else 0
+                _activeScreen.value = ActiveScreen.LessonComplete(
+                    lessonId = current.lessonId,
+                    pointsGained = lessonPointsAccumulated + bonus,
+                    perfectBonus = bonus,
+                )
+                com.duo.app.widget.OpenLingoWidgetProvider.updateAll(getApplication())
             }
         }
     }
 
     fun playVoice(audioSrc: String, speed: Float = 1.0f, fallbackText: String? = null) {
         playVoiceIfEnabled(audioSrc, speed, fallbackText)
+    }
+
+    fun closeCheckpointResult() {
+        val current = _activeScreen.value as? ActiveScreen.CheckpointResult
+        if (current != null && current.level == "Placement") {
+            applyPlacementScore(current.correct, current.total)
+        } else {
+            _activeScreen.value = ActiveScreen.LessonMap
+        }
     }
 
     fun speakText(text: String, speed: Float = 1.0f) {

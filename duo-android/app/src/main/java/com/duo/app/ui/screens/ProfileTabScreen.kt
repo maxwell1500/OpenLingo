@@ -43,6 +43,7 @@ fun ProfileTabScreen(
     kanaCount: Int,
     accuracyPercent: Int,
     achievements: List<Pair<Achievement, Boolean>>,
+    typeStats: List<com.duo.app.data.local.entities.ExerciseTypeStatsEntity> = emptyList(),
     modifier: Modifier = Modifier,
 ) {
     val unlocked = achievements.count { it.second }
@@ -116,6 +117,62 @@ fun ProfileTabScreen(
                     color = Color(0xFF58CC02),
                     trackColor = Color(0xFFE5E5E5),
                 )
+            }
+        }
+
+        // Skill Strengths & Weak Areas
+        if (typeStats.isNotEmpty()) {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = Color(0xFFF7F7F7)),
+            ) {
+                Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(
+                        text = "📊 Exercise Type Accuracy",
+                        fontWeight = FontWeight.Bold,
+                        style = MaterialTheme.typography.titleSmall,
+                    )
+                    val sortedStats = typeStats.sortedBy { it.accuracyPercent }
+                    sortedStats.forEach { stat ->
+                        val readableName = when (stat.type) {
+                            "SELECT" -> "Multiple Choice"
+                            "ASSIST" -> "Vocabulary Assist"
+                            "WORD_BANK" -> "Sentence Builder"
+                            "LISTEN" -> "Listening Comprehension"
+                            "MATCH_PAIRS" -> "Matching Pairs"
+                            "STORY" -> "Story Comprehension"
+                            else -> stat.type
+                        }
+                        val acc = stat.accuracyPercent
+                        val barColor = when {
+                            acc >= 80 -> Color(0xFF58CC02)
+                            acc >= 60 -> Color(0xFFFFC800)
+                            else -> Color(0xFFFF4B4B)
+                        }
+                        Column(modifier = Modifier.fillMaxWidth()) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                            ) {
+                                Text(text = readableName, fontSize = 12.sp, color = Color(0xFF4B4B4B))
+                                Text(
+                                    text = "$acc% (${stat.correct}/${stat.attempts})",
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = barColor,
+                                )
+                            }
+                            Spacer(modifier = Modifier.height(3.dp))
+                            LinearProgressIndicator(
+                                progress = { acc / 100f },
+                                modifier = Modifier.fillMaxWidth().height(6.dp),
+                                color = barColor,
+                                trackColor = Color(0xFFE5E5E5),
+                            )
+                        }
+                    }
+                }
             }
         }
 

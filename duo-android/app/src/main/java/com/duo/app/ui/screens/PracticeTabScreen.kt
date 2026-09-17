@@ -71,6 +71,9 @@ fun PracticeTabScreen(
     mistakes: List<com.duo.app.data.local.entities.MistakeEntry> = emptyList(),
     onClearAllMistakes: () -> Unit = {},
     courseComplete: Boolean = false,
+    vocabList: List<com.duo.app.data.local.entities.VocabScheduleEntity> = emptyList(),
+    dueVocabCount: Int = 0,
+    onReviewVocab: (com.duo.app.data.local.entities.VocabScheduleEntity, Int) -> Unit = { _, _ -> },
     modifier: Modifier = Modifier,
 ) {
     var showFlashcards by remember { mutableStateOf(false) }
@@ -201,28 +204,46 @@ fun PracticeTabScreen(
                 }
 
                 Column(modifier = Modifier.weight(1f)) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        Text(
+                            text = "FSRS Spaced Repetition",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF1899D6),
+                        )
+                        if (dueVocabCount > 0) {
+                            Box(
+                                modifier = Modifier
+                                    .background(Color(0xFFFF9600), RoundedCornerShape(8.dp))
+                                    .padding(horizontal = 6.dp, vertical = 2.dp),
+                            ) {
+                                Text(
+                                    text = "$dueVocabCount DUE",
+                                    color = Color.White,
+                                    fontSize = 10.sp,
+                                    fontWeight = FontWeight.Bold,
+                                )
+                            }
+                        }
+                    }
                     Text(
-                        text = "SRS Vocabulary Review",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFF1899D6),
-                    )
-                    Text(
-                        text = "Review all learned words with zero heart penalty to lock in long-term memory",
+                        text = if (dueVocabCount > 0) "$dueVocabCount cards due for optimal memory retention" else "All cards caught up! Practice ahead anytime.",
                         style = MaterialTheme.typography.bodySmall,
                         color = Color(0xFF4B4B4B),
                     )
                 }
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = "Tap to open Flashcards mode",
+                    text = "Tap to review",
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color(0xFF1CB0F6),
                 )
             }
         }
-
         // Section: Mistakes to review (SRS dumbbell) — retry clears the entry.
         if (mistakes.isNotEmpty()) {
             MistakesReviewCard(
@@ -252,18 +273,31 @@ fun PracticeTabScreen(
         }
 
         // Vocabulary List
+        // Vocabulary List
+        val displayList = if (vocabList.isNotEmpty()) vocabList else practiceVocabBank.map {
+            com.duo.app.data.local.entities.VocabScheduleEntity(
+                id = it.foreign,
+                language = "es",
+                foreign = it.foreign,
+                romaji = it.romaji,
+                translation = it.translation,
+                audioSrc = it.audioSrc,
+                category = it.category,
+            )
+        }
         LazyColumn(
             verticalArrangement = Arrangement.spacedBy(8.dp),
             modifier = Modifier.fillMaxWidth(),
         ) {
-            items(practiceVocabBank) { item ->
-                VocabCard(item = item, onPlayVoice = onPlayVoice)
+            items(displayList) { item ->
+                VocabScheduleCard(item = item, onPlayVoice = onPlayVoice)
             }
         }
         if (showFlashcards) {
             VocabFlashcardsDialog(
-                vocabList = practiceVocabBank,
+                vocabList = displayList,
                 onPlayVoice = onPlayVoice,
+                onReviewVocab = onReviewVocab,
                 onDismiss = { showFlashcards = false },
             )
         }
@@ -272,8 +306,9 @@ fun PracticeTabScreen(
 
 @Composable
 private fun VocabFlashcardsDialog(
-    vocabList: List<VocabWord>,
+    vocabList: List<com.duo.app.data.local.entities.VocabScheduleEntity>,
     onPlayVoice: (String) -> Unit,
+    onReviewVocab: (com.duo.app.data.local.entities.VocabScheduleEntity, Int) -> Unit,
     onDismiss: () -> Unit,
 ) {
     var currentIndex by remember { mutableIntStateOf(0) }
@@ -401,35 +436,142 @@ private fun VocabFlashcardsDialog(
                             }
                         }
                     }
-
-                    // Answer Actions
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    ) {
-                        Button(
-                            onClick = {
-                                isFlipped = false
-                                if (currentIndex + 1 < vocabList.size) currentIndex++ else currentIndex = 0
-                            },
-                            modifier = Modifier.weight(1f).height(48.dp),
-                            shape = RoundedCornerShape(14.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFDFE0)),
+                    // FSRS 4-button Answer Actions (Again, Hard, Good, Easy)
+                    Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
                         ) {
-                            Text(text = "Review Again", color = Color(0xFFFF4B4B), fontWeight = FontWeight.Bold)
+                            Button(
+                                onClick = {
+                                    onReviewVocab(currentWord, com.duo.app.data.fsrs.FsrsScheduler.RATING_AGAIN)
+                                    isFlipped = false
+                                    if (currentIndex + 1 < vocabList.size) currentIndex++ else onDismiss()
+                                },
+                                modifier = Modifier.weight(1f).height(44.dp),
+                                shape = RoundedCornerShape(12.dp),
+                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFDFE0)),
+                                contentPadding = androidx.compose.foundation.layout.PaddingValues(4.dp),
+                            ) {
+                                Text(text = "Again ✕", color = Color(0xFFFF4B4B), fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                            }
+                            Button(
+                                onClick = {
+                                    onReviewVocab(currentWord, com.duo.app.data.fsrs.FsrsScheduler.RATING_HARD)
+                                    isFlipped = false
+                                    if (currentIndex + 1 < vocabList.size) currentIndex++ else onDismiss()
+                                },
+                                modifier = Modifier.weight(1f).height(44.dp),
+                                shape = RoundedCornerShape(12.dp),
+                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFF3C4)),
+                                contentPadding = androidx.compose.foundation.layout.PaddingValues(4.dp),
+                            ) {
+                                Text(text = "Hard", color = Color(0xFFD97706), fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                            }
                         }
-                        Button(
-                            onClick = {
-                                isFlipped = false
-                                if (currentIndex + 1 < vocabList.size) currentIndex++ else onDismiss()
-                            },
-                            modifier = Modifier.weight(1f).height(48.dp),
-                            shape = RoundedCornerShape(14.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF58CC02)),
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
                         ) {
-                            Text(text = "Got It! ✓", fontWeight = FontWeight.Bold)
+                            Button(
+                                onClick = {
+                                    onReviewVocab(currentWord, com.duo.app.data.fsrs.FsrsScheduler.RATING_GOOD)
+                                    isFlipped = false
+                                    if (currentIndex + 1 < vocabList.size) currentIndex++ else onDismiss()
+                                },
+                                modifier = Modifier.weight(1f).height(44.dp),
+                                shape = RoundedCornerShape(12.dp),
+                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE8F5E9)),
+                                contentPadding = androidx.compose.foundation.layout.PaddingValues(4.dp),
+                            ) {
+                                Text(text = "Good ✓", color = Color(0xFF2E7D32), fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                            }
+                            Button(
+                                onClick = {
+                                    onReviewVocab(currentWord, com.duo.app.data.fsrs.FsrsScheduler.RATING_EASY)
+                                    isFlipped = false
+                                    if (currentIndex + 1 < vocabList.size) currentIndex++ else onDismiss()
+                                },
+                                modifier = Modifier.weight(1f).height(44.dp),
+                                shape = RoundedCornerShape(12.dp),
+                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE0F2FE)),
+                                contentPadding = androidx.compose.foundation.layout.PaddingValues(4.dp),
+                            ) {
+                                Text(text = "Easy ✨", color = Color(0xFF0284C7), fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                            }
                         }
                     }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun VocabScheduleCard(
+    item: com.duo.app.data.local.entities.VocabScheduleEntity,
+    onPlayVoice: (String) -> Unit,
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(14.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFE5E5E5)),
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(
+                        text = item.foreign,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF4B4B4B),
+                    )
+                    if (item.reps > 0) {
+                        Box(
+                            modifier = Modifier
+                                .background(Color(0xFFE8F5E9), RoundedCornerShape(6.dp))
+                                .padding(horizontal = 6.dp, vertical = 2.dp),
+                        ) {
+                            Text(
+                                text = "${item.reps} reps",
+                                color = Color(0xFF2E7D32),
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Bold,
+                            )
+                        }
+                    }
+                }
+                if (!item.romaji.isNullOrBlank()) {
+                    Text(
+                        text = item.romaji,
+                        style = MaterialTheme.typography.bodySmall,
+                        fontSize = 12.sp,
+                        color = Color(0xFF1CB0F6),
+                    )
+                }
+                Text(
+                    text = "${item.translation} • ${item.category}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Color(0xFF888888),
+                )
+            }
+
+            if (item.audioSrc != null) {
+                Box(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .background(Color(0xFFE5F5FF), CircleShape)
+                        .clickable { onPlayVoice(item.audioSrc) },
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text(text = "🔊", fontSize = 18.sp)
                 }
             }
         }
