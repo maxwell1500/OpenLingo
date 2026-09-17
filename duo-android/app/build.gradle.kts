@@ -97,7 +97,7 @@ dependencies {
     ksp("androidx.room:room-compiler:2.8.5")
 
     // Media3 (ExoPlayer for Audio & Speech Playback)
-    implementation("androidx.media3:media3-exoplayer:1.5.1")
+    implementation("androidx.media3:media3-exoplayer:1.11.1")
     // Unit tests (local JVM: JUnit + Robolectric + Turbine)
     testImplementation("junit:junit:4.13.2")
     testImplementation("androidx.room:room-testing:2.8.5")
@@ -105,5 +105,5 @@ dependencies {
     testImplementation("org.robolectric:robolectric:4.17")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2")
     testImplementation("app.cash.turbine:turbine:1.2.1")
-    implementation("androidx.media3:media3-common:1.5.1")
+    implementation("androidx.media3:media3-common:1.11.1")
 }
