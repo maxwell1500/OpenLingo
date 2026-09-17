@@ -7,11 +7,15 @@ Key Features:
 • Full Offline Mode: all units, lessons, and high-quality Kokoro-82M text-to-speech audio play directly from your device without an internet connection.
 • Winding S-Curve Lesson Map: sequential lesson unlocking with golden crowns and glowing active nodes.
 • Android Home Screen Widget: track your daily quest and streak flame right from your home screen.
-• Interactive Practice & Drills: 3D-flip vocabulary flashcards and 60-second Kana Blitz speed quizzes.
-• Rich Exercise Types: Multiple Choice, Assist, Word Bank assembly, Dialogue stories, Match Pairs, and Listen challenges with a 0.6x slow playback turtle button (🐢).
+• FSRS-4.5 Spaced Repetition: scientific Free Spaced Repetition Scheduler algorithm for vocabulary review with 4-rating review intervals and due card tracking.
+• Level Checkpoint Assessments: test your mastery of CEFR A1/B1 and JLPT N5/N4 levels with celebratory badges and auto-queued practice.
+• Adaptive Learning: automatically tracks accuracy across challenge types and prioritizes your weakest areas first during practice drills.
+• Story Mode: interactive narrative reading challenges with dialogue, offline speech, and comprehension questions.
+• Placement Test: skip ahead on day one with an onboarding assessment across all units.
+• Rich Exercise Types: Multiple Choice, Assist, Word Bank sentence builder, Match Pairs, Stories, and Listen challenges with a 0.6x slow playback turtle button (🐢).
 • Kana Mastery: full syllabaries for all 46 Hiragana and 46 Katakana with stroke tracing canvas.
 • Dopamine Polish: celebration confetti showers, 3D golden trophy pop-in, perfect score bonus XP, and combo praise banners.
-• Spaced-Repetition Mistakes Review: automatically queues missed challenges for targeted practice.
+• Dark Mode & Custom Accents: complete System, Light, and Dark themes with Onsen Teal, Matcha Green, Sakura Pink, and Yuzu Citrus accents.
 • Free Heart Refills: tap your hearts pill anytime for an instant free refill, or wake up to full hearts at midnight.
 • Accountless Data Ownership: export and import your full progress anytime as a portable local JSON file.
 • Private Local Reminders: optional 7 PM offline reminder to keep your streak alive.
