@@ -16,7 +16,7 @@ data class UnitPayload(
 object ExpandedCurriculumData {
 
     // =========================================================================
-    // SPANISH A1 (Units 3 - 8)
+    // SPANISH A1 (Units 3 - 5; Units 6-8 live in AdvancedCurriculumData)
     // =========================================================================
     val spanishExpandedUnits: List<UnitPayload> = listOf(
         // Unit 3: Food & Dining
@@ -187,7 +187,7 @@ object ExpandedCurriculumData {
     )
 
     // =========================================================================
-    // JAPANESE N5 (Units 3 - 6)
+    // JAPANESE N5 (Units 3 - 4; Units 5-8 live in AdvancedCurriculumData)
     // =========================================================================
     val japaneseExpandedUnits: List<UnitPayload> = listOf(
         // Unit 3: Loanwords & Katakana
