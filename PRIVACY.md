@@ -3,7 +3,7 @@
 **Last updated: 27 September 2026**
 **Applies to: OpenLingo for Android (`com.duo.app`), version 1.1.0 and later**
 
-OpenLingo is a free, open-source (MIT) language-learning app for Spanish (CEFR A1 → B1) and Japanese (JLPT N5 → N4). Its mascot is a capybara named OpenLingo, who is chill, offline, and does not phone home.
+OpenLingo is a free, open-source (MIT) language-learning app for Spanish (CEFR A1 → A2) and Japanese (JLPT N5 → N4). Its mascot is a capybara named OpenLingo, who is chill, offline, and does not phone home.
 
 The short version: **OpenLingo collects nothing, sends nothing, and has nowhere to send it to.** There is no account, no server, no analytics, and no tracking. Your learning history never leaves your phone unless you personally export it and hand it to someone.
 
