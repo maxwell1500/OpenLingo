@@ -1,0 +1,48 @@
+OpenLingo
+=========
+
+Origin and attribution
+----------------------
+
+This repository has its origins in **duolingo-clone**, a Next.js web
+application created by **Sanidhya Kumar Verma**:
+
+    https://github.com/sanidhyy/duolingo-clone
+
+That project is the origin of this repository, and OpenLingo would not
+exist without it. It was MIT licensed, and its licence and copyright are
+retained in this repository in full and unchanged:
+
+    Copyright (c) 2024 Sanidhya Kumar Verma
+
+    The above copyright notice and this permission notice shall be
+    included in all copies or substantial portions of the Software.
+
+See [LICENSE](LICENSE) for the complete licence text.
+
+What changed
+------------
+
+The original project was a Next.js/TypeScript web application. The OpenLingo
+Android application in `duo-android/` is a **native Kotlin and Jetpack Compose
+application, written from scratch in September 2026** for this project. It
+shares no application source code with the original: it uses a different
+language, a different UI toolkit, and a different persistence layer (Room over
+SQLite rather than a web backend).
+
+The original web application source has since been removed from this
+repository. **No upstream application source code remains here.** What remains
+of the original project is its git history, its repository-level documentation
+and configuration, and the MIT licence quoted above.
+
+The name "OpenLingo", the capybara mascot, the app icon, the theme palette, the
+curricula, and the Android application itself are original to this project and
+are not affiliated with or endorsed by Duolingo, Inc.
+
+Scope
+-----
+
+The MIT licence covering this repository continues to apply in full and is
+unchanged. This file is an additional notice, not a replacement: it adds
+context about what the licence covers and who wrote what. Nothing here modifies,
+narrows, or supersedes the terms in [LICENSE](LICENSE).

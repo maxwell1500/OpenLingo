@@ -2,6 +2,14 @@
 
 OpenLingo is a 100% free, open-source, native Android app for learning Spanish (CEFR A1 → B1) and Japanese (JLPT N5 → N4). It works fully offline: no account, no ads, no billing, no tracking, and no `INTERNET` permission at all. Your progress lives entirely on your device — and a chill capybara keeps you company along the way.
 
+## Origin & Attribution
+
+OpenLingo's Android application (`duo-android/`) is **original work** — a native Kotlin and Jetpack Compose app written from scratch for this project in September 2026, with its own curricula, bundled audio, and on-device progress store.
+
+This repository has its origins in [**duolingo-clone**](https://github.com/sanidhyy/duolingo-clone), a Next.js web application created by **Sanidhya Kumar Verma** — the MIT-licensed project this one grew out of, and the reason this repository exists at all. The original web application has since been replaced by the native Android app, and **no upstream application source code remains here**. His original MIT licence and copyright are retained in full and unchanged in [LICENSE](LICENSE), and the full account is in [NOTICE](NOTICE).
+
+Thanks to Sanidhya for building the project this started from, and for licensing it openly.
+
 ## Features
 
 - Offline curricula: 20 units, 38 lessons, 158 challenges across Spanish and Japanese
@@ -64,6 +72,7 @@ There is no network stack at all — the app does not request the `INTERNET` per
 | `duo-android/docs/AUDIT_grammar_gap.md` | Audit of what the app never taught grammatically, and what the spec grew out of |
 | `duo-android/docs/AUDIT_pronunciation.md` | Audit of the Japanese kana/romaji and TTS pronunciation surface |
 | `duo-android/docs/AUDIT_feature_comparison.md` | Feature-by-feature comparison against Duolingo, marking what is matched, exceeded, or absent |
+| `NOTICE` | Origin and attribution — the project this repository grew out of |
 | `duo-android/fastlane/` | Google Play store metadata |
 
 ## Getting started
@@ -125,3 +134,5 @@ The full policy, including exactly which permissions are declared and why, what 
 ## License
 
 MIT — see [LICENSE](LICENSE).
+
+This repository descends from an earlier MIT-licensed project by Sanidhya Kumar Verma; [NOTICE](NOTICE) records what was inherited and what is new.
