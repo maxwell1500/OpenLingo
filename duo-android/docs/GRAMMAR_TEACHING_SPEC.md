@@ -419,7 +419,7 @@ still be completed. Held-out items live inside the existing B1 `UnitPayloads` (c
 
 ## 8. Verification
 
-- **Build/tests/release:** `H:/Projects/DuoLingo/.tools/gradle-9.6.0/bin/gradle.bat run` from
+- **Build/tests/release:** `gradle.bat run` from
   `duo-android`; tests via `:app:test` (includes `CurriculumIntegrityTest`); release `:app:assembleRelease`.
   **Pass `--rerun-tasks` when you need the numbers rather than a green build line:** a bare `:app:test`
   legitimately reports `UP-TO-DATE` and executes nothing, and `BUILD SUCCESSFUL` in that state says
