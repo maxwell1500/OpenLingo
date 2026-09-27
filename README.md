@@ -57,7 +57,7 @@ Every lesson mixes exercise types: multiple choice, verb conjugation, word bank 
 - Media3 ExoPlayer for audio playback
 - KotlinX Serialization for progress backups
 - AlarmManager for the midnight reset and 7 PM reminder
-- Pure-JVM test suite (Robolectric, in-memory Room, plus a real on-disk 12 → 14 migration upgrade)
+- Pure-JVM test suite (Robolectric, in-memory Room, plus real on-disk migration upgrades: 12 → 15 through the whole chain, 14 → 15 alone, and 12 → 13 alone)
 
 There is no network stack at all — the app does not request the `INTERNET` permission.
 
