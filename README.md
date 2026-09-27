@@ -1,6 +1,6 @@
 # OpenLingo 🦫
 
-OpenLingo is a 100% free, open-source, native Android app for learning Spanish (CEFR A1 → B1) and Japanese (JLPT N5 → N4). It works fully offline: no account, no ads, no billing, no tracking, and no `INTERNET` permission at all. Your progress lives entirely on your device — and a chill capybara keeps you company along the way.
+OpenLingo is a 100% free, open-source, native Android app for learning Spanish (CEFR A1 → A2) and Japanese (JLPT N5 → N4). It works fully offline: no account, no ads, no billing, no tracking, and no `INTERNET` permission at all. Your progress lives entirely on your device — and a chill capybara keeps you company along the way.
 
 ## Origin & Attribution
 
@@ -19,7 +19,7 @@ Thanks to Sanidhya for building the project this started from, and for licensing
 - **Typed fill-in-the-blank** (`FILL_BLANK`): the learner types the missing form into a sentence scaffold. Grading forgives a missing Spanish accent and folds the full-width characters a Japanese IME emits, while still rejecting wrong word order and wrong inflected forms
 - **Listening in the target language**: all 31 listening challenges are answered in the language being learned, not with English glosses
 - Bundled Kokoro-82M TTS audio (Ogg) — every word and phrase is pronounceable, no network needed
-- **Checkpoint tests**: CEFR A1/B1 and JLPT N5/N4 level mastery tests with celebratory pass badges and auto-queueing of missed questions. Sessions are drawn from a held-out pool of sentences in the same grammar structures, none of which ever appear on a lesson path, so passing measures generalisation rather than recall of taught sentences
+- **Checkpoint tests**: CEFR A1/A2 and JLPT N5/N4 level mastery tests with celebratory pass badges and auto-queueing of missed questions. A session leads with a held-out pool of unseen sentences in the same grammar structures, which never appear on a lesson path, and tops that up with taught items. That pool is currently small and only exists for the upper two levels: A2 and N4 hold 4 held-out items each — 13% of the 30-item Spanish session and 15% of the 27-item Japanese one — so on those two checkpoints only the first few questions test generalisation rather than recall. A1 and N5 have no held-out pool yet and are drawn entirely from taught items.
 - **FSRS-4.5 spaced repetition**: Modern Free Spaced Repetition Scheduler algorithm for vocabulary review with 4-grade rating (Again, Hard, Good, Easy) and due-count badges
 - **Per-unit vocabulary list**: the words a unit teaches as one browsable, listenable list grouped by topic, reachable from the unit header on the lesson map — the words were previously only implicit in challenge options and the FSRS table
 - **Offline tap-to-lookup dictionary**: tap any word in a question, story line or option — or hold an answer — to get its definition, its audio, and the sentence it came from, with no network and no bundled dictionary asset. The headwords and glosses are the target-language answers the curriculum already teaches and the English the same challenge already pairs them with. A distractor is deliberately not a headword, so a word the unit is teaching the learner to reject never gets an authoritative definition
@@ -45,7 +45,7 @@ Thanks to Sanidhya for building the project this started from, and for licensing
 
 Each course is organized into 10 units that unlock in sequence along the S-curve map:
 
-- **Spanish** — CEFR A1 → B1: greetings and everyday phrases, food and routines, city and travel, shopping and money, health, past tenses and narrative
+- **Spanish** — CEFR A1 → A2: greetings and everyday phrases, food and routines, city and travel, shopping and money, health, past tenses and narrative
 - **Japanese** — JLPT N5 → N4: kana, greetings, loanwords and katakana, daily verbs, counters and kanji basics, te-forms, potential/ability, politeness
 
 Every lesson mixes exercise types: multiple choice, verb conjugation, word bank assembly, typed fill-in-the-blank, match pairs, listening, and dialogue comprehension. Two `ASSIST` challenges exist in the corpus, but neither carries the `___` blank their renderer looks for, so both currently play as ordinary multiple choice — the mechanic is implemented, its content is not written yet.
