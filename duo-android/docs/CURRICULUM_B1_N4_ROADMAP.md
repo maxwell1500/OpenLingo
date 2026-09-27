@@ -7,6 +7,8 @@ production requirements for expanding Duo into intermediate levels.
 
 Target: Units 9–12 (8 lessons, ~28 challenges).
 
+Status: Units 9–10 have shipped in `B1CurriculumData.kt` — 4 lessons and 31 challenges. Units 11–12 are not authored yet.
+
 ### Unit 9: Past Tense — Pretérito Indefinido
 • Focus: Regular `-ar`, `-er`, `-ir` past actions (hablé, comí, viví)
 • Dialogue / Story: *Un viaje a Sevilla* (A trip to Seville — train tickets, hotel check-in)
@@ -39,6 +41,8 @@ Target: Units 9–12 (8 lessons, ~28 challenges).
 
 Target: Units 9–12 (8 lessons, ~28 challenges).
 
+Status: Units 9–10 have shipped in `B1CurriculumData.kt` — 4 lessons and 27 challenges. Units 11–12 are not authored yet.
+
 ### Unit 9: Te-form & Requests (〜てください / 〜ています)
 • Focus: Connecting verbs, ongoing actions, polite requests
 • Dialogue / Story: *道案内* (Asking directions in Shibuya)
@@ -68,6 +72,6 @@ Target: Units 9–12 (8 lessons, ~28 challenges).
 ---
 
 ## Technical Prerequisites for Ingest
-1. Python Kokoro pipeline via `.scratch/batch_audio.py` (ef_dora / jf_alpha @ 24kHz mono)
+1. Python Kokoro pipeline, documented in `docs/kokoro-tts.md` at the repository root (ef_dora / jf_alpha @ 24kHz mono)
 2. `UnitPayload` additions in new file `B1CurriculumData.kt`
 3. Referential integrity tests in `CurriculumIntegrityTest.kt` ensure zero FK / audio regressions
