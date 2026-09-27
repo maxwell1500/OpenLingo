@@ -56,7 +56,12 @@ plans vocabulary rides along inside them.
   participle hecho, dicho, puesto, ido, visto)
 • Lessons: *I Had It* / *How the Day Went* / *Before All That*
 • Held out for the B1 checkpoint: siguió, volvió, comprado, abrí
-• Audio: none — the shipped clips cover A1–A2 only, and no `audioSrc` was invented
+• Audio: recorded — 26 clips, one per challenge, wired after each was checked against the text it
+  attaches to. SELECT speaks its correct option (and the correct option carries the same clip),
+  CONJUGATE speaks the target form on the challenge only, FILL_BLANK and WORD_BANK speak the full
+  target sentence, STORY speaks the story body. Terminal full stops were added where the option
+  text has none, and the two STORY clips render `\n\n` paragraph breaks as full stops; no other
+  character differs.
 
 ### Unit 12: Conditional, Periphrasis & Connectives *(shipped, `spanishB1Units` unit 31)*
 • Focus: the regular conditional (hablaría, comería, viviríamos) and the irregular one
@@ -66,7 +71,10 @@ plans vocabulary rides along inside them.
   aunque, pero)
 • Lessons: *What Would You Do?* / *I Would Like, Please* / *Why, So, Although*
 • Held out for the B1 checkpoint: harías, comería, diría, pero
-• Audio: none, for the same reason
+• Audio: recorded — 30 clips on the same rules as unit 11. `estudio_espanol_para_viajar_a_espana`
+  hangs off the SELECT item 50226 rather than the FILL_BLANK 50223, because the clip speaks the
+  whole sentence and 50223's blank takes only the connective `para`; `tendria` hangs off the
+  direct conjugation item 50203, not the nuance item 50214.
 
 ---
 
@@ -98,7 +106,11 @@ Status: **Units 9–12 have shipped.** Units 9–10 are in `B1CurriculumData.kt`
 • Grammar slugs: `ja.past_polite`, `ja.plain_vs_polite`, `ja.negative`, `ja.i_adjective`,
   `ja.na_adjective`
 • Held out for the N4 checkpoint: 帰りました, 飲まない, ビール
-• Audio: none — the shipped clips cover A1–A2 only, and no `audioSrc` was invented
+• Audio: recorded — 21 clips. SELECT speaks its correct option (and the correct option carries the
+  same clip), CONJUGATE speaks the target form on the challenge only, FILL_BLANK speaks the whole
+  scaffold with the blank filled. One exception: `atsui` speaks the bare word, not the sentence the
+  held-out FILL_BLANK 60036 assembles, so it is wired to that item's correct option instead of the
+  challenge.
 
 ### Unit 12: Ability, Opinion & Giving *(shipped, `japaneseN4ExtensionUnits` unit 41)*
 • Focus: ability as ます → せます and ます + ことができます, opinion as 〜と思います (which drills the
@@ -106,15 +118,20 @@ Status: **Units 9–12 have shipped.** Units 9–10 are in `B1CurriculumData.kt`
 • Lessons: *I Can Do That* / *I Think* / *Gifts and Favours*
 • Grammar slugs: `ja.ability_polite`, `ja.think`, `ja.giving_receiving`
 • Held out for the N4 checkpoint: 歌えます, あつい, もらった
-• Audio: none, for the same reason
+• Audio: recorded — 21 clips on the same rules as unit 11, minus one. `kuruma_wo_unten_suru_koto_ga_dekimasu`
+  speaks 車を運転することができます but the FILL_BLANK 60025 scaffold reads 車を___ことができます and
+  takes only 運転, so the item and the clip disagree lexically and the clip is left unwired. The seven
+  MATCH_PAIRS clips hang off their paired options: those challenges' prompts are the instruction
+  "Match the ...", not a sentence, so there is nothing for a challenge-level clip to speak.
 
 ---
 
 ### Still absent at N4
 The passive (受身) and the causative (使役) are not taught anywhere in the Japanese corpus, and neither
 are relative clauses. They are real JLPT N4 grammar and remain open work — units 13 and 14 would be the
-natural home. The audio for every unit from 9 onwards is also still unrecorded, so the `LISTEN` mechanic
-is not available on any of them.
+natural home. Japanese units 9–12 all carry audio now. The `LISTEN` mechanic is a separate matter and
+is still absent from all four: the corpus has 23 `LISTEN` challenges in total and none of them sits in
+a unit 9 or later item — they are all in the A1 and A2 units.
 
 ## Technical Prerequisites for Ingest
 1. Python Kokoro pipeline, documented in `docs/kokoro-tts.md` at the repository root (ef_dora / jf_alpha @ 24kHz mono)
