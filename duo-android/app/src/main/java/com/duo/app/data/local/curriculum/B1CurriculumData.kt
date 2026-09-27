@@ -21,10 +21,11 @@ import com.duo.app.data.local.models.ChallengeType
  *   Japanese: Units 9-10 (unit ids 28-29) — Te-form & Requests, Potential & Ability.
  *     These are genuinely JLPT N4 grammar points, so N4 is the honest label.
  *
- * All audio assets are bundled Kokoro-82M Ogg files. The Spanish B1 units carry
- * none: the shipped clips cover the A1-A2 sentences, and an `audioSrc` that
- * pointed at a file nobody generated would fail the audio-integrity test, so
- * those items leave the field null.
+ * All audio assets are bundled Kokoro-82M Ogg files. The Spanish B1 units carry one
+ * clip per challenge: 56 of them, one per item, covering SELECT, CONJUGATE,
+ * FILL_BLANK, WORD_BANK and STORY alike. A SELECT challenge and its correct option
+ * share the same clip; a CONJUGATE carries the target form on the challenge alone, so
+ * the option grid never plays the answer for the learner.
  *
  * Id layout inside this file:
  *   - `1xxxx` / `2xxxx`  the originally authored taught items
@@ -501,9 +502,14 @@ object B1CurriculumData {
     //   - options 500000 + (challengeId - 50100) * 10, so every option is unique
     //     and still traceable to the challenge that owns it.
     //
-    // No `audioSrc`: the shipped Kokoro clips cover the A1-A2 sentences only, and
-    // CurriculumIntegrityTest asserts that every referenced file exists, so an item
-    // that has no clip leaves the field null rather than pointing at nothing.
+    // Audio: 56 bundled Kokoro clips, one per challenge, and every one of them was
+    // checked against the text it hangs off before it was wired. A SELECT challenge
+    // speaks its correct option, so the correct option carries the same clip; a
+    // CONJUGATE speaks the target form on the challenge only, because an option that
+    // played itself would give the answer away. FILL_BLANK and WORD_BANK speak the
+    // full target sentence (the blank filled, the tiles assembled) and STORY speaks
+    // the story body with its paragraph breaks rendered as full stops. Every value
+    // has a file behind it, which is what CurriculumIntegrityTest asserts.
     val spanishB1Units: List<UnitPayload> = listOf(
         // Unit 11: Irregular Past — Pretérito Indefinido irregular + Pasado Perfecto
         UnitPayload(
@@ -523,6 +529,7 @@ object B1CurriculumData {
                 ChallengeEntity(
                     id = 50100, lessonId = 300, type = ChallengeType.SELECT,
                     question = "Which one means 'I had a terrible day'?",
+                    audioSrc = "asset:///audio/es/tuve_un_dia_malo.ogg",
                     orderIndex = 0,
                     grammaticalFocus = "es.preterito.irregular",
                     ruleText = "tener changes stem in the preterite: tuv- + e/iste/o/imos/ieron, so yo tuve.\nTener un día malo leaves the infinitive in the slot and tuviste is tú — the sentence says nothing about anyone but me.",
@@ -530,6 +537,7 @@ object B1CurriculumData {
                 ChallengeEntity(
                     id = 50101, lessonId = 300, type = ChallengeType.CONJUGATE,
                     question = "Which preterite form of tener goes with 'yo'?",
+                    audioSrc = "asset:///audio/es/tuve.ogg",
                     orderIndex = 1,
                     grammaticalFocus = "es.preterito.irregular",
                     ruleText = "The irregular preterite of tener uses the stem tuv- in every person: tuve, tuviste, tuvo, tuvimos, tuvieron.\ntuviste belongs to tú and tenías is the imperfecto — neither can stand for one finished past action.",
@@ -537,6 +545,7 @@ object B1CurriculumData {
                 ChallengeEntity(
                     id = 50102, lessonId = 300, type = ChallengeType.FILL_BLANK,
                     question = "Ayer yo ___ mucha hambre.",
+                    audioSrc = "asset:///audio/es/ayer_yo_tuve_mucha_hambre.ogg",
                     orderIndex = 2,
                     grammaticalFocus = "es.preterito.irregular",
                     acceptedAnswers = "tuve",
@@ -545,6 +554,7 @@ object B1CurriculumData {
                 ChallengeEntity(
                     id = 50103, lessonId = 300, type = ChallengeType.CONJUGATE,
                     question = "Which preterite form of poder goes with 'yo'?",
+                    audioSrc = "asset:///audio/es/pude.ogg",
                     orderIndex = 3,
                     grammaticalFocus = "es.preterito.irregular",
                     ruleText = "poder is irregular in the preterite: pud- + e/iste/o/imos/ieron, so yo pude and él pudo.\nPodía is the imperfecto, an ability that lasted all evening, and Poder is the infinitive.",
@@ -552,6 +562,7 @@ object B1CurriculumData {
                 ChallengeEntity(
                     id = 50104, lessonId = 300, type = ChallengeType.FILL_BLANK,
                     question = "No ___ contestar el teléfono.",
+                    audioSrc = "asset:///audio/es/no_pude_contestar_el_telefono.ogg",
                     orderIndex = 4,
                     grammaticalFocus = "es.preterito.irregular",
                     acceptedAnswers = "pude",
@@ -560,6 +571,7 @@ object B1CurriculumData {
                 ChallengeEntity(
                     id = 50105, lessonId = 300, type = ChallengeType.CONJUGATE,
                     question = "Which preterite form of hacer goes with 'yo'?",
+                    audioSrc = "asset:///audio/es/hice.ogg",
                     orderIndex = 5,
                     grammaticalFocus = "es.preterito.irregular",
                     ruleText = "hacer is irregular in the preterite: hic- + e/iste/o/imos/ieron, so yo hice and él hizo.\nHacía is the imperfecto, a habit, and Hacer is the infinitive; neither can report the one cake that was actually made.",
@@ -574,6 +586,7 @@ object B1CurriculumData {
                 ChallengeEntity(
                     id = 50107, lessonId = 300, type = ChallengeType.CONJUGATE,
                     question = "Which preterite form of decir goes with 'nosotros'?",
+                    audioSrc = "asset:///audio/es/dijimos.ogg",
                     orderIndex = 7,
                     grammaticalFocus = "es.preterito.irregular",
                     ruleText = "decir is irregular in the preterite: dij- + o/imos/ieron, so nosotros dijimos and ellos dijeron.\nDecíamos is the imperfecto and Decir is the infinitive; neither is the one time the thing was said.",
@@ -581,12 +594,14 @@ object B1CurriculumData {
                 ChallengeEntity(
                     id = 50108, lessonId = 300, type = ChallengeType.SELECT,
                     question = "Which one means 'the meeting'?",
+                    audioSrc = "asset:///audio/es/la_reunion.ogg",
                     orderIndex = 8,
                     ruleText = "A noun taught on its own, with no grammar to miss: la reunión is the meeting you are late to.\nLa habitación, la farmacia and la iglesia are other places, and only one of the four is a gathering of people.",
                 ),
                 ChallengeEntity(
                     id = 50109, lessonId = 300, type = ChallengeType.SELECT,
                     question = "Which one means 'I was very tired'?",
+                    audioSrc = "asset:///audio/es/estuve_muy_cansado.ogg",
                     orderIndex = 9,
                     grammaticalFocus = "es.preterito.irregular",
                     ruleText = "A completed state of tiredness is the preterite: estuve muy cansado.\nEstaba is the imperfecto, a tiredness that ran on, and Estaré is the future; Estar is the infinitive and fills no slot.",
@@ -595,6 +610,7 @@ object B1CurriculumData {
                 ChallengeEntity(
                     id = 50110, lessonId = 301, type = ChallengeType.SELECT,
                     question = "Which one means 'I did not want to go'?",
+                    audioSrc = "asset:///audio/es/no_quise_ir.ogg",
                     orderIndex = 0,
                     grammaticalFocus = "es.preterito.irregular",
                     ruleText = "querer is irregular in the preterite: quis- + e/iste/o/imos/ieron, so no quise.\nQuería is the imperfecto, an inclination that lasted, and Quisiste is tú, not me.",
@@ -602,6 +618,7 @@ object B1CurriculumData {
                 ChallengeEntity(
                     id = 50111, lessonId = 301, type = ChallengeType.CONJUGATE,
                     question = "Which preterite form of venir goes with 'ellos'?",
+                    audioSrc = "asset:///audio/es/vinieron.ogg",
                     orderIndex = 1,
                     grammaticalFocus = "es.preterito.irregular",
                     ruleText = "venir is irregular in the preterite: vin- + ieron, so ellos vinieron and ella vino.\nVenían is the imperfecto of a repeated coming and Venir is the infinitive; neither describes one arrival.",
@@ -609,6 +626,7 @@ object B1CurriculumData {
                 ChallengeEntity(
                     id = 50112, lessonId = 301, type = ChallengeType.FILL_BLANK,
                     question = "Ana ___ a Madrid en tren.",
+                    audioSrc = "asset:///audio/es/ana_vino_a_madrid_en_tren.ogg",
                     orderIndex = 2,
                     grammaticalFocus = "es.preterito.irregular",
                     acceptedAnswers = "vino",
@@ -617,6 +635,7 @@ object B1CurriculumData {
                 ChallengeEntity(
                     id = 50113, lessonId = 301, type = ChallengeType.CONJUGATE,
                     question = "Which preterite form of estar goes with 'yo'?",
+                    audioSrc = "asset:///audio/es/estuve.ogg",
                     orderIndex = 3,
                     grammaticalFocus = "es.preterito.irregular",
                     ruleText = "estar is irregular in the preterite: estuv- + e/iste/o/imos/ieron, so yo estuve and él estuvo.\nEstaba is the imperfecto, a stay that had no end yet, and Estar is the infinitive.",
@@ -624,6 +643,7 @@ object B1CurriculumData {
                 ChallengeEntity(
                     id = 50114, lessonId = 301, type = ChallengeType.CONJUGATE,
                     question = "Which preterite form of poner goes with 'nosotros'?",
+                    audioSrc = "asset:///audio/es/pusimos.ogg",
                     orderIndex = 4,
                     grammaticalFocus = "es.preterito.irregular",
                     ruleText = "poner is irregular in the preterite: pus- + imos/eron, so nosotros pusimos and ellos pusieron.\nPoníamos is the imperfecto and Poner is the infinitive; neither is the one time the table was set.",
@@ -631,6 +651,7 @@ object B1CurriculumData {
                 ChallengeEntity(
                     id = 50115, lessonId = 301, type = ChallengeType.CONJUGATE,
                     question = "Which preterite form of dormir goes with 'yo'?",
+                    audioSrc = "asset:///audio/es/dormi.ogg",
                     orderIndex = 5,
                     grammaticalFocus = "es.preterito.stem_changing",
                     ruleText = "dormir changes stem in the present (dorm- → duerm-) but the preterite keeps the plain stem: dormí, dormiste, durmió.\nDurmió is él/ella, Dormía is the imperfecto, and Duermo belongs to the present tense.",
@@ -638,6 +659,7 @@ object B1CurriculumData {
                 ChallengeEntity(
                     id = 50116, lessonId = 301, type = ChallengeType.FILL_BLANK,
                     question = "Anoche ___ ocho horas.",
+                    audioSrc = "asset:///audio/es/anoche_dormi_ocho_horas.ogg",
                     orderIndex = 6,
                     grammaticalFocus = "es.preterito.stem_changing",
                     acceptedAnswers = "dormí|dormi",
@@ -646,6 +668,7 @@ object B1CurriculumData {
                 ChallengeEntity(
                     id = 50117, lessonId = 301, type = ChallengeType.CONJUGATE,
                     question = "Which preterite form of pedir goes with 'él'?",
+                    audioSrc = "asset:///audio/es/pidio.ogg",
                     orderIndex = 7,
                     grammaticalFocus = "es.preterito.stem_changing",
                     ruleText = "pedir changes stem in the present (pid- → pide) but the preterite is ped-: pedí, pediste, pidió.\nPedí is yo and Pedía is the imperfecto, so only Pidió can answer for him.",
@@ -653,6 +676,7 @@ object B1CurriculumData {
                 ChallengeEntity(
                     id = 50118, lessonId = 301, type = ChallengeType.CONJUGATE,
                     question = "Which preterite form of descubrir goes with 'nosotros'?",
+                    audioSrc = "asset:///audio/es/descubrimos.ogg",
                     orderIndex = 8,
                     grammaticalFocus = "es.preterito.stem_changing",
                     ruleText = "descubrir is a weak stem-changing -ir verb: descubrí, descubriste, descubrió, descubrimos.\nDescubrieron is ellos/ellas and Descubría is the imperfecto; Descubre is the present.",
@@ -660,12 +684,14 @@ object B1CurriculumData {
                 ChallengeEntity(
                     id = 50119, lessonId = 301, type = ChallengeType.SELECT,
                     question = "Which one means 'the station'?",
+                    audioSrc = "asset:///audio/es/la_estacion.ogg",
                     orderIndex = 9,
                     ruleText = "la estación is the station; it is a feminine noun, like la reunión and la habitación.\nLa piscina, la torre and el mercado are other places, and only one of them is where a train stops.",
                 ),
                 ChallengeEntity(
                     id = 50140, lessonId = 301, type = ChallengeType.FILL_BLANK,
                     question = "El profesor ___ toda la mañana.",
+                    audioSrc = "asset:///audio/es/el_profesor_siguio_toda_la_manana.ogg",
                     orderIndex = 10,
                     heldOut = true,
                     grammaticalFocus = "es.preterito.stem_changing",
@@ -675,6 +701,7 @@ object B1CurriculumData {
                 ChallengeEntity(
                     id = 50141, lessonId = 301, type = ChallengeType.FILL_BLANK,
                     question = "El tren ___ a la estación a las tres.",
+                    audioSrc = "asset:///audio/es/el_tren_volvio_a_la_estacion_a_las_tres.ogg",
                     orderIndex = 11,
                     heldOut = true,
                     grammaticalFocus = "es.preterito.irregular",
@@ -685,6 +712,7 @@ object B1CurriculumData {
                 ChallengeEntity(
                     id = 50120, lessonId = 302, type = ChallengeType.WORD_BANK,
                     question = "Assemble: 'When I arrived the film had already started'",
+                    audioSrc = "asset:///audio/es/cuando_llegue_la_pelicula_ya_habia_empezado.ogg",
                     orderIndex = 0,
                     grammaticalFocus = "es.past_perfect",
                     ruleText = "The past perfect is había + participle, and empezar builds its participle as empez- + ado: ya había empezado.\nEmpezó is the plain preterite, a start with no earlier point to measure it from, and Empezaba is the imperfecto.",
@@ -692,6 +720,7 @@ object B1CurriculumData {
                 ChallengeEntity(
                     id = 50121, lessonId = 302, type = ChallengeType.FILL_BLANK,
                     question = "___ comido antes de las dos.",
+                    audioSrc = "asset:///audio/es/habia_comido_antes_de_las_dos.ogg",
                     orderIndex = 1,
                     grammaticalFocus = "es.past_perfect",
                     acceptedAnswers = "había|habia",
@@ -730,6 +759,7 @@ object B1CurriculumData {
                 ChallengeEntity(
                     id = 50126, lessonId = 302, type = ChallengeType.STORY,
                     question = "Día perdido en la oficina\n\nLlegué tarde a la reunión.\nMi jefe ya había salido.\nDespués supe que yo había dicho la verdad demasiado tarde.",
+                    audioSrc = "asset:///audio/es/dia_perdido_en_la_oficina.ogg",
                     orderIndex = 6,
                 ),
                 ChallengeEntity(
@@ -757,6 +787,7 @@ object B1CurriculumData {
                 ChallengeEntity(
                     id = 50142, lessonId = 302, type = ChallengeType.FILL_BLANK,
                     question = "Cuando llegué, mi vecino ya lo había ___.",
+                    audioSrc = "asset:///audio/es/cuando_llegue_mi_vecino_ya_lo_habia_comprado.ogg",
                     orderIndex = 10,
                     heldOut = true,
                     grammaticalFocus = "es.past_perfect",
@@ -766,6 +797,7 @@ object B1CurriculumData {
                 ChallengeEntity(
                     id = 50143, lessonId = 302, type = ChallengeType.CONJUGATE,
                     question = "Which preterite form of abrir goes with 'yo'?",
+                    audioSrc = "asset:///audio/es/abri.ogg",
                     orderIndex = 11,
                     heldOut = true,
                     grammaticalFocus = "es.preterito.irregular",
@@ -773,7 +805,7 @@ object B1CurriculumData {
                 ),
             ),
             options = listOf(
-                ChallengeOptionEntity(id = 500000, challengeId = 50100, text = "Tuve un día malo", correct = true),
+                ChallengeOptionEntity(id = 500000, challengeId = 50100, text = "Tuve un día malo", correct = true, audioSrc = "asset:///audio/es/tuve_un_dia_malo.ogg"),
                 ChallengeOptionEntity(id = 500001, challengeId = 50100, text = "Tengo un día malo", correct = false, errorTag = "WRONG_TENSE"),
                 ChallengeOptionEntity(id = 500002, challengeId = 50100, text = "Tener un día malo", correct = false, errorTag = "WRONG_FORM"),
                 ChallengeOptionEntity(id = 500003, challengeId = 50100, text = "Tuviste un día malo", correct = false, errorTag = "WRONG_PERSON"),
@@ -815,17 +847,17 @@ object B1CurriculumData {
                 ChallengeOptionEntity(id = 500072, challengeId = 50107, text = "decíamos", correct = false, errorTag = "WRONG_TENSE"),
                 ChallengeOptionEntity(id = 500073, challengeId = 50107, text = "decir", correct = false, errorTag = "WRONG_FORM"),
 
-                ChallengeOptionEntity(id = 500080, challengeId = 50108, text = "La reunión", correct = true),
+                ChallengeOptionEntity(id = 500080, challengeId = 50108, text = "La reunión", correct = true, audioSrc = "asset:///audio/es/la_reunion.ogg"),
                 ChallengeOptionEntity(id = 500081, challengeId = 50108, text = "La habitación", correct = false),
                 ChallengeOptionEntity(id = 500082, challengeId = 50108, text = "La farmacia", correct = false),
                 ChallengeOptionEntity(id = 500083, challengeId = 50108, text = "La iglesia", correct = false),
 
-                ChallengeOptionEntity(id = 500090, challengeId = 50109, text = "Estuve muy cansado", correct = true),
+                ChallengeOptionEntity(id = 500090, challengeId = 50109, text = "Estuve muy cansado", correct = true, audioSrc = "asset:///audio/es/estuve_muy_cansado.ogg"),
                 ChallengeOptionEntity(id = 500091, challengeId = 50109, text = "Estaba muy cansado", correct = false, errorTag = "WRONG_TENSE"),
                 ChallengeOptionEntity(id = 500092, challengeId = 50109, text = "Estaré muy cansado", correct = false, errorTag = "WRONG_TENSE"),
                 ChallengeOptionEntity(id = 500093, challengeId = 50109, text = "Estar muy cansado", correct = false, errorTag = "WRONG_FORM"),
 
-                ChallengeOptionEntity(id = 500100, challengeId = 50110, text = "No quise ir", correct = true),
+                ChallengeOptionEntity(id = 500100, challengeId = 50110, text = "No quise ir", correct = true, audioSrc = "asset:///audio/es/no_quise_ir.ogg"),
                 ChallengeOptionEntity(id = 500101, challengeId = 50110, text = "No quería ir", correct = false, errorTag = "WRONG_TENSE"),
                 ChallengeOptionEntity(id = 500102, challengeId = 50110, text = "No quisiste ir", correct = false, errorTag = "WRONG_PERSON"),
                 ChallengeOptionEntity(id = 500103, challengeId = 50110, text = "No querer ir", correct = false, errorTag = "WRONG_FORM"),
@@ -870,7 +902,7 @@ object B1CurriculumData {
                 ChallengeOptionEntity(id = 500182, challengeId = 50118, text = "descubría", correct = false, errorTag = "WRONG_TENSE"),
                 ChallengeOptionEntity(id = 500183, challengeId = 50118, text = "descubro", correct = false, errorTag = "WRONG_TENSE"),
 
-                ChallengeOptionEntity(id = 500190, challengeId = 50119, text = "La estación", correct = true),
+                ChallengeOptionEntity(id = 500190, challengeId = 50119, text = "La estación", correct = true, audioSrc = "asset:///audio/es/la_estacion.ogg"),
                 ChallengeOptionEntity(id = 500191, challengeId = 50119, text = "La piscina", correct = false),
                 ChallengeOptionEntity(id = 500192, challengeId = 50119, text = "La torre", correct = false),
                 ChallengeOptionEntity(id = 500193, challengeId = 50119, text = "El mercado", correct = false),
@@ -969,6 +1001,7 @@ object B1CurriculumData {
                 ChallengeEntity(
                     id = 50200, lessonId = 303, type = ChallengeType.CONJUGATE,
                     question = "Which conditional form of hablar goes with 'yo'?",
+                    audioSrc = "asset:///audio/es/hablaria.ogg",
                     orderIndex = 0,
                     grammaticalFocus = "es.conditional.regular",
                     ruleText = "The regular conditional keeps the whole infinitive: hablar + ía/ías/ía/íamos/ían, so yo hablaría.\nHablarías is tú and Hablaré is the future, which promises the speech instead of supposing it.",
@@ -976,6 +1009,7 @@ object B1CurriculumData {
                 ChallengeEntity(
                     id = 50201, lessonId = 303, type = ChallengeType.FILL_BLANK,
                     question = "En tu lugar, yo ___ con el jefe.",
+                    audioSrc = "asset:///audio/es/en_tu_lugar_yo_hablaria_con_el_jefe.ogg",
                     orderIndex = 1,
                     grammaticalFocus = "es.conditional.regular",
                     acceptedAnswers = "hablaría|hablaria",
@@ -984,6 +1018,7 @@ object B1CurriculumData {
                 ChallengeEntity(
                     id = 50202, lessonId = 303, type = ChallengeType.CONJUGATE,
                     question = "Which conditional form of vivir goes with 'nosotros'?",
+                    audioSrc = "asset:///audio/es/viviriamos.ogg",
                     orderIndex = 2,
                     grammaticalFocus = "es.conditional.regular",
                     ruleText = "The regular conditional keeps the infinitive whole: vivir + iríamos, so nosotros viviríamos.\nViviríais is vosotros and Viviremos is the future, a plan rather than a supposition; Vivíamos is the imperfecto.",
@@ -991,6 +1026,7 @@ object B1CurriculumData {
                 ChallengeEntity(
                     id = 50203, lessonId = 303, type = ChallengeType.CONJUGATE,
                     question = "Which conditional form of tener goes with 'yo'?",
+                    audioSrc = "asset:///audio/es/tendria.ogg",
                     orderIndex = 3,
                     grammaticalFocus = "es.conditional.irregular",
                     ruleText = "The irregular conditional is built on the infinitive stem plus -ría, so tener → tendría.\nTendrías is tú and Tendré is the future; Tenía is the imperfecto and belongs to a different tense entirely.",
@@ -998,6 +1034,7 @@ object B1CurriculumData {
                 ChallengeEntity(
                     id = 50204, lessonId = 303, type = ChallengeType.CONJUGATE,
                     question = "Which conditional form of poder goes with 'nosotros'?",
+                    audioSrc = "asset:///audio/es/podriamos.ogg",
                     orderIndex = 4,
                     grammaticalFocus = "es.conditional.irregular",
                     ruleText = "poder drops the -d- before -ría: poder → podría, so nosotros podríamos.\nPodríamos answers only for nosotros; Podré is the future and Podemos is the present.",
@@ -1005,6 +1042,7 @@ object B1CurriculumData {
                 ChallengeEntity(
                     id = 50205, lessonId = 303, type = ChallengeType.CONJUGATE,
                     question = "Which conditional form of decir goes with 'ella'?",
+                    audioSrc = "asset:///audio/es/diria.ogg",
                     orderIndex = 5,
                     grammaticalFocus = "es.conditional.irregular",
                     ruleText = "decir inserts a -d- in front of -ría: decir → diría, so ella diría.\nDirían is ellos/ellas and Dirá is the future; the present would be Dice, which states a fact rather than supposing one.",
@@ -1012,6 +1050,7 @@ object B1CurriculumData {
                 ChallengeEntity(
                     id = 50206, lessonId = 303, type = ChallengeType.CONJUGATE,
                     question = "Which conditional form of salir goes with 'yo'?",
+                    audioSrc = "asset:///audio/es/saldria.ogg",
                     orderIndex = 6,
                     grammaticalFocus = "es.conditional.irregular",
                     ruleText = "salir → saldría, the -ir- of the infinitive before -ría.\nSaldrías is tú and Saldré is the future; Salía is the imperfecto of a leaving that repeated.",
@@ -1019,6 +1058,7 @@ object B1CurriculumData {
                 ChallengeEntity(
                     id = 50207, lessonId = 303, type = ChallengeType.FILL_BLANK,
                     question = "El médico cree que yo ___ bien mañana.",
+                    audioSrc = "asset:///audio/es/el_medico_cree_que_yo_estaria_bien_manana.ogg",
                     orderIndex = 7,
                     grammaticalFocus = "es.conditional.irregular",
                     acceptedAnswers = "estaría|estaria",
@@ -1027,6 +1067,7 @@ object B1CurriculumData {
                 ChallengeEntity(
                     id = 50208, lessonId = 303, type = ChallengeType.CONJUGATE,
                     question = "Which conditional form of venir goes with 'nosotros'?",
+                    audioSrc = "asset:///audio/es/vendriamos.ogg",
                     orderIndex = 8,
                     grammaticalFocus = "es.conditional.irregular",
                     ruleText = "venir → vendría, the -n- of the infinitive before -ría.\nVendremos is the future and Venían is the imperfecto of a repeated coming; neither supposes anything.",
@@ -1034,12 +1075,14 @@ object B1CurriculumData {
                 ChallengeEntity(
                     id = 50209, lessonId = 303, type = ChallengeType.SELECT,
                     question = "Which one means 'the appointment'?",
+                    audioSrc = "asset:///audio/es/la_cita.ogg",
                     orderIndex = 9,
                     ruleText = "la cita is the appointment you arrange to meet; la factura, la receta and la entrada are other papers or places.\nIt is a feminine noun, and only one of the four names a time you have agreed to keep.",
                 ),
                 ChallengeEntity(
                     id = 50240, lessonId = 303, type = ChallengeType.FILL_BLANK,
                     question = "¿___ tú con el proyecto?",
+                    audioSrc = "asset:///audio/es/harias_tu_con_el_proyecto.ogg",
                     orderIndex = 10,
                     heldOut = true,
                     grammaticalFocus = "es.conditional.irregular",
@@ -1050,6 +1093,7 @@ object B1CurriculumData {
                 ChallengeEntity(
                     id = 50210, lessonId = 304, type = ChallengeType.FILL_BLANK,
                     question = "Me ___ un café, por favor.",
+                    audioSrc = "asset:///audio/es/me_gustaria_un_cafe_por_favor.ogg",
                     orderIndex = 0,
                     grammaticalFocus = "es.conditional.periphrasis",
                     acceptedAnswers = "gustaría|gustaria",
@@ -1058,6 +1102,7 @@ object B1CurriculumData {
                 ChallengeEntity(
                     id = 50211, lessonId = 304, type = ChallengeType.FILL_BLANK,
                     question = "En tu lugar yo ___ viajar en tren.",
+                    audioSrc = "asset:///audio/es/en_tu_lugar_yo_querria_viajar_en_tren.ogg",
                     orderIndex = 1,
                     grammaticalFocus = "es.conditional.periphrasis",
                     acceptedAnswers = "querría|querria",
@@ -1066,6 +1111,7 @@ object B1CurriculumData {
                 ChallengeEntity(
                     id = 50212, lessonId = 304, type = ChallengeType.FILL_BLANK,
                     question = "¿___ ayudarme con la maleta?",
+                    audioSrc = "asset:///audio/es/podria_ayudarme_con_la_maleta.ogg",
                     orderIndex = 2,
                     grammaticalFocus = "es.conditional.periphrasis",
                     acceptedAnswers = "podría|podria",
@@ -1074,6 +1120,7 @@ object B1CurriculumData {
                 ChallengeEntity(
                     id = 50213, lessonId = 304, type = ChallengeType.SELECT,
                     question = "Which one asks for the bill politely?",
+                    audioSrc = "asset:///audio/es/me_trae_la_cuenta_por_favor.ogg",
                     orderIndex = 3,
                     grammaticalFocus = "es.conditional.periphrasis",
                     ruleText = "Me trae la cuenta, por favor is the polite conditional request: me + trae + la cuenta.\nQuiero la cuenta demands, Trae la cuenta is a bare order, and Me da la cuenta is a statement that never asks for anything.",
@@ -1088,6 +1135,7 @@ object B1CurriculumData {
                 ChallengeEntity(
                     id = 50215, lessonId = 304, type = ChallengeType.WORD_BANK,
                     question = "Assemble: 'I would like to book a table'",
+                    audioSrc = "asset:///audio/es/me_gustaria_reservar_una_mesa.ogg",
                     orderIndex = 5,
                     grammaticalFocus = "es.conditional.periphrasis",
                     ruleText = "The polite frame is me gustaría + infinitive, so Me gustaría reservar una mesa.\nQuiero is the blunt version, Gustaba is the imperfecto of a liking that belonged to the past, and Reservó is the preterite of the whole verb.",
@@ -1095,6 +1143,7 @@ object B1CurriculumData {
                 ChallengeEntity(
                     id = 50216, lessonId = 304, type = ChallengeType.FILL_BLANK,
                     question = "En casa siempre ___ la comida a las dos.",
+                    audioSrc = "asset:///audio/es/en_casa_siempre_comeria_la_comida_a_las_dos.ogg",
                     orderIndex = 6,
                     grammaticalFocus = "es.conditional.regular",
                     acceptedAnswers = "comería|comeria",
@@ -1103,12 +1152,14 @@ object B1CurriculumData {
                 ChallengeEntity(
                     id = 50219, lessonId = 304, type = ChallengeType.SELECT,
                     question = "Which one means 'the key'?",
+                    audioSrc = "asset:///audio/es/la_llave.ogg",
                     orderIndex = 7,
                     ruleText = "la llave is the key that opens a door or a hotel room; la torre, la playa and la ventana are other things.\nIt is a feminine noun, and only one of the four is something you turn in a lock.",
                 ),
                 ChallengeEntity(
                     id = 50241, lessonId = 304, type = ChallengeType.CONJUGATE,
                     question = "Which conditional form of comer goes with 'yo'?",
+                    audioSrc = "asset:///audio/es/comeria.ogg",
                     orderIndex = 8,
                     heldOut = true,
                     grammaticalFocus = "es.conditional.regular",
@@ -1117,6 +1168,7 @@ object B1CurriculumData {
                 ChallengeEntity(
                     id = 50242, lessonId = 304, type = ChallengeType.FILL_BLANK,
                     question = "En ese caso, yo no ___ la verdad.",
+                    audioSrc = "asset:///audio/es/en_ese_caso_yo_no_diria_la_verdad.ogg",
                     orderIndex = 9,
                     heldOut = true,
                     grammaticalFocus = "es.conditional.irregular",
@@ -1127,6 +1179,7 @@ object B1CurriculumData {
                 ChallengeEntity(
                     id = 50220, lessonId = 305, type = ChallengeType.FILL_BLANK,
                     question = "Estudié mucho ___ quería aprobar.",
+                    audioSrc = "asset:///audio/es/estudie_mucho_porque_querria_aprobar.ogg",
                     orderIndex = 0,
                     grammaticalFocus = "es.connectives",
                     acceptedAnswers = "porque",
@@ -1135,6 +1188,7 @@ object B1CurriculumData {
                 ChallengeEntity(
                     id = 50221, lessonId = 305, type = ChallengeType.FILL_BLANK,
                     question = "No dormí temprano, ___ no me levanté.",
+                    audioSrc = "asset:///audio/es/no_dormi_temprano_entonces_no_me_levante.ogg",
                     orderIndex = 1,
                     grammaticalFocus = "es.connectives",
                     acceptedAnswers = "entonces",
@@ -1143,6 +1197,7 @@ object B1CurriculumData {
                 ChallengeEntity(
                     id = 50222, lessonId = 305, type = ChallengeType.FILL_BLANK,
                     question = "___ hacía frío, salimos a pasear.",
+                    audioSrc = "asset:///audio/es/aunque_hacia_frio_salimos_a_pasear.ogg",
                     orderIndex = 2,
                     grammaticalFocus = "es.connectives",
                     acceptedAnswers = "aunque",
@@ -1159,6 +1214,7 @@ object B1CurriculumData {
                 ChallengeEntity(
                     id = 50224, lessonId = 305, type = ChallengeType.WORD_BANK,
                     question = "Assemble: 'It was late, so we went home'",
+                    audioSrc = "asset:///audio/es/era_tarde_asi_que_nos_fuimos_a_casa.ogg",
                     orderIndex = 4,
                     grammaticalFocus = "es.connectives",
                     ruleText = "así que joins two facts as cause and result: era tarde, así que nos fuimos a casa.\nTambién and Además only add a second fact to one that already stands; neither carries the result.",
@@ -1166,6 +1222,7 @@ object B1CurriculumData {
                 ChallengeEntity(
                     id = 50225, lessonId = 305, type = ChallengeType.SELECT,
                     question = "Which one means 'I called her because I needed money'?",
+                    audioSrc = "asset:///audio/es/la_llame_porque_necesitaba_dinero.ogg",
                     orderIndex = 5,
                     grammaticalFocus = "es.connectives",
                     ruleText = "porque states the reason of a past action: la llamé porque necesitaba dinero.\nTambién and Sin embargo can sit in the middle of a sentence, but they open no clause and carry no reason, so neither fits this slot.",
@@ -1173,6 +1230,7 @@ object B1CurriculumData {
                 ChallengeEntity(
                     id = 50226, lessonId = 305, type = ChallengeType.SELECT,
                     question = "Which one states a purpose?",
+                    audioSrc = "asset:///audio/es/estudio_espanol_para_viajar_a_espana.ogg",
                     orderIndex = 6,
                     grammaticalFocus = "es.connectives",
                     ruleText = "para states the aim of an action: estudio español para viajar a España.\nSin embargo and Además join clauses that already stand on their own; neither of the two states an aim.",
@@ -1180,11 +1238,13 @@ object B1CurriculumData {
                 ChallengeEntity(
                     id = 50227, lessonId = 305, type = ChallengeType.STORY,
                     question = "El plan cambió\n\nQuería ir a la playa.\nAun así, hacía frío.\nEntonces me quedé en casa y leí un libro.",
+                    audioSrc = "asset:///audio/es/el_plan_cambio.ogg",
                     orderIndex = 7,
                 ),
                 ChallengeEntity(
                     id = 50228, lessonId = 305, type = ChallengeType.WORD_BANK,
                     question = "Assemble: 'Although it was expensive, we bought two bikes'",
+                    audioSrc = "asset:///audio/es/aunque_costaba_mucho_compramos_dos_bicicletas.ogg",
                     orderIndex = 8,
                     grammaticalFocus = "es.connectives",
                     ruleText = "aunque opens a concession and the main clause carries the surprise: aunque costaba mucho, compramos dos bicicletas.\nEntonces states a result and para states an aim; neither opens a clause that is being conceded.",
@@ -1192,12 +1252,14 @@ object B1CurriculumData {
                 ChallengeEntity(
                     id = 50229, lessonId = 305, type = ChallengeType.SELECT,
                     question = "Which one means 'the weekend'?",
+                    audioSrc = "asset:///audio/es/el_fin_de_semana.ogg",
                     orderIndex = 9,
                     ruleText = "el fin de semana is a masculine noun, and both halves of it stay as they are.\nLa fin de semana takes the wrong article, El fin de mes is the end of the month, and El fin de año is the end of the year.",
                 ),
                 ChallengeEntity(
                     id = 50243, lessonId = 305, type = ChallengeType.FILL_BLANK,
                     question = "Era tarde, ___ seguimos trabajando.",
+                    audioSrc = "asset:///audio/es/era_tarde_pero_seguimos_trabajando.ogg",
                     orderIndex = 10,
                     heldOut = true,
                     grammaticalFocus = "es.connectives",
@@ -1251,7 +1313,7 @@ object B1CurriculumData {
                 ChallengeOptionEntity(id = 501082, challengeId = 50208, text = "venían", correct = false, errorTag = "WRONG_PERSON"),
                 ChallengeOptionEntity(id = 501083, challengeId = 50208, text = "venir", correct = false, errorTag = "WRONG_FORM"),
 
-                ChallengeOptionEntity(id = 501090, challengeId = 50209, text = "La cita", correct = true),
+                ChallengeOptionEntity(id = 501090, challengeId = 50209, text = "La cita", correct = true, audioSrc = "asset:///audio/es/la_cita.ogg"),
                 ChallengeOptionEntity(id = 501091, challengeId = 50209, text = "La factura", correct = false),
                 ChallengeOptionEntity(id = 501092, challengeId = 50209, text = "La receta", correct = false),
                 ChallengeOptionEntity(id = 501093, challengeId = 50209, text = "La entrada", correct = false),
@@ -1276,7 +1338,7 @@ object B1CurriculumData {
                 ChallengeOptionEntity(id = 501122, challengeId = 50212, text = "poder", correct = false, errorTag = "WRONG_FORM"),
                 ChallengeOptionEntity(id = 501123, challengeId = 50212, text = "podré", correct = false, errorTag = "WRONG_TENSE"),
 
-                ChallengeOptionEntity(id = 501130, challengeId = 50213, text = "¿Me trae la cuenta, por favor?", correct = true),
+                ChallengeOptionEntity(id = 501130, challengeId = 50213, text = "¿Me trae la cuenta, por favor?", correct = true, audioSrc = "asset:///audio/es/me_trae_la_cuenta_por_favor.ogg"),
                 ChallengeOptionEntity(id = 501131, challengeId = 50213, text = "Quiero la cuenta.", correct = false, errorTag = "WRONG_REGISTER"),
                 ChallengeOptionEntity(id = 501132, challengeId = 50213, text = "Trae la cuenta.", correct = false, errorTag = "WRONG_REGISTER"),
                 ChallengeOptionEntity(id = 501133, challengeId = 50213, text = "Me da la cuenta.", correct = false, errorTag = "WRONG_FORM"),
@@ -1300,7 +1362,7 @@ object B1CurriculumData {
                 ChallengeOptionEntity(id = 501162, challengeId = 50216, text = "Comió", correct = false, errorTag = "WRONG_TENSE"),
                 ChallengeOptionEntity(id = 501163, challengeId = 50216, text = "Comeremos", correct = false, errorTag = "WRONG_TENSE"),
 
-                ChallengeOptionEntity(id = 501190, challengeId = 50219, text = "La llave", correct = true),
+                ChallengeOptionEntity(id = 501190, challengeId = 50219, text = "La llave", correct = true, audioSrc = "asset:///audio/es/la_llave.ogg"),
                 ChallengeOptionEntity(id = 501191, challengeId = 50219, text = "La torre", correct = false),
                 ChallengeOptionEntity(id = 501192, challengeId = 50219, text = "La playa", correct = false),
                 ChallengeOptionEntity(id = 501193, challengeId = 50219, text = "La ventana", correct = false),
@@ -1346,11 +1408,11 @@ object B1CurriculumData {
                 ChallengeOptionEntity(id = 501248, challengeId = 50224, text = "también", correct = false, errorTag = "WRONG_FORM"),
                 ChallengeOptionEntity(id = 501249, challengeId = 50224, text = "además", correct = false, errorTag = "WRONG_FORM"),
 
-                ChallengeOptionEntity(id = 501250, challengeId = 50225, text = "La llamé porque necesitaba dinero", correct = true),
+                ChallengeOptionEntity(id = 501250, challengeId = 50225, text = "La llamé porque necesitaba dinero", correct = true, audioSrc = "asset:///audio/es/la_llame_porque_necesitaba_dinero.ogg"),
                 ChallengeOptionEntity(id = 501251, challengeId = 50225, text = "La llamé también necesitaba dinero", correct = false, errorTag = "WRONG_FORM"),
                 ChallengeOptionEntity(id = 501252, challengeId = 50225, text = "La llamé sin embargo necesitaba dinero", correct = false, errorTag = "WRONG_FORM"),
 
-                ChallengeOptionEntity(id = 501260, challengeId = 50226, text = "Estudio español para viajar a España", correct = true),
+                ChallengeOptionEntity(id = 501260, challengeId = 50226, text = "Estudio español para viajar a España", correct = true, audioSrc = "asset:///audio/es/estudio_espanol_para_viajar_a_espana.ogg"),
                 ChallengeOptionEntity(id = 501261, challengeId = 50226, text = "Estudio español sin embargo viajar a España", correct = false, errorTag = "WRONG_FORM"),
                 ChallengeOptionEntity(id = 501262, challengeId = 50226, text = "Estudio español además viajar a España", correct = false, errorTag = "WRONG_FORM"),
 
@@ -1368,7 +1430,7 @@ object B1CurriculumData {
                 ChallengeOptionEntity(id = 501286, challengeId = 50228, text = "también", correct = false, errorTag = "WRONG_FORM"),
                 ChallengeOptionEntity(id = 501287, challengeId = 50228, text = "además", correct = false, errorTag = "WRONG_FORM"),
 
-                ChallengeOptionEntity(id = 501290, challengeId = 50229, text = "El fin de semana", correct = true),
+                ChallengeOptionEntity(id = 501290, challengeId = 50229, text = "El fin de semana", correct = true, audioSrc = "asset:///audio/es/el_fin_de_semana.ogg"),
                 ChallengeOptionEntity(id = 501291, challengeId = 50229, text = "La fin de semana", correct = false),
                 ChallengeOptionEntity(id = 501292, challengeId = 50229, text = "El fin de mes", correct = false),
                 ChallengeOptionEntity(id = 501293, challengeId = 50229, text = "El fin de año", correct = false),
