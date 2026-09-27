@@ -6,6 +6,7 @@ import com.duo.app.data.local.curriculum.B1CurriculumData
 import com.duo.app.data.local.curriculum.ExpandedCurriculumData
 import com.duo.app.data.local.curriculum.UnitPayload
 import com.duo.app.data.local.models.ChallengeType
+import com.duo.app.grammar.AnswerGrader
 import java.io.File
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -304,6 +305,268 @@ class CurriculumIntegrityTest {
             "error tags that contradict the grammatical focus of their challenge",
             emptyList<String>(),
             dishonestTags,
+        )
+    }
+
+    /**
+     * `acceptedAnswers` is the key a typed `FILL_BLANK` is graded against, so
+     * every entry must be a form this item's own `grammaticalFocus` licenses.
+     *
+     * A form the corpus teaches as the answer to a *different* focus is exactly
+     * what the item's rule text is written to rule out. Challenge 30007 asked
+     * for the 3rd person preterite ("Mi amigo ___ el billete ayer", focus
+     * `es.preterito.regular`) and its rule text names `compra` as the present —
+     * but the key also accepted `compro`, which challenge 1040 teaches as the
+     * `es.present_person` answer, so the item graded a first person present as
+     * the 3rd person preterite.
+     */
+    @Test
+    fun `a fill blank accepts no form taught as another focus's answer`() {
+        val optionsByChallenge = allPayloads.flatMap { it.options }.groupBy { it.challengeId }
+        val correctByText = allPayloads.flatMap { it.challenges }
+            .filter { it.grammaticalFocus != null }
+            .flatMap { challenge ->
+                optionsByChallenge[challenge.id].orEmpty()
+                    .filter { it.correct }
+                    .map { option ->
+                        Triple(option.text, challenge.grammaticalFocus!!, challenge.id)
+                    }
+            }
+
+        val clashes = mutableListOf<String>()
+        allPayloads.flatMap { it.challenges }
+            .filter { it.type == ChallengeType.FILL_BLANK }
+            .forEach { challenge ->
+                val focus = challenge.grammaticalFocus ?: return@forEach
+                AnswerGrader.acceptedVariants(challenge.acceptedAnswers).forEach { accepted ->
+                    correctByText
+                        .filter { (text, otherFocus, ownerId) ->
+                            text == accepted && ownerId != challenge.id && otherFocus != focus
+                        }
+                        .forEach { (_, otherFocus, ownerId) ->
+                            clashes += "challenge ${challenge.id} ($focus) accepts '$accepted', " +
+                                "which challenge $ownerId teaches as its $otherFocus answer"
+                        }
+                }
+            }
+        assertEquals(
+            "fill blanks accepting a form the corpus assigns to another grammatical focus: $clashes",
+            emptyList<String>(),
+            clashes,
+        )
+    }
+
+    /**
+     * A held-out item must ask for a form the rest of the corpus does not
+     * already hand the learner. When a key entry is shared with another
+     * `FILL_BLANK` whose own answer differs, the shared string belongs to that
+     * other item's verb, and the held-out item stops testing anything: a
+     * learner who learned the taught item alone still passes.
+     *
+     * Challenge 31011 (held out) teaches the te-form of 言う and its rule text
+     * says the answer is 言って — yet the key also accepted `いって`, which
+     * challenge 30024 already accepts as its answer, the te-form of the
+     * unrelated verb 行く.
+     */
+    @Test
+    fun `a fill blank accepts no form another fill blank already owns`() {
+        val optionsByChallenge = allPayloads.flatMap { it.options }.groupBy { it.challengeId }
+        val items = allPayloads.flatMap { it.challenges }
+            .filter { it.type == ChallengeType.FILL_BLANK }
+            .map { challenge ->
+                Triple(
+                    challenge,
+                    optionsByChallenge[challenge.id].orEmpty().firstOrNull { it.correct }?.text,
+                    AnswerGrader.acceptedVariants(challenge.acceptedAnswers),
+                )
+            }
+
+        val clashes = mutableListOf<String>()
+        items.forEach { (challenge, answer, accepted) ->
+            accepted.forEach { variant ->
+                items
+                    .filter { it.first.id != challenge.id && it.second != answer && variant in it.third }
+                    .forEach { (other, otherAnswer, _) ->
+                        clashes += "challenge ${challenge.id} (answer '$answer') accepts " +
+                            "'$variant', which challenge ${other.id} already accepts for its " +
+                            "own answer '$otherAnswer'; the held-out pool must not reuse a form " +
+                            "the lesson path already teaches"
+                    }
+            }
+        }
+        assertEquals(
+            "fill blanks sharing an answer key entry with a differently-answered item: $clashes",
+            emptyList<String>(),
+            clashes,
+        )
+    }
+
+    /**
+     * The rule text is the only place a held-out item states which forms are
+     * wrong, so it has to name every form the option set tags as an error, and
+     * the answer key must stay clear of all of them. Together the two say the
+     * key never contains a form the rule text calls incorrect.
+     */
+    @Test
+    fun `held-out rule text names every wrong form and the answer key names none`() {
+        val optionsByChallenge = allPayloads.flatMap { it.options }.groupBy { it.challengeId }
+        val unexplained = mutableListOf<String>()
+        val contradictions = mutableListOf<String>()
+        allPayloads.flatMap { it.challenges }
+            .filter { it.heldOut }
+            .forEach { challenge ->
+                val rule = challenge.ruleText.orEmpty()
+                val wrong = optionsByChallenge[challenge.id].orEmpty()
+                    .filterNot { it.correct }
+                    .filter { it.errorTag != null }
+                    .map { it.text }
+                wrong.filterNot { it in rule }.forEach { text ->
+                    unexplained += "challenge ${challenge.id} offers '$text' as a wrong form " +
+                        "but its rule text never names it, so the learner is shown a form " +
+                        "with no stated reason"
+                }
+                AnswerGrader.acceptedVariants(challenge.acceptedAnswers)
+                    .filter { it in wrong }
+                    .forEach { text ->
+                        contradictions += "challenge ${challenge.id} accepts '$text' as an " +
+                            "answer while its own option set tags that same form as an error"
+                    }
+            }
+        assertEquals(
+            "held-out wrong forms the rule text never explains: $unexplained",
+            emptyList<String>(),
+            unexplained,
+        )
+        assertEquals(
+            "held-out answer keys containing a form the item tags as wrong: $contradictions",
+            emptyList<String>(),
+            contradictions,
+        )
+    }
+
+    /**
+     * A typed held-out item is ungradeable without a key: `AnswerGrader` matches
+     * only against `acceptedAnswers`, so a missing or partly blank one leaves
+     * the learner with no correct string to type. The blank-segment case matters
+     * because the grader silently drops it, leaving the authored key and the
+     * graded key quietly different.
+     */
+    @Test
+    fun `every held-out fill blank carries a complete answer key`() {
+        val malformed = allPayloads.flatMap { it.challenges }
+            .filter { it.heldOut && it.type == ChallengeType.FILL_BLANK }
+            .mapNotNull { challenge ->
+                val raw = challenge.acceptedAnswers
+                val entries = raw?.split('|').orEmpty()
+                when {
+                    raw.isNullOrBlank() ->
+                        "challenge ${challenge.id} is a held-out FILL_BLANK with no " +
+                            "acceptedAnswers; nothing it can be graded against"
+                    entries.any { it.isBlank() } ->
+                        "challenge ${challenge.id} has a blank entry in '$raw'; AnswerGrader " +
+                            "drops it, so the authored key and the graded key disagree"
+                    else -> null
+                }
+            }
+        assertEquals(
+            "held-out fill blanks with a missing or partly blank answer key: $malformed",
+            emptyList<String>(),
+            malformed,
+        )
+    }
+
+    /**
+     * SPEC line 418 requires the pool to be real curriculum-quality content. A
+     * held-out row is what the learner is graded on, so an empty question, a
+     * missing focus or a missing rule is a placeholder shipped into the one
+     * mechanic whose whole job is to test transfer.
+     */
+    @Test
+    fun `held-out items carry the content they are graded on`() {
+        val placeholders = allPayloads.flatMap { it.challenges }
+            .filter { it.heldOut }
+            .mapNotNull { challenge ->
+                val missing = listOfNotNull(
+                    "question".takeIf { challenge.question.isNullOrBlank() },
+                    "grammaticalFocus".takeIf { challenge.grammaticalFocus.isNullOrBlank() },
+                    "ruleText".takeIf { challenge.ruleText.isNullOrBlank() },
+                )
+                missing.takeIf { it.isNotEmpty() }?.let {
+                    "challenge ${challenge.id} is held-out with no ${it.joinToString(" and ")}"
+                }
+            }
+        assertEquals(
+            "held-out items missing the content they are graded on: $placeholders",
+            emptyList<String>(),
+            placeholders,
+        )
+    }
+
+    /**
+     * `LessonDao` filters `heldOut = 0` out of `getChallengesForLesson` and
+     * `getChallengesForUnits`, and `getHeldOutChallengesForUnits` is the only
+     * query that selects them, scoped to the unit ids `getUnitIdsForLevel`
+     * returns. A held-out item outside those units is therefore filtered out of
+     * every lesson and selected by no checkpoint: content nothing can reach.
+     * Symmetrically, a lesson that held nothing but held-out items would vanish
+     * from the path entirely and stop being completable.
+     */
+    @Test
+    fun `held-out items are reachable by a checkpoint and leave their lesson intact`() {
+        val checkpointUnits = (10..29).toSet()
+        val unitOfLesson = allPayloads
+            .flatMap { payload -> payload.lessons.map { it.id to payload.unit.id } }
+            .toMap()
+        val heldOut = allPayloads.flatMap { it.challenges }.filter { it.heldOut }
+
+        val unreachable = heldOut
+            .filter { unitOfLesson[it.lessonId] !in checkpointUnits }
+            .map { challenge ->
+                "challenge ${challenge.id} is held-out in unit ${unitOfLesson[challenge.lessonId]}, " +
+                    "which no checkpoint level selects; it is filtered out of every lesson and " +
+                    "reachable by no checkpoint"
+            }
+        assertEquals(
+            "held-out items no checkpoint can reach: $unreachable",
+            emptyList<String>(),
+            unreachable,
+        )
+
+        val emptied = heldOut.map { it.lessonId }.toSet().filter { lessonId ->
+            allPayloads.flatMap { it.challenges }.none { it.lessonId == lessonId && !it.heldOut }
+        }
+        assertEquals(
+            "lessons left with no taught challenge once their held-out items are filtered out: $emptied",
+            emptyList<Int>(),
+            emptied.sorted(),
+        )
+    }
+
+    /**
+     * `startCheckpoint` returns early only when both pools are empty, so an
+     * empty held-out pool does not fail loudly — it silently serves taught
+     * items and the checkpoint stops testing anything unseen. The UI offers
+     * A1/A2 for Spanish and N5/N4 for Japanese, and the intermediate pair maps
+     * to units 18/19 and 28/29, so both of those pools must be populated.
+     */
+    @Test
+    fun `the intermediate checkpoint pools are populated`() {
+        val unitOfLesson = allPayloads
+            .flatMap { payload -> payload.lessons.map { it.id to payload.unit.id } }
+            .toMap()
+        val heldOutUnits = allPayloads.flatMap { it.challenges }
+            .filter { it.heldOut }
+            .mapNotNull { unitOfLesson[it.lessonId] }
+            .toSet()
+
+        val empty = mapOf("A2" to listOf(18, 19), "N4" to listOf(28, 29))
+            .filterValues { units -> units.none { it in heldOutUnits } }
+            .keys
+        assertEquals(
+            "checkpoint levels whose units hold no held-out items, so the checkpoint falls " +
+                "back to taught ones: $empty",
+            emptySet<String>(),
+            empty,
         )
     }
 }
