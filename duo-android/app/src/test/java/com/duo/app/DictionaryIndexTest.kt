@@ -3,6 +3,7 @@ package com.duo.app
 import com.duo.app.data.local.curriculum.AdvancedCurriculumData
 import com.duo.app.data.local.curriculum.B1CurriculumData
 import com.duo.app.data.local.curriculum.ExpandedCurriculumData
+import com.duo.app.data.local.curriculum.JapaneseN4CurriculumData
 import com.duo.app.data.local.curriculum.UnitPayload
 import com.duo.app.data.local.entities.ChallengeEntity
 import com.duo.app.data.local.entities.ChallengeOptionEntity
@@ -44,7 +45,8 @@ class DictionaryIndexTest {
             AdvancedCurriculumData.japaneseAdvancedUnits +
             B1CurriculumData.spanishA2Units +
             B1CurriculumData.spanishB1Units +
-            B1CurriculumData.japaneseN4Units
+            B1CurriculumData.japaneseN4Units +
+            JapaneseN4CurriculumData.japaneseN4ExtensionUnits
 
     private val challenges = payloads.flatMap { it.challenges }
     private val options = payloads.flatMap { it.options }

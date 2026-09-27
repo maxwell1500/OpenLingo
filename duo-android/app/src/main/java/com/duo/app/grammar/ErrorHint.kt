@@ -149,6 +149,45 @@ object ErrorHint {
             "polite です / でした",
             "です and でした are the polite copula; だ is the plain one.",
         ),
+        // The past, plain against polite, and the negative: the first three
+        // points the N4 units 11-12 add, and the ones every earlier verb was
+        // missing because a form with no past has no tense to conjugate.
+        "ja.past_polite" to FocusProfile(
+            "the Japanese polite past",
+            "The polite past replaces the final す of the ます form with ました, so 飲みます becomes 飲みました.",
+        ),
+        "ja.plain_vs_polite" to FocusProfile(
+            "the Japanese plain form",
+            "The plain form (断定形) leaves off ます and です: 食べた is plain, 食べました is polite.",
+        ),
+        "ja.negative" to FocusProfile(
+            "the Japanese ない-form negative",
+            "A negative is ません in polite speech and ない in the plain form: 飲まなかった is the plain negative past.",
+        ),
+        // Adjectives are a class distinction, not a tense one: a な-adjective
+        // has no stem change to conjugate at all, which is why きれいかった
+        // can only ever be a mistake.
+        "ja.i_adjective" to FocusProfile(
+            "an い-adjective",
+            "An い-adjective conjugates its own stem: く + ない for negative and かった for past, so 寒かった.",
+        ),
+        "ja.na_adjective" to FocusProfile(
+            "a な-adjective",
+            "A な-adjective never changes its stem: きれい takes でした and だった, never きれいかった.",
+        ),
+        "ja.ability_polite" to FocusProfile(
+            "the Japanese ability frame",
+            "Ability is ます → せます (乗れます) or the ます form + ことができます (運転することができます).",
+        ),
+        // 意見 and giving/receiving: the two everyday frames that carry unit 12.
+        "ja.think" to FocusProfile(
+            "the Japanese と思います opinion",
+            "The word before と思います keeps its plain form, so 高いと思います and not 高く or 高かった.",
+        ),
+        "ja.giving_receiving" to FocusProfile(
+            "the Japanese giving and receiving verbs",
+            "あげる is I give to someone, くれる is someone gives to me, and もらう is I receive; から names the source.",
+        ),
         // Counters: the numeral is right in every distractor.
         "ja.counter_people" to FocusProfile(
             "a Japanese counter for people",

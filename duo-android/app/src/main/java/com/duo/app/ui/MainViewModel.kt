@@ -485,9 +485,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
      *
      * WI-08: the session draws the level's **held-out** pool first — sentences in the
      * same grammar structures the lessons taught, which never appear on a lesson path —
-     * and tops it up with taught items up to `MAX_CHECKPOINT_CHALLENGES`. A2 and N4
-     * have four held-out items each; A1 and N5 have none yet, so those two levels are
-     * drawn entirely from taught items and measure recall rather than generalisation.
+     * and tops it up with taught items up to `MAX_CHECKPOINT_CHALLENGES`. A2 has four
+     * held-out items, B1 eight and N4 ten; A1 and N5 have none yet, so those two levels
+     * are drawn entirely from taught items and measure recall rather than generalisation.
      */
     fun startCheckpoint(level: String) {
         val courseId = userProgress.value?.activeCourseId ?: 1
@@ -528,7 +528,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     /**
      * Maps a CEFR/JLPT level name to the unit IDs that belong to it.
      *
-     * Spanish units are 10-19 and 30-31, Japanese units are 20-29, and the two
+     * Spanish units are 10-19 and 30-31, Japanese units are 20-29 and 40-41, and the
      * courses never share a unit id, so the level->unit map has to branch on the
      * course. B1 is the irregular preterite, the past perfect and the conditional
      * with its connectives (units 30-31); A2 stays where it was, on the regular
@@ -540,7 +540,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             "A2" -> if (courseId == 1) listOf(18, 19) else emptyList()
             "B1" -> if (courseId == 1) listOf(30, 31) else emptyList()
             "N5" -> if (courseId == 2) listOf(20, 21, 22, 23, 24, 25, 26, 27) else emptyList()
-            "N4" -> if (courseId == 2) listOf(28, 29) else emptyList()
+            "N4" -> if (courseId == 2) listOf(28, 29, 40, 41) else emptyList()
             else -> emptyList()
         }
     }
@@ -556,7 +556,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             val courseId = checkpointCourseId
             val allUnitIds = if (courseId == 1) listOf(10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 30, 31)
-                            else listOf(20, 21, 22, 23, 24, 25, 26, 27, 28, 29)
+                            else listOf(20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 40, 41)
             val sample = repository.getChallengesForUnits(allUnitIds).shuffled().take(25)
             if (sample.isNotEmpty()) {
                 currentLessonChallenges = sample

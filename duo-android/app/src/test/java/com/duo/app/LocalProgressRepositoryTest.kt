@@ -22,8 +22,8 @@ import org.robolectric.annotation.Config
 
 /**
  * Repository integration tests against an in-memory Room database.
- * Locks the content contract (20 units / 38 lessons / 150 lesson-path challenges plus
- * 8 held-out checkpoint challenges) and the hearts / XP / streak / mistake write paths
+ * Locks the content contract (24 units / 50 lessons / 246 lesson-path challenges plus
+ * 22 held-out checkpoint challenges) and the hearts / XP / streak / mistake write paths
  * that previously regressed silently until manual on-device checks.
  */
 @RunWith(RobolectricTestRunner::class)
@@ -60,9 +60,9 @@ class LocalProgressRepositoryTest {
         val spanishUnits = db.courseDao().getUnitsForCourseDirect(1)
         val japaneseUnits = db.courseDao().getUnitsForCourseDirect(2)
         assertEquals(12, spanishUnits.size)
-        assertEquals(10, japaneseUnits.size)
+        assertEquals(12, japaneseUnits.size)
         assertEquals((0 until 12).toList(), spanishUnits.map { it.orderIndex })
-        assertEquals((0 until 10).toList(), japaneseUnits.map { it.orderIndex })
+        assertEquals((0 until 12).toList(), japaneseUnits.map { it.orderIndex })
 
         var lessons = 0
         var challenges = 0
@@ -75,12 +75,12 @@ class LocalProgressRepositoryTest {
                 }
             }
         }
-        assertEquals(208, challenges)
+        assertEquals(246, challenges)
 
         // Re-running the seed must not duplicate or drop rows.
         repository.initializeIfNeeded()
         assertEquals(12, db.courseDao().getUnitsForCourseDirect(1).size)
-        assertEquals(10, db.courseDao().getUnitsForCourseDirect(2).size)
+        assertEquals(12, db.courseDao().getUnitsForCourseDirect(2).size)
     }
 
     @Test
@@ -88,9 +88,9 @@ class LocalProgressRepositoryTest {
         repository.initializeIfNeeded()
 
         val spanishHeldOut = repository.getHeldOutChallengesForUnits(listOf(18, 19))
-        val japaneseHeldOut = repository.getHeldOutChallengesForUnits(listOf(28, 29))
+        val japaneseHeldOut = repository.getHeldOutChallengesForUnits(listOf(28, 29, 40, 41))
         assertEquals(4, spanishHeldOut.size)
-        assertEquals(4, japaneseHeldOut.size)
+        assertEquals(10, japaneseHeldOut.size)
         // A held-out item that carries no rule could not assess generalisation.
         (spanishHeldOut + japaneseHeldOut).forEach {
             assertTrue("held-out ${it.challenge.id} has no rule", it.challenge.ruleText != null)

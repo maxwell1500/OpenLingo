@@ -3,6 +3,7 @@ package com.duo.app.grammar
 import com.duo.app.data.local.curriculum.AdvancedCurriculumData
 import com.duo.app.data.local.curriculum.B1CurriculumData
 import com.duo.app.data.local.curriculum.ExpandedCurriculumData
+import com.duo.app.data.local.curriculum.JapaneseN4CurriculumData
 import com.duo.app.data.local.curriculum.UnitPayload
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
@@ -29,7 +30,8 @@ class ErrorHintTest {
             AdvancedCurriculumData.japaneseAdvancedUnits +
             B1CurriculumData.spanishA2Units +
             B1CurriculumData.spanishB1Units +
-            B1CurriculumData.japaneseN4Units
+            B1CurriculumData.japaneseN4Units +
+            JapaneseN4CurriculumData.japaneseN4ExtensionUnits
 
     /** The fixed errorTag vocabulary, mirroring the KDoc on ChallengeOptionEntity.errorTag. */
     private val errorTagVocabulary = setOf(

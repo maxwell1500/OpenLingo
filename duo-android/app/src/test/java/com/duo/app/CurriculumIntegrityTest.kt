@@ -4,6 +4,7 @@ import com.duo.app.data.local.character.KanaRepository
 import com.duo.app.data.local.curriculum.AdvancedCurriculumData
 import com.duo.app.data.local.curriculum.B1CurriculumData
 import com.duo.app.data.local.curriculum.ExpandedCurriculumData
+import com.duo.app.data.local.curriculum.JapaneseN4CurriculumData
 import com.duo.app.data.local.curriculum.UnitPayload
 import com.duo.app.data.local.models.ChallengeType
 import com.duo.app.grammar.AnswerGrader
@@ -27,7 +28,8 @@ class CurriculumIntegrityTest {
             AdvancedCurriculumData.japaneseAdvancedUnits +
             B1CurriculumData.spanishA2Units +
             B1CurriculumData.spanishB1Units +
-            B1CurriculumData.japaneseN4Units
+            B1CurriculumData.japaneseN4Units +
+            JapaneseN4CurriculumData.japaneseN4ExtensionUnits
 
     /** The fixed errorTag vocabulary, mirroring the KDoc on ChallengeOptionEntity.errorTag. */
     private val errorTagVocabulary = setOf(
@@ -94,6 +96,22 @@ class CurriculumIntegrityTest {
         "ja.polite_verb" to setOf("WRONG_REGISTER", "WRONG_FORM", "WRONG_TENSE"),
         "ja.polite_register" to setOf("WRONG_REGISTER"),
         "ja.copula_polite" to setOf("WRONG_REGISTER", "WRONG_TENSE"),
+        // Japanese units 11-12. A verb slot here can miss on the ending
+        // (WRONG_FORM), on the register it was inflected in (WRONG_REGISTER —
+        // 買った against 買いました is the whole point of the plain/polite
+        // pair) or on whether it inflects for the past at all (WRONG_TENSE —
+        // 行きます against 行きました), so all three are honest per focus.
+        "ja.past_polite" to setOf("WRONG_TENSE", "WRONG_FORM", "WRONG_REGISTER"),
+        "ja.plain_vs_polite" to setOf("WRONG_REGISTER", "WRONG_TENSE", "WRONG_FORM"),
+        "ja.negative" to setOf("WRONG_FORM", "WRONG_REGISTER", "WRONG_TENSE"),
+        // The adjective classes: a wrong ending is a form error, and dropping
+        // the past off 寒かった is a tense error. Neither has a register to get
+        // wrong — 寒いです and 寒かった are the same word in two of its own forms.
+        "ja.i_adjective" to setOf("WRONG_FORM", "WRONG_TENSE"),
+        "ja.na_adjective" to setOf("WRONG_FORM", "WRONG_TENSE", "WRONG_REGISTER"),
+        "ja.ability_polite" to setOf("WRONG_FORM", "WRONG_REGISTER", "WRONG_TENSE"),
+        "ja.think" to setOf("WRONG_FORM", "WRONG_REGISTER", "WRONG_TENSE"),
+        "ja.giving_receiving" to setOf("WRONG_FORM", "WRONG_TENSE", "WRONG_REGISTER"),
     )
 
     @Test
@@ -536,7 +554,7 @@ class CurriculumIntegrityTest {
      */
     @Test
     fun `held-out items are reachable by a checkpoint and leave their lesson intact`() {
-        val checkpointUnits = (10..31).toSet()
+        val checkpointUnits = (10..31).toSet() + setOf(40, 41)
         val unitOfLesson = allPayloads
             .flatMap { payload -> payload.lessons.map { it.id to payload.unit.id } }
             .toMap()
@@ -570,7 +588,7 @@ class CurriculumIntegrityTest {
      * empty held-out pool does not fail loudly — it silently serves taught
      * items and the checkpoint stops testing anything unseen. The UI offers
      * A1/A2/B1 for Spanish and N5/N4 for Japanese, and those levels map to
-     * units 10-17, 18/19, 30/31 and 20-27, 28/29, so every one of those pools
+     * units 10-17, 18/19, 30/31 and 20-27, 28/29/40/41, so every one of those pools
      * has to be populated.
      */
     @Test
@@ -586,7 +604,7 @@ class CurriculumIntegrityTest {
         val empty = mapOf(
             "A2" to listOf(18, 19),
             "B1" to listOf(30, 31),
-            "N4" to listOf(28, 29),
+            "N4" to listOf(28, 29, 40, 41),
         )
             .filterValues { units -> units.none { it in heldOutUnits } }
             .keys
