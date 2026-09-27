@@ -33,15 +33,15 @@ State flows in one direction:
 |-------|--------|---------|
 | `courses` | `CourseEntity` | The two language courses (id 1 = Spanish, id 2 = Japanese) |
 | `units` | `UnitEntity` | 20 units (10 per course), each with a theme and `orderIndex` |
-| `lessons` | `LessonEntity` | 38 lessons, ordered within a unit |
-| `challenges` | `ChallengeEntity` | 158 challenges (`SELECT`, `ASSIST`, `WORD_BANK`, `LISTEN`, `MATCH_PAIRS`, `STORY`, `CONJUGATE`, `FILL_BLANK`), each with an optional `audioSrc` plus optional grammar columns (`grammaticalFocus`, `ruleText`, `acceptedAnswers`) and a `heldOut` flag that keeps an item off the lesson path so only a checkpoint can reach it |
+| `lessons` | `LessonEntity` | 44 lessons, ordered within a unit |
+| `challenges` | `ChallengeEntity` | 224 challenges (`SELECT`, `ASSIST`, `WORD_BANK`, `LISTEN`, `MATCH_PAIRS`, `STORY`, `CONJUGATE`, `FILL_BLANK`), each with an optional `audioSrc` plus optional grammar columns (`grammaticalFocus`, `ruleText`, `acceptedAnswers`) and a `heldOut` flag that keeps an item off the lesson path so only a checkpoint can reach it |
 | `challenge_options` | `ChallengeOptionEntity` | Choices/word-bank fragments with `correct` flags, optional romaji and audio |
 | `user_progress` | `UserProgressEntity` | Single local guest profile (`guest_local`): points, hearts, streak, `brokenStreak`, `activeCourseId`, sound/haptics/romaji settings, `themeAccent`, `themeMode`, `dailyQuestGoal` |
 | `challenge_progress` | `ChallengeProgressEntity` | Per-challenge completion for the guest user |
 | `character_mastery` | `CharacterMasteryEntity` | Kana tracing progress: attempts + `masteredAt` per character and script |
 | `mistakes` | `MistakeEntity` | Wrong answers awaiting review, one row per challenge |
 | `daily_activity` | `DailyActivityEntity` | XP per calendar date (`yyyy-MM-dd`), backs the daily quest |
-| `checkpoint_scores` | `CheckpointScoreEntity` | Per-level checkpoint results (`A1`/`A2`/`N5`/`N4`) as `correct`/`total` pairs |
+| `checkpoint_scores` | `CheckpointScoreEntity` | Per-level checkpoint results (`A1`/`A2`/`B1`/`N5`/`N4`) as `correct`/`total` pairs |
 | `vocab_schedule` | `VocabScheduleEntity` | Free Spaced Repetition Scheduler state per dictionary item, fully offline |
 | `exercise_type_stats` | `ExerciseTypeStatsEntity` | Aggregate attempts/correct per exercise type, used to prioritise weak areas |
 
@@ -67,9 +67,10 @@ All curriculum is compiled into the app as Kotlin data — there are no bundled 
 - The remaining units come from compiled `UnitPayload` lists in `data/local/curriculum/`:
   - `ExpandedCurriculumData` — Spanish units 3–5, Japanese units 3–4 (`spanishExpandedUnits`, `japaneseExpandedUnits`)
   - `AdvancedCurriculumData` — Spanish units 6–8, Japanese units 5–8 (`spanishAdvancedUnits`, `japaneseAdvancedUnits`)
-  - `B1CurriculumData` — Spanish and Japanese units 9–10 (`spanishA2Units`, `japaneseN4Units`). The file name is the roadmap workstream, not the level: the Spanish units 9–10 teach regular preterite and imperfecto only, which is CEFR **A2**, so the checkpoint that draws them is labelled A2. The Japanese units 9–10 (te-form, potential) are genuinely JLPT N4.
+  - `B1CurriculumData` — Spanish units 9–12 and Japanese units 9–10 (`spanishA2Units`, `spanishB1Units`, `japaneseN4Units`). The file name is the roadmap workstream, not the level. Spanish units 9–10 (`spanishA2Units`, unit ids 18–19) teach regular preterite and imperfecto only, which is CEFR **A2**, so the checkpoint that draws them is labelled A2. Spanish units 11–12 (`spanishB1Units`, unit ids 30–31) carry the irregular and stem-changing preterite, the past perfect, the regular and irregular conditional, the polite periphrasis and the connectives of purpose, cause, result and concession — that is the **B1** material, and it is what the B1 checkpoint draws on. The Japanese units 9–10 (te-form, potential) are genuinely JLPT N4.
+  - The B1 units ship no `audioSrc`: the bundled Kokoro clips cover the A1–A2 sentences, and `CurriculumIntegrityTest` fails any item whose clip is not on disk.
 - Each `UnitPayload` bundles a `UnitEntity` with its `lessons`, `challenges`, and `options`.
-- Totals: **20 units / 38 lessons / 158 challenges** (150 on the lesson path, 8 held out for checkpoints).
+- Totals: **22 units / 44 lessons / 224 challenges** (208 on the lesson path, 16 held out for checkpoints).
 - Inserts use REPLACE-on-conflict, so newly added lessons/challenges roll out to existing installs without a wipe — no migration needed for content growth.
 
 ## 4. Audio

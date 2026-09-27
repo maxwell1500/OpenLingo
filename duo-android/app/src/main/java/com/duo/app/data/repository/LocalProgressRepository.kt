@@ -1022,7 +1022,8 @@ class LocalProgressRepository(private val database: DuoDatabase) {
     }
 
     private suspend fun seedB1Curricula() {
-        val spanishUnits = com.duo.app.data.local.curriculum.B1CurriculumData.spanishA2Units
+        val spanishUnits = com.duo.app.data.local.curriculum.B1CurriculumData.spanishA2Units +
+            com.duo.app.data.local.curriculum.B1CurriculumData.spanishB1Units
         val japaneseUnits = com.duo.app.data.local.curriculum.B1CurriculumData.japaneseN4Units
 
         for (payload in (spanishUnits + japaneseUnits)) {

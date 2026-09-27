@@ -28,6 +28,7 @@ class ErrorHintTest {
             AdvancedCurriculumData.spanishAdvancedUnits +
             AdvancedCurriculumData.japaneseAdvancedUnits +
             B1CurriculumData.spanishA2Units +
+            B1CurriculumData.spanishB1Units +
             B1CurriculumData.japaneseN4Units
 
     /** The fixed errorTag vocabulary, mirroring the KDoc on ChallengeOptionEntity.errorTag. */
