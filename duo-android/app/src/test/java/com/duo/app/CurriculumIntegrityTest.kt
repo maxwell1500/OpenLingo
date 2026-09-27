@@ -26,6 +26,7 @@ class CurriculumIntegrityTest {
             AdvancedCurriculumData.spanishAdvancedUnits +
             AdvancedCurriculumData.japaneseAdvancedUnits +
             B1CurriculumData.spanishA2Units +
+            B1CurriculumData.spanishB1Units +
             B1CurriculumData.japaneseN4Units
 
     /** The fixed errorTag vocabulary, mirroring the KDoc on ChallengeOptionEntity.errorTag. */
@@ -56,6 +57,28 @@ class CurriculumIntegrityTest {
         "es.present_person" to setOf("WRONG_PERSON", "WRONG_TENSE"),
         "es.preterito.regular" to setOf("WRONG_TENSE", "WRONG_PERSON"),
         "es.tener_present" to setOf("WRONG_PERSON"),
+        // Irregular and stem-changing preterites: right tense, wrong person or
+        // number, or a form the regular preterite would have produced. The
+        // infinitive and the present are a frame error, so WRONG_FORM is honest
+        // where a distractor leaves a dictionary form in the slot.
+        "es.preterito.irregular" to setOf("WRONG_TENSE", "WRONG_PERSON", "WRONG_FORM"),
+        "es.preterito.stem_changing" to setOf("WRONG_TENSE", "WRONG_PERSON", "WRONG_FORM"),
+        // The past perfect: a plain preterite or present perfect is a tense error,
+        // an -ndo form or a wrongly-built participle is a form error, and another
+        // subject is a person error.
+        "es.past_perfect" to setOf("WRONG_TENSE", "WRONG_FORM", "WRONG_PERSON"),
+        // The conditional. Regular and irregular share the same two honest errors:
+        // the future of the same verb is a tense error, another person is a person
+        // error, and an infinitive left in the slot is a form error.
+        "es.conditional.regular" to setOf("WRONG_TENSE", "WRONG_PERSON", "WRONG_FORM"),
+        "es.conditional.irregular" to setOf("WRONG_TENSE", "WRONG_PERSON", "WRONG_FORM"),
+        // The polite periphrasis is a register choice first (quiero vs me
+        // gustaría) and a form choice second (me gusta, the infinitive).
+        "es.conditional.periphrasis" to setOf("WRONG_REGISTER", "WRONG_FORM", "WRONG_TENSE"),
+        // Connectives: a distractor is a connective that cannot carry the relation
+        // the sentence states — a different purpose/cause/result/concession in the
+        // same slot — which is the form the sentence calls for, not a different word.
+        "es.connectives" to setOf("WRONG_FORM"),
         // ser vs estar: a usage choice, plus agreement for the distractors that get that right.
         "es.ser_estar" to setOf("WRONG_COPULA", "WRONG_PERSON"),
         "es.ser_present" to setOf("WRONG_COPULA", "WRONG_PERSON"),
@@ -513,7 +536,7 @@ class CurriculumIntegrityTest {
      */
     @Test
     fun `held-out items are reachable by a checkpoint and leave their lesson intact`() {
-        val checkpointUnits = (10..29).toSet()
+        val checkpointUnits = (10..31).toSet()
         val unitOfLesson = allPayloads
             .flatMap { payload -> payload.lessons.map { it.id to payload.unit.id } }
             .toMap()
@@ -546,11 +569,12 @@ class CurriculumIntegrityTest {
      * `startCheckpoint` returns early only when both pools are empty, so an
      * empty held-out pool does not fail loudly — it silently serves taught
      * items and the checkpoint stops testing anything unseen. The UI offers
-     * A1/A2 for Spanish and N5/N4 for Japanese, and the intermediate pair maps
-     * to units 18/19 and 28/29, so both of those pools must be populated.
+     * A1/A2/B1 for Spanish and N5/N4 for Japanese, and those levels map to
+     * units 10-17, 18/19, 30/31 and 20-27, 28/29, so every one of those pools
+     * has to be populated.
      */
     @Test
-    fun `the intermediate checkpoint pools are populated`() {
+    fun `every checkpoint level's held-out pool is populated`() {
         val unitOfLesson = allPayloads
             .flatMap { payload -> payload.lessons.map { it.id to payload.unit.id } }
             .toMap()
@@ -559,7 +583,11 @@ class CurriculumIntegrityTest {
             .mapNotNull { unitOfLesson[it.lessonId] }
             .toSet()
 
-        val empty = mapOf("A2" to listOf(18, 19), "N4" to listOf(28, 29))
+        val empty = mapOf(
+            "A2" to listOf(18, 19),
+            "B1" to listOf(30, 31),
+            "N4" to listOf(28, 29),
+        )
             .filterValues { units -> units.none { it in heldOutUnits } }
             .keys
         assertEquals(

@@ -78,6 +78,38 @@ object ErrorHint {
             "the present of tener",
             "tener inflects by person exactly like any other Spanish verb.",
         ),
+        // Irregular pasts: the stem the verb carries, not the person ending.
+        "es.preterito.irregular" to FocusProfile(
+            "the irregular Spanish preterite",
+            "An irregular preterite replaces the infinitive's stem outright, so the person ending sits on tuv-, pud-, hic-, dij-, quis-, vin-, pus- or estuv-.",
+        ),
+        "es.preterito.stem_changing" to FocusProfile(
+            "the stem-changing Spanish preterite",
+            "A stem-changing verb dips in the present and the imperfect, but its preterite either keeps the plain stem (dormí, pedí) or takes a strong one (siguió).",
+        ),
+        "es.past_perfect" to FocusProfile(
+            "the Spanish past perfect",
+            "The past perfect is haber in the imperfect plus a participle: había comido, había hecho, había dicho.",
+        ),
+        // The conditional: whole infinitive for the regular verbs, a rewritten stem
+        // for the irregular ones, and the polite periphrasis built on top of it.
+        "es.conditional.regular" to FocusProfile(
+            "the Spanish conditional",
+            "The regular conditional keeps the whole infinitive and adds -ría: hablar → hablaría, comer → comería.",
+        ),
+        "es.conditional.irregular" to FocusProfile(
+            "the irregular Spanish conditional",
+            "An irregular conditional is a rewritten stem plus -ría: tener → tendría, poder → podría, decir → diría.",
+        ),
+        "es.conditional.periphrasis" to FocusProfile(
+            "a polite Spanish request",
+            "me gustaría, querría and podría plus an infinitive soften what is being asked for; the bare present wants the same thing but says so bluntly.",
+        ),
+        // Connectives: the choice is which relation the clause carries.
+        "es.connectives" to FocusProfile(
+            "the Spanish connectives",
+            "para states a purpose, porque a reason, así que or entonces a result, and aunque a concession — a connective that states a different relation cannot fill the slot.",
+        ),
         // ser vs estar: a usage choice, plus agreement once the choice is made.
         "es.ser_estar" to FocusProfile(
             "ser vs estar",

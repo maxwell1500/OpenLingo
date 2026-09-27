@@ -22,14 +22,16 @@ data class ChallengeOptionEntity(
      * - WRONG_PERSON: right tense, wrong person or number (son after 'yo').
      * - WRONG_FORM: the verb uses a different form - Japanese potential vs plain,
      *   the te-form and the ています frame, a dictionary form or stem that cannot
-     *   fill the slot, and the contracted います -> ます. Japanese does not inflect
-     *   for tense, so an ability or construction error is never WRONG_TENSE.
+     *   fill the slot, the contracted います -> ます, an -ndo form where a
+     *   participle belongs, and a Spanish connective that cannot carry the
+     *   relation the sentence states. Japanese does not inflect for tense, so an
+     *   ability or construction error is never WRONG_TENSE.
      * - WRONG_COPULA: Spanish picked the wrong copula, ser where estar belongs or
      *   the other way round. That is a usage choice, not a register or a person.
      * - WRONG_CLASSIFIER: right numeral, wrong Japanese counter.
      * - WRONG_REGISTER: right grammar, wrong politeness level (です vs だ,
-     *   います vs いく, a plain imperative where a polite request is due).
-     * - UNRELATED: the distractor is simply a different word.
+     *   います vs いく, a plain imperative where a polite request is due, and
+     *   Spanish quiero where me gustaría is what the frame asks for).
      *
      * CurriculumIntegrityTest pins this set and checks that every tag is
      * compatible with its challenge's grammaticalFocus.

@@ -9,17 +9,22 @@ import com.duo.app.data.local.models.ChallengeType
 /**
  * The intermediate stage of the curriculum. The `B1` in this file's name is the
  * *roadmap workstream* — `docs/CURRICULUM_B1_N4_ROADMAP.md` — and not a claim about
- * the level of what is authored here. What has actually shipped is:
- *   Spanish: Units 9-10 (unit ids 18-19) — Pretérito Indefinido and Imperfecto, both
- *     **regular only**. There is no irregular preterite (tuve, pude, hice, dije,
- *     estuve, quise), no conditional, no subjunctive, no imperative, no object or
- *     reflexive pronouns and no por/para. That is **CEFR A2**, so these units are
- *     labelled A2 everywhere a learner can see them; the B1 material the roadmap
- *     wants is Units 11-12 and it is not authored.
+ * the level of everything authored here. What has actually shipped is:
+ *   Spanish: Units 9-10 (unit ids 18-19) — Pretérito Indefinido and Imperfecto,
+ *     **regular only**, which is **CEFR A2**, so these units are labelled A2
+ *     everywhere a learner can see them.
+ *   Spanish: Units 11-12 (unit ids 30-31) — the irregular and stem-changing
+ *     preterite, the past perfect frame, the regular and irregular conditional,
+ *     the polite periphrasis and the connectives of purpose, cause, result and
+ *     concession (`spanishB1Units`). This is the B1 material the roadmap asked
+ *     for, so those two units are what a B1 checkpoint draws on.
  *   Japanese: Units 9-10 (unit ids 28-29) — Te-form & Requests, Potential & Ability.
  *     These are genuinely JLPT N4 grammar points, so N4 is the honest label.
  *
- * All audio assets are bundled Kokoro-82M Ogg files.
+ * All audio assets are bundled Kokoro-82M Ogg files. The Spanish B1 units carry
+ * none: the shipped clips cover the A1-A2 sentences, and an `audioSrc` that
+ * pointed at a file nobody generated would fail the audio-integrity test, so
+ * those items leave the field null.
  *
  * Id layout inside this file:
  *   - `1xxxx` / `2xxxx`  the originally authored taught items
@@ -27,6 +32,10 @@ import com.duo.app.data.local.models.ChallengeType
  *   - `31xxx`           the WI-08 held-out checkpoint pool: same structures, unseen sentences.
  *                       These are seeded with everything else and carry `heldOut = true`, so
  *                       the lesson-path queries skip them and only a checkpoint can reach them.
+ *   - `30xxx` / `31xxx`  units 30-31 and lessons 300-305 (Spanish units 11-12)
+ *   - `50xxx`           the challenges of units 30-31; `5014x` / `5024x` are their
+ *                       held-out checkpoint pools
+ *   - `5xxxxx`          the options of units 30-31, at 500000 + (challengeId - 50100) * 10
  */
 object B1CurriculumData {
 
@@ -470,6 +479,904 @@ object B1CurriculumData {
                 ChallengeOptionEntity(id = 310016, challengeId = 31001, text = "vivía", correct = true),
                 ChallengeOptionEntity(id = 310017, challengeId = 31001, text = "viví", correct = false, errorTag = "WRONG_TENSE"),
                 ChallengeOptionEntity(id = 310018, challengeId = 31001, text = "vivo", correct = false, errorTag = "WRONG_TENSE"),
+            ),
+        ),
+    )
+    // =========================================================================
+    // SPANISH CEFR B1 (Units 11 - 12)
+    // =========================================================================
+    // This block is what units 9-10 above were not. The preterite taught there is
+    // regular-only, which leaves the most frequent verbs in the language — tener,
+    // poder, hacer, decir, estar, querer, venir, poner — with no preterite at all,
+    // and leaves the conditional, the polite periphrasis and the connective layer
+    // untaught. Units 11-12 close that: an irregular preterite (unit 11) plus the
+    // past perfect that lets a learner say what came *before*, and the conditional
+    // with its periphrasis and its connectives of purpose, cause, result and
+    // concession (unit 12).
+    //
+    // Id layout for this block:
+    //   - units 30-31, lessons 300-305
+    //   - challenges 501xx (unit 11) / 502xx (unit 12); the trailing 5014x / 5024x
+    //     are the held-out checkpoint pool for each unit
+    //   - options 500000 + (challengeId - 50100) * 10, so every option is unique
+    //     and still traceable to the challenge that owns it.
+    //
+    // No `audioSrc`: the shipped Kokoro clips cover the A1-A2 sentences only, and
+    // CurriculumIntegrityTest asserts that every referenced file exists, so an item
+    // that has no clip leaves the field null rather than pointing at nothing.
+    val spanishB1Units: List<UnitPayload> = listOf(
+        // Unit 11: Irregular Past — Pretérito Indefinido irregular + Pasado Perfecto
+        UnitPayload(
+            unit = UnitEntity(
+                id = 30,
+                courseId = 1,
+                title = "Unit 11: Irregular Past — Pretérito",
+                description = "tuve, pude, hice, vine — and what had happened before",
+                orderIndex = 10,
+            ),
+            lessons = listOf(
+                LessonEntity(id = 300, unitId = 30, title = "Lesson 20: I Had It", orderIndex = 0),
+                LessonEntity(id = 301, unitId = 30, title = "Lesson 21: How the Day Went", orderIndex = 1),
+                LessonEntity(id = 302, unitId = 30, title = "Lesson 22: Before All That", orderIndex = 2),
+            ),
+            challenges = listOf(
+                ChallengeEntity(
+                    id = 50100, lessonId = 300, type = ChallengeType.SELECT,
+                    question = "Which one means 'I had a terrible day'?",
+                    orderIndex = 0,
+                    grammaticalFocus = "es.preterito.irregular",
+                    ruleText = "tener changes stem in the preterite: tuv- + e/iste/o/imos/ieron, so yo tuve.\nTener un día malo leaves the infinitive in the slot and tuviste is tú — the sentence says nothing about anyone but me.",
+                ),
+                ChallengeEntity(
+                    id = 50101, lessonId = 300, type = ChallengeType.CONJUGATE,
+                    question = "Which preterite form of tener goes with 'yo'?",
+                    orderIndex = 1,
+                    grammaticalFocus = "es.preterito.irregular",
+                    ruleText = "The irregular preterite of tener uses the stem tuv- in every person: tuve, tuviste, tuvo, tuvimos, tuvieron.\ntuviste belongs to tú and tenías is the imperfecto — neither can stand for one finished past action.",
+                ),
+                ChallengeEntity(
+                    id = 50102, lessonId = 300, type = ChallengeType.FILL_BLANK,
+                    question = "Ayer yo ___ mucha hambre.",
+                    orderIndex = 2,
+                    grammaticalFocus = "es.preterito.irregular",
+                    acceptedAnswers = "tuve",
+                    ruleText = "One completed stretch of hunger is the preterite, and the irregular stem of tener is tuv-: yo tuve.\nTenía is the imperfecto, a hunger that lasted, and Tener is the infinitive, which can never fill the slot.",
+                ),
+                ChallengeEntity(
+                    id = 50103, lessonId = 300, type = ChallengeType.CONJUGATE,
+                    question = "Which preterite form of poder goes with 'yo'?",
+                    orderIndex = 3,
+                    grammaticalFocus = "es.preterito.irregular",
+                    ruleText = "poder is irregular in the preterite: pud- + e/iste/o/imos/ieron, so yo pude and él pudo.\nPodía is the imperfecto, an ability that lasted all evening, and Poder is the infinitive.",
+                ),
+                ChallengeEntity(
+                    id = 50104, lessonId = 300, type = ChallengeType.FILL_BLANK,
+                    question = "No ___ contestar el teléfono.",
+                    orderIndex = 4,
+                    grammaticalFocus = "es.preterito.irregular",
+                    acceptedAnswers = "pude",
+                    ruleText = "One finished attempt is the preterite: no pude.\nPodía is the imperfecto and Puedo is the present — both say the ability is still there instead of reporting that it was used up.",
+                ),
+                ChallengeEntity(
+                    id = 50105, lessonId = 300, type = ChallengeType.CONJUGATE,
+                    question = "Which preterite form of hacer goes with 'yo'?",
+                    orderIndex = 5,
+                    grammaticalFocus = "es.preterito.irregular",
+                    ruleText = "hacer is irregular in the preterite: hic- + e/iste/o/imos/ieron, so yo hice and él hizo.\nHacía is the imperfecto, a habit, and Hacer is the infinitive; neither can report the one cake that was actually made.",
+                ),
+                ChallengeEntity(
+                    id = 50106, lessonId = 300, type = ChallengeType.WORD_BANK,
+                    question = "Assemble: 'I made the cake yesterday'",
+                    orderIndex = 6,
+                    grammaticalFocus = "es.preterito.irregular",
+                    ruleText = "The first person singular of the irregular hacer is hice, so the sentence is Ayer yo hice un bizcocho.\nHacía is the imperfecto and Hizo is él/ella, so neither can follow yo.",
+                ),
+                ChallengeEntity(
+                    id = 50107, lessonId = 300, type = ChallengeType.CONJUGATE,
+                    question = "Which preterite form of decir goes with 'nosotros'?",
+                    orderIndex = 7,
+                    grammaticalFocus = "es.preterito.irregular",
+                    ruleText = "decir is irregular in the preterite: dij- + o/imos/ieron, so nosotros dijimos and ellos dijeron.\nDecíamos is the imperfecto and Decir is the infinitive; neither is the one time the thing was said.",
+                ),
+                ChallengeEntity(
+                    id = 50108, lessonId = 300, type = ChallengeType.SELECT,
+                    question = "Which one means 'the meeting'?",
+                    orderIndex = 8,
+                    ruleText = "A noun taught on its own, with no grammar to miss: la reunión is the meeting you are late to.\nLa habitación, la farmacia and la iglesia are other places, and only one of the four is a gathering of people.",
+                ),
+                ChallengeEntity(
+                    id = 50109, lessonId = 300, type = ChallengeType.SELECT,
+                    question = "Which one means 'I was very tired'?",
+                    orderIndex = 9,
+                    grammaticalFocus = "es.preterito.irregular",
+                    ruleText = "A completed state of tiredness is the preterite: estuve muy cansado.\nEstaba is the imperfecto, a tiredness that ran on, and Estaré is the future; Estar is the infinitive and fills no slot.",
+                ),
+
+                ChallengeEntity(
+                    id = 50110, lessonId = 301, type = ChallengeType.SELECT,
+                    question = "Which one means 'I did not want to go'?",
+                    orderIndex = 0,
+                    grammaticalFocus = "es.preterito.irregular",
+                    ruleText = "querer is irregular in the preterite: quis- + e/iste/o/imos/ieron, so no quise.\nQuería is the imperfecto, an inclination that lasted, and Quisiste is tú, not me.",
+                ),
+                ChallengeEntity(
+                    id = 50111, lessonId = 301, type = ChallengeType.CONJUGATE,
+                    question = "Which preterite form of venir goes with 'ellos'?",
+                    orderIndex = 1,
+                    grammaticalFocus = "es.preterito.irregular",
+                    ruleText = "venir is irregular in the preterite: vin- + ieron, so ellos vinieron and ella vino.\nVenían is the imperfecto of a repeated coming and Venir is the infinitive; neither describes one arrival.",
+                ),
+                ChallengeEntity(
+                    id = 50112, lessonId = 301, type = ChallengeType.FILL_BLANK,
+                    question = "Ana ___ a Madrid en tren.",
+                    orderIndex = 2,
+                    grammaticalFocus = "es.preterito.irregular",
+                    acceptedAnswers = "vino",
+                    ruleText = "One arrival by someone else: Ana + venir → vino.\nVenía is the imperfecto and Viene is the present, so both leave the trip still under way instead of finished.",
+                ),
+                ChallengeEntity(
+                    id = 50113, lessonId = 301, type = ChallengeType.CONJUGATE,
+                    question = "Which preterite form of estar goes with 'yo'?",
+                    orderIndex = 3,
+                    grammaticalFocus = "es.preterito.irregular",
+                    ruleText = "estar is irregular in the preterite: estuv- + e/iste/o/imos/ieron, so yo estuve and él estuvo.\nEstaba is the imperfecto, a stay that had no end yet, and Estar is the infinitive.",
+                ),
+                ChallengeEntity(
+                    id = 50114, lessonId = 301, type = ChallengeType.CONJUGATE,
+                    question = "Which preterite form of poner goes with 'nosotros'?",
+                    orderIndex = 4,
+                    grammaticalFocus = "es.preterito.irregular",
+                    ruleText = "poner is irregular in the preterite: pus- + imos/eron, so nosotros pusimos and ellos pusieron.\nPoníamos is the imperfecto and Poner is the infinitive; neither is the one time the table was set.",
+                ),
+                ChallengeEntity(
+                    id = 50115, lessonId = 301, type = ChallengeType.CONJUGATE,
+                    question = "Which preterite form of dormir goes with 'yo'?",
+                    orderIndex = 5,
+                    grammaticalFocus = "es.preterito.stem_changing",
+                    ruleText = "dormir changes stem in the present (dorm- → duerm-) but the preterite keeps the plain stem: dormí, dormiste, durmió.\nDurmió is él/ella, Dormía is the imperfecto, and Duermo belongs to the present tense.",
+                ),
+                ChallengeEntity(
+                    id = 50116, lessonId = 301, type = ChallengeType.FILL_BLANK,
+                    question = "Anoche ___ ocho horas.",
+                    orderIndex = 6,
+                    grammaticalFocus = "es.preterito.stem_changing",
+                    acceptedAnswers = "dormí|dormi",
+                    ruleText = "One night of sleep is the preterite, and the preterite stem of dormir is dorm-: yo dormí.\nDormía is the imperfecto, how you slept every night, and Duermo is the present — neither is the single finished night.",
+                ),
+                ChallengeEntity(
+                    id = 50117, lessonId = 301, type = ChallengeType.CONJUGATE,
+                    question = "Which preterite form of pedir goes with 'él'?",
+                    orderIndex = 7,
+                    grammaticalFocus = "es.preterito.stem_changing",
+                    ruleText = "pedir changes stem in the present (pid- → pide) but the preterite is ped-: pedí, pediste, pidió.\nPedí is yo and Pedía is the imperfecto, so only Pidió can answer for him.",
+                ),
+                ChallengeEntity(
+                    id = 50118, lessonId = 301, type = ChallengeType.CONJUGATE,
+                    question = "Which preterite form of descubrir goes with 'nosotros'?",
+                    orderIndex = 8,
+                    grammaticalFocus = "es.preterito.stem_changing",
+                    ruleText = "descubrir is a weak stem-changing -ir verb: descubrí, descubriste, descubrió, descubrimos.\nDescubrieron is ellos/ellas and Descubría is the imperfecto; Descubre is the present.",
+                ),
+                ChallengeEntity(
+                    id = 50119, lessonId = 301, type = ChallengeType.SELECT,
+                    question = "Which one means 'the station'?",
+                    orderIndex = 9,
+                    ruleText = "la estación is the station; it is a feminine noun, like la reunión and la habitación.\nLa piscina, la torre and el mercado are other places, and only one of them is where a train stops.",
+                ),
+                ChallengeEntity(
+                    id = 50140, lessonId = 301, type = ChallengeType.FILL_BLANK,
+                    question = "El profesor ___ toda la mañana.",
+                    orderIndex = 10,
+                    heldOut = true,
+                    grammaticalFocus = "es.preterito.stem_changing",
+                    acceptedAnswers = "siguió|siguio",
+                    ruleText = "seguir is a strong stem-changing -ir verb: the present is sigo, but the preterite keeps the soft g and takes ió — the one completed stretch of talking is Siguió.\nSeguía is the imperfecto, Sigue is the present, and Seguir is the infinitive; none of the three is a finished action.",
+                ),
+                ChallengeEntity(
+                    id = 50141, lessonId = 301, type = ChallengeType.FILL_BLANK,
+                    question = "El tren ___ a la estación a las tres.",
+                    orderIndex = 11,
+                    heldOut = true,
+                    grammaticalFocus = "es.preterito.irregular",
+                    acceptedAnswers = "volvió|volvio",
+                    ruleText = "volver is irregular in the preterite: volv- + ió, so the one completed return the sentence asks for is Volvió.\nVolvía is the imperfecto of a train that came back every day, Vuelve is the present, and Volver is the infinitive.",
+                ),
+
+                ChallengeEntity(
+                    id = 50120, lessonId = 302, type = ChallengeType.WORD_BANK,
+                    question = "Assemble: 'When I arrived the film had already started'",
+                    orderIndex = 0,
+                    grammaticalFocus = "es.past_perfect",
+                    ruleText = "The past perfect is había + participle, and empezar builds its participle as empez- + ado: ya había empezado.\nEmpezó is the plain preterite, a start with no earlier point to measure it from, and Empezaba is the imperfecto.",
+                ),
+                ChallengeEntity(
+                    id = 50121, lessonId = 302, type = ChallengeType.FILL_BLANK,
+                    question = "___ comido antes de las dos.",
+                    orderIndex = 1,
+                    grammaticalFocus = "es.past_perfect",
+                    acceptedAnswers = "había|habia",
+                    ruleText = "The past perfect reports what was already true before another past event, so the auxiliary is había and the participle comido follows it.\nHe is the present perfect, a result that still stands now, and Haber is the infinitive — neither can sit in front of a participle in a past-perfect frame.",
+                ),
+                ChallengeEntity(
+                    id = 50122, lessonId = 302, type = ChallengeType.FILL_BLANK,
+                    question = "Cuando volvimos, ya ___ de casa.",
+                    orderIndex = 2,
+                    grammaticalFocus = "es.past_perfect",
+                    acceptedAnswers = "salido",
+                    ruleText = "The participle of salir is salido, and it takes haber in the past perfect: ya había salido.\nSalió is the plain preterite, one exit, and Salía is the imperfecto; neither can follow ya había.",
+                ),
+                ChallengeEntity(
+                    id = 50123, lessonId = 302, type = ChallengeType.CONJUGATE,
+                    question = "Which participle does escribir use after había?",
+                    orderIndex = 3,
+                    grammaticalFocus = "es.past_perfect",
+                    ruleText = "escribir builds its participle on the short stem escrib- + ido, so había escrito.\nEscribió is the preterite of the whole verb and Escribiendo is the -ndo form, which never follows había.",
+                ),
+                ChallengeEntity(
+                    id = 50124, lessonId = 302, type = ChallengeType.CONJUGATE,
+                    question = "Which participle does hacer use after había?",
+                    orderIndex = 4,
+                    grammaticalFocus = "es.past_perfect",
+                    ruleText = "hacer has an irregular participle, hecho: había hecho, never había hacido.\nHicimos is the preterite of the whole verb, and Haciendo is the -ndo form — the slot after había takes a participle and nothing else.",
+                ),
+                ChallengeEntity(
+                    id = 50125, lessonId = 302, type = ChallengeType.FILL_BLANK,
+                    question = "No ___ dicho la verdad.",
+                    orderIndex = 5,
+                    grammaticalFocus = "es.past_perfect",
+                    acceptedAnswers = "dicho",
+                    ruleText = "decir has an irregular participle, dicho, so no había dicho.\nDijo is the plain preterite, one telling, and Diciendo is the -ndo form, which cannot follow había.",
+                ),
+                ChallengeEntity(
+                    id = 50126, lessonId = 302, type = ChallengeType.STORY,
+                    question = "Día perdido en la oficina\n\nLlegué tarde a la reunión.\nMi jefe ya había salido.\nDespués supe que yo había dicho la verdad demasiado tarde.",
+                    orderIndex = 6,
+                ),
+                ChallengeEntity(
+                    id = 50127, lessonId = 302, type = ChallengeType.CONJUGATE,
+                    question = "Which participle does poner use after había?",
+                    orderIndex = 7,
+                    grammaticalFocus = "es.past_perfect",
+                    ruleText = "poner has an irregular participle, puesto: había puesto la mesa.\nPusimos is the preterite of the whole verb, Ponido is the participle regular verbs would take, and Poniendo is the -ndo form.",
+                ),
+                ChallengeEntity(
+                    id = 50128, lessonId = 302, type = ChallengeType.CONJUGATE,
+                    question = "Which participle does ir use after había?",
+                    orderIndex = 8,
+                    grammaticalFocus = "es.past_perfect",
+                    ruleText = "ir has an irregular participle, ido: había ido.\nFui is the preterite of the whole verb and Yendo is the -ndo form; the slot after había never takes a tensed or an -ndo verb.",
+                ),
+                ChallengeEntity(
+                    id = 50129, lessonId = 302, type = ChallengeType.FILL_BLANK,
+                    question = "Cuando me llamaron yo ___ en el tren.",
+                    orderIndex = 9,
+                    grammaticalFocus = "es.past_perfect",
+                    acceptedAnswers = "dormido",
+                    ruleText = "dormir's participle is dormido, and it needs haber in the past perfect: yo había dormido.\nDurmió is a different person, Durmiendo is the -ndo form, and Dormir is the infinitive — none of the three can follow yo había.",
+                ),
+                ChallengeEntity(
+                    id = 50142, lessonId = 302, type = ChallengeType.FILL_BLANK,
+                    question = "Cuando llegué, mi vecino ya lo había ___.",
+                    orderIndex = 10,
+                    heldOut = true,
+                    grammaticalFocus = "es.past_perfect",
+                    acceptedAnswers = "comprado",
+                    ruleText = "The past perfect is había + participle, and the participle of comprar is comprado: ya lo había comprado.\ncompraba is the imperfecto of a habit that repeated, comprando is the -ndo form, and comprar is the infinitive — none of them can follow había.",
+                ),
+                ChallengeEntity(
+                    id = 50143, lessonId = 302, type = ChallengeType.CONJUGATE,
+                    question = "Which preterite form of abrir goes with 'yo'?",
+                    orderIndex = 11,
+                    heldOut = true,
+                    grammaticalFocus = "es.preterito.irregular",
+                    ruleText = "abrir is one of the -ir verbs that stay regular in the preterite: abr- + í, so the window opened in one finished act is abrió.\nabría is the imperfecto of a window left open all afternoon, and abrir is the infinitive, which fills no slot.",
+                ),
+            ),
+            options = listOf(
+                ChallengeOptionEntity(id = 500000, challengeId = 50100, text = "Tuve un día malo", correct = true),
+                ChallengeOptionEntity(id = 500001, challengeId = 50100, text = "Tengo un día malo", correct = false, errorTag = "WRONG_TENSE"),
+                ChallengeOptionEntity(id = 500002, challengeId = 50100, text = "Tener un día malo", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 500003, challengeId = 50100, text = "Tuviste un día malo", correct = false, errorTag = "WRONG_PERSON"),
+
+                ChallengeOptionEntity(id = 500010, challengeId = 50101, text = "tuve", correct = true),
+                ChallengeOptionEntity(id = 500011, challengeId = 50101, text = "tuviste", correct = false, errorTag = "WRONG_PERSON"),
+                ChallengeOptionEntity(id = 500012, challengeId = 50101, text = "tenía", correct = false, errorTag = "WRONG_TENSE"),
+                ChallengeOptionEntity(id = 500013, challengeId = 50101, text = "tener", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 500020, challengeId = 50102, text = "Tuve", correct = true),
+                ChallengeOptionEntity(id = 500021, challengeId = 50102, text = "Tenía", correct = false, errorTag = "WRONG_TENSE"),
+                ChallengeOptionEntity(id = 500022, challengeId = 50102, text = "Tener", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 500023, challengeId = 50102, text = "Tuviste", correct = false, errorTag = "WRONG_PERSON"),
+
+                ChallengeOptionEntity(id = 500030, challengeId = 50103, text = "pude", correct = true),
+                ChallengeOptionEntity(id = 500031, challengeId = 50103, text = "pudo", correct = false, errorTag = "WRONG_PERSON"),
+                ChallengeOptionEntity(id = 500032, challengeId = 50103, text = "podía", correct = false, errorTag = "WRONG_TENSE"),
+                ChallengeOptionEntity(id = 500033, challengeId = 50103, text = "poder", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 500040, challengeId = 50104, text = "Pude", correct = true),
+                ChallengeOptionEntity(id = 500041, challengeId = 50104, text = "Podía", correct = false, errorTag = "WRONG_TENSE"),
+                ChallengeOptionEntity(id = 500042, challengeId = 50104, text = "Puedo", correct = false, errorTag = "WRONG_TENSE"),
+                ChallengeOptionEntity(id = 500043, challengeId = 50104, text = "Poder", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 500050, challengeId = 50105, text = "hice", correct = true),
+                ChallengeOptionEntity(id = 500051, challengeId = 50105, text = "hizo", correct = false, errorTag = "WRONG_PERSON"),
+                ChallengeOptionEntity(id = 500052, challengeId = 50105, text = "hacía", correct = false, errorTag = "WRONG_TENSE"),
+                ChallengeOptionEntity(id = 500053, challengeId = 50105, text = "hacer", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 500060, challengeId = 50106, text = "Ayer", correct = true),
+                ChallengeOptionEntity(id = 500061, challengeId = 50106, text = "yo", correct = true),
+                ChallengeOptionEntity(id = 500062, challengeId = 50106, text = "hice", correct = true),
+                ChallengeOptionEntity(id = 500064, challengeId = 50106, text = "bizcocho", correct = true),
+                ChallengeOptionEntity(id = 500065, challengeId = 50106, text = "hacía", correct = false, errorTag = "WRONG_TENSE"),
+                ChallengeOptionEntity(id = 500066, challengeId = 50106, text = "hizo", correct = false, errorTag = "WRONG_PERSON"),
+
+                ChallengeOptionEntity(id = 500070, challengeId = 50107, text = "dijimos", correct = true),
+                ChallengeOptionEntity(id = 500071, challengeId = 50107, text = "dijeron", correct = false, errorTag = "WRONG_PERSON"),
+                ChallengeOptionEntity(id = 500072, challengeId = 50107, text = "decíamos", correct = false, errorTag = "WRONG_TENSE"),
+                ChallengeOptionEntity(id = 500073, challengeId = 50107, text = "decir", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 500080, challengeId = 50108, text = "La reunión", correct = true),
+                ChallengeOptionEntity(id = 500081, challengeId = 50108, text = "La habitación", correct = false),
+                ChallengeOptionEntity(id = 500082, challengeId = 50108, text = "La farmacia", correct = false),
+                ChallengeOptionEntity(id = 500083, challengeId = 50108, text = "La iglesia", correct = false),
+
+                ChallengeOptionEntity(id = 500090, challengeId = 50109, text = "Estuve muy cansado", correct = true),
+                ChallengeOptionEntity(id = 500091, challengeId = 50109, text = "Estaba muy cansado", correct = false, errorTag = "WRONG_TENSE"),
+                ChallengeOptionEntity(id = 500092, challengeId = 50109, text = "Estaré muy cansado", correct = false, errorTag = "WRONG_TENSE"),
+                ChallengeOptionEntity(id = 500093, challengeId = 50109, text = "Estar muy cansado", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 500100, challengeId = 50110, text = "No quise ir", correct = true),
+                ChallengeOptionEntity(id = 500101, challengeId = 50110, text = "No quería ir", correct = false, errorTag = "WRONG_TENSE"),
+                ChallengeOptionEntity(id = 500102, challengeId = 50110, text = "No quisiste ir", correct = false, errorTag = "WRONG_PERSON"),
+                ChallengeOptionEntity(id = 500103, challengeId = 50110, text = "No querer ir", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 500110, challengeId = 50111, text = "vinieron", correct = true),
+                ChallengeOptionEntity(id = 500111, challengeId = 50111, text = "vino", correct = false, errorTag = "WRONG_PERSON"),
+                ChallengeOptionEntity(id = 500112, challengeId = 50111, text = "venían", correct = false, errorTag = "WRONG_TENSE"),
+                ChallengeOptionEntity(id = 500113, challengeId = 50111, text = "venir", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 500120, challengeId = 50112, text = "Vino", correct = true),
+                ChallengeOptionEntity(id = 500121, challengeId = 50112, text = "Venía", correct = false, errorTag = "WRONG_TENSE"),
+                ChallengeOptionEntity(id = 500122, challengeId = 50112, text = "Viene", correct = false, errorTag = "WRONG_TENSE"),
+                ChallengeOptionEntity(id = 500123, challengeId = 50112, text = "Venir", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 500130, challengeId = 50113, text = "estuve", correct = true),
+                ChallengeOptionEntity(id = 500131, challengeId = 50113, text = "estuvo", correct = false, errorTag = "WRONG_PERSON"),
+                ChallengeOptionEntity(id = 500132, challengeId = 50113, text = "estaba", correct = false, errorTag = "WRONG_TENSE"),
+                ChallengeOptionEntity(id = 500133, challengeId = 50113, text = "estar", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 500140, challengeId = 50114, text = "pusimos", correct = true),
+                ChallengeOptionEntity(id = 500141, challengeId = 50114, text = "pusieron", correct = false, errorTag = "WRONG_PERSON"),
+                ChallengeOptionEntity(id = 500142, challengeId = 50114, text = "poníamos", correct = false, errorTag = "WRONG_TENSE"),
+                ChallengeOptionEntity(id = 500143, challengeId = 50114, text = "poner", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 500150, challengeId = 50115, text = "dormí", correct = true),
+                ChallengeOptionEntity(id = 500151, challengeId = 50115, text = "durmió", correct = false, errorTag = "WRONG_PERSON"),
+                ChallengeOptionEntity(id = 500152, challengeId = 50115, text = "dormía", correct = false, errorTag = "WRONG_TENSE"),
+                ChallengeOptionEntity(id = 500153, challengeId = 50115, text = "duermo", correct = false, errorTag = "WRONG_TENSE"),
+
+                ChallengeOptionEntity(id = 500160, challengeId = 50116, text = "Dormí", correct = true),
+                ChallengeOptionEntity(id = 500161, challengeId = 50116, text = "Dormía", correct = false, errorTag = "WRONG_TENSE"),
+                ChallengeOptionEntity(id = 500162, challengeId = 50116, text = "Duermo", correct = false, errorTag = "WRONG_TENSE"),
+                ChallengeOptionEntity(id = 500163, challengeId = 50116, text = "Dormir", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 500170, challengeId = 50117, text = "pidió", correct = true),
+                ChallengeOptionEntity(id = 500171, challengeId = 50117, text = "pedí", correct = false, errorTag = "WRONG_PERSON"),
+                ChallengeOptionEntity(id = 500172, challengeId = 50117, text = "pedía", correct = false, errorTag = "WRONG_TENSE"),
+                ChallengeOptionEntity(id = 500173, challengeId = 50117, text = "pido", correct = false, errorTag = "WRONG_TENSE"),
+
+                ChallengeOptionEntity(id = 500180, challengeId = 50118, text = "descubrimos", correct = true),
+                ChallengeOptionEntity(id = 500181, challengeId = 50118, text = "descubrieron", correct = false, errorTag = "WRONG_PERSON"),
+                ChallengeOptionEntity(id = 500182, challengeId = 50118, text = "descubría", correct = false, errorTag = "WRONG_TENSE"),
+                ChallengeOptionEntity(id = 500183, challengeId = 50118, text = "descubro", correct = false, errorTag = "WRONG_TENSE"),
+
+                ChallengeOptionEntity(id = 500190, challengeId = 50119, text = "La estación", correct = true),
+                ChallengeOptionEntity(id = 500191, challengeId = 50119, text = "La piscina", correct = false),
+                ChallengeOptionEntity(id = 500192, challengeId = 50119, text = "La torre", correct = false),
+                ChallengeOptionEntity(id = 500193, challengeId = 50119, text = "El mercado", correct = false),
+
+                ChallengeOptionEntity(id = 500400, challengeId = 50140, text = "Siguió", correct = true),
+                ChallengeOptionEntity(id = 500401, challengeId = 50140, text = "Seguía", correct = false, errorTag = "WRONG_TENSE"),
+                ChallengeOptionEntity(id = 500402, challengeId = 50140, text = "Sigue", correct = false, errorTag = "WRONG_TENSE"),
+                ChallengeOptionEntity(id = 500403, challengeId = 50140, text = "Seguir", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 500410, challengeId = 50141, text = "Volvió", correct = true),
+                ChallengeOptionEntity(id = 500411, challengeId = 50141, text = "Volvía", correct = false, errorTag = "WRONG_TENSE"),
+                ChallengeOptionEntity(id = 500412, challengeId = 50141, text = "Vuelve", correct = false, errorTag = "WRONG_TENSE"),
+                ChallengeOptionEntity(id = 500413, challengeId = 50141, text = "Volver", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 500200, challengeId = 50120, text = "Cuando", correct = true),
+                ChallengeOptionEntity(id = 500201, challengeId = 50120, text = "llegué", correct = true),
+                ChallengeOptionEntity(id = 500202, challengeId = 50120, text = "la", correct = true),
+                ChallengeOptionEntity(id = 500203, challengeId = 50120, text = "película", correct = true),
+                ChallengeOptionEntity(id = 500204, challengeId = 50120, text = "ya", correct = true),
+                ChallengeOptionEntity(id = 500205, challengeId = 50120, text = "había", correct = true),
+                ChallengeOptionEntity(id = 500206, challengeId = 50120, text = "empezado", correct = true),
+                ChallengeOptionEntity(id = 500207, challengeId = 50120, text = "empezó", correct = false, errorTag = "WRONG_TENSE"),
+                ChallengeOptionEntity(id = 500208, challengeId = 50120, text = "empezaba", correct = false, errorTag = "WRONG_TENSE"),
+
+                ChallengeOptionEntity(id = 500210, challengeId = 50121, text = "Había", correct = true),
+                ChallengeOptionEntity(id = 500211, challengeId = 50121, text = "He", correct = false, errorTag = "WRONG_TENSE"),
+                ChallengeOptionEntity(id = 500212, challengeId = 50121, text = "Haber", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 500220, challengeId = 50122, text = "Salido", correct = true),
+                ChallengeOptionEntity(id = 500221, challengeId = 50122, text = "Salió", correct = false, errorTag = "WRONG_TENSE"),
+                ChallengeOptionEntity(id = 500222, challengeId = 50122, text = "Salía", correct = false, errorTag = "WRONG_TENSE"),
+                ChallengeOptionEntity(id = 500223, challengeId = 50122, text = "Salir", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 500230, challengeId = 50123, text = "escrito", correct = true),
+                ChallengeOptionEntity(id = 500231, challengeId = 50123, text = "escribió", correct = false, errorTag = "WRONG_TENSE"),
+                ChallengeOptionEntity(id = 500232, challengeId = 50123, text = "escribiendo", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 500233, challengeId = 50123, text = "escribir", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 500240, challengeId = 50124, text = "hecho", correct = true),
+                ChallengeOptionEntity(id = 500241, challengeId = 50124, text = "hicimos", correct = false, errorTag = "WRONG_TENSE"),
+                ChallengeOptionEntity(id = 500242, challengeId = 50124, text = "hacido", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 500243, challengeId = 50124, text = "haciendo", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 500250, challengeId = 50125, text = "dicho", correct = true),
+                ChallengeOptionEntity(id = 500251, challengeId = 50125, text = "dijo", correct = false, errorTag = "WRONG_TENSE"),
+                ChallengeOptionEntity(id = 500252, challengeId = 50125, text = "diciendo", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 500253, challengeId = 50125, text = "decir", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 500260, challengeId = 50126, text = "In a lost day", correct = true),
+                ChallengeOptionEntity(id = 500261, challengeId = 50126, text = "At a long meeting", correct = false),
+                ChallengeOptionEntity(id = 500262, challengeId = 50126, text = "In a train station", correct = false),
+                ChallengeOptionEntity(id = 500263, challengeId = 50126, text = "At the beach", correct = false),
+
+                ChallengeOptionEntity(id = 500270, challengeId = 50127, text = "puesto", correct = true),
+                ChallengeOptionEntity(id = 500271, challengeId = 50127, text = "pusimos", correct = false, errorTag = "WRONG_TENSE"),
+                ChallengeOptionEntity(id = 500272, challengeId = 50127, text = "ponido", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 500273, challengeId = 50127, text = "poniendo", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 500280, challengeId = 50128, text = "ido", correct = true),
+                ChallengeOptionEntity(id = 500281, challengeId = 50128, text = "fui", correct = false, errorTag = "WRONG_TENSE"),
+                ChallengeOptionEntity(id = 500282, challengeId = 50128, text = "yendo", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 500283, challengeId = 50128, text = "ir", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 500290, challengeId = 50129, text = "Dormido", correct = true),
+                ChallengeOptionEntity(id = 500291, challengeId = 50129, text = "Durmió", correct = false, errorTag = "WRONG_TENSE"),
+                ChallengeOptionEntity(id = 500292, challengeId = 50129, text = "Durmiendo", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 500293, challengeId = 50129, text = "Dormir", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 500420, challengeId = 50142, text = "comprado", correct = true),
+                ChallengeOptionEntity(id = 500421, challengeId = 50142, text = "compraba", correct = false, errorTag = "WRONG_TENSE"),
+                ChallengeOptionEntity(id = 500422, challengeId = 50142, text = "comprando", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 500423, challengeId = 50142, text = "comprar", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 500430, challengeId = 50143, text = "abrí", correct = true),
+                ChallengeOptionEntity(id = 500431, challengeId = 50143, text = "abrió", correct = false, errorTag = "WRONG_PERSON"),
+                ChallengeOptionEntity(id = 500432, challengeId = 50143, text = "abría", correct = false, errorTag = "WRONG_TENSE"),
+                ChallengeOptionEntity(id = 500433, challengeId = 50143, text = "abrir", correct = false, errorTag = "WRONG_FORM"),
+            ),
+        ),
+
+        // Unit 12: Condicional, Perífrasis y Conectores
+        UnitPayload(
+            unit = UnitEntity(
+                id = 31,
+                courseId = 1,
+                title = "Unit 12: Conditional & Connectives",
+                description = "hablaría, me gustaría — para, porque, así que, aunque",
+                orderIndex = 11,
+            ),
+            lessons = listOf(
+                LessonEntity(id = 303, unitId = 31, title = "Lesson 23: What Would You Do?", orderIndex = 0),
+                LessonEntity(id = 304, unitId = 31, title = "Lesson 24: I Would Like, Please", orderIndex = 1),
+                LessonEntity(id = 305, unitId = 31, title = "Lesson 25: Why, So, Although", orderIndex = 2),
+            ),
+            challenges = listOf(
+                ChallengeEntity(
+                    id = 50200, lessonId = 303, type = ChallengeType.CONJUGATE,
+                    question = "Which conditional form of hablar goes with 'yo'?",
+                    orderIndex = 0,
+                    grammaticalFocus = "es.conditional.regular",
+                    ruleText = "The regular conditional keeps the whole infinitive: hablar + ía/ías/ía/íamos/ían, so yo hablaría.\nHablarías is tú and Hablaré is the future, which promises the speech instead of supposing it.",
+                ),
+                ChallengeEntity(
+                    id = 50201, lessonId = 303, type = ChallengeType.FILL_BLANK,
+                    question = "En tu lugar, yo ___ con el jefe.",
+                    orderIndex = 1,
+                    grammaticalFocus = "es.conditional.regular",
+                    acceptedAnswers = "hablaría|hablaria",
+                    ruleText = "A supposition about someone else's action is the conditional: yo hablaría.\nHablaba is the imperfecto, a habit in the past, and Hablaré is the future, which commits to the conversation instead of supposing it.",
+                ),
+                ChallengeEntity(
+                    id = 50202, lessonId = 303, type = ChallengeType.CONJUGATE,
+                    question = "Which conditional form of vivir goes with 'nosotros'?",
+                    orderIndex = 2,
+                    grammaticalFocus = "es.conditional.regular",
+                    ruleText = "The regular conditional keeps the infinitive whole: vivir + iríamos, so nosotros viviríamos.\nViviríais is vosotros and Viviremos is the future, a plan rather than a supposition; Vivíamos is the imperfecto.",
+                ),
+                ChallengeEntity(
+                    id = 50203, lessonId = 303, type = ChallengeType.CONJUGATE,
+                    question = "Which conditional form of tener goes with 'yo'?",
+                    orderIndex = 3,
+                    grammaticalFocus = "es.conditional.irregular",
+                    ruleText = "The irregular conditional is built on the infinitive stem plus -ría, so tener → tendría.\nTendrías is tú and Tendré is the future; Tenía is the imperfecto and belongs to a different tense entirely.",
+                ),
+                ChallengeEntity(
+                    id = 50204, lessonId = 303, type = ChallengeType.CONJUGATE,
+                    question = "Which conditional form of poder goes with 'nosotros'?",
+                    orderIndex = 4,
+                    grammaticalFocus = "es.conditional.irregular",
+                    ruleText = "poder drops the -d- before -ría: poder → podría, so nosotros podríamos.\nPodríamos answers only for nosotros; Podré is the future and Podemos is the present.",
+                ),
+                ChallengeEntity(
+                    id = 50205, lessonId = 303, type = ChallengeType.CONJUGATE,
+                    question = "Which conditional form of decir goes with 'ella'?",
+                    orderIndex = 5,
+                    grammaticalFocus = "es.conditional.irregular",
+                    ruleText = "decir inserts a -d- in front of -ría: decir → diría, so ella diría.\nDirían is ellos/ellas and Dirá is the future; the present would be Dice, which states a fact rather than supposing one.",
+                ),
+                ChallengeEntity(
+                    id = 50206, lessonId = 303, type = ChallengeType.CONJUGATE,
+                    question = "Which conditional form of salir goes with 'yo'?",
+                    orderIndex = 6,
+                    grammaticalFocus = "es.conditional.irregular",
+                    ruleText = "salir → saldría, the -ir- of the infinitive before -ría.\nSaldrías is tú and Saldré is the future; Salía is the imperfecto of a leaving that repeated.",
+                ),
+                ChallengeEntity(
+                    id = 50207, lessonId = 303, type = ChallengeType.FILL_BLANK,
+                    question = "El médico cree que yo ___ bien mañana.",
+                    orderIndex = 7,
+                    grammaticalFocus = "es.conditional.irregular",
+                    acceptedAnswers = "estaría|estaria",
+                    ruleText = "Cree que plus a supposition is the conditional, and estar → estaría.\nEstará is the future, which states the recovery as a fact, and Estaba is the imperfecto, which puts the claim in a past scene.",
+                ),
+                ChallengeEntity(
+                    id = 50208, lessonId = 303, type = ChallengeType.CONJUGATE,
+                    question = "Which conditional form of venir goes with 'nosotros'?",
+                    orderIndex = 8,
+                    grammaticalFocus = "es.conditional.irregular",
+                    ruleText = "venir → vendría, the -n- of the infinitive before -ría.\nVendremos is the future and Venían is the imperfecto of a repeated coming; neither supposes anything.",
+                ),
+                ChallengeEntity(
+                    id = 50209, lessonId = 303, type = ChallengeType.SELECT,
+                    question = "Which one means 'the appointment'?",
+                    orderIndex = 9,
+                    ruleText = "la cita is the appointment you arrange to meet; la factura, la receta and la entrada are other papers or places.\nIt is a feminine noun, and only one of the four names a time you have agreed to keep.",
+                ),
+                ChallengeEntity(
+                    id = 50240, lessonId = 303, type = ChallengeType.FILL_BLANK,
+                    question = "¿___ tú con el proyecto?",
+                    orderIndex = 10,
+                    heldOut = true,
+                    grammaticalFocus = "es.conditional.irregular",
+                    acceptedAnswers = "harías|harías",
+                    ruleText = "The conditional offers an action without committing to it, and second person is the one being asked, so the answer is Harías; Haría would be yo.\nHarás and Haré are the future, which promise the work, and Hacer is the infinitive, which cannot fill the slot.",
+                ),
+
+                ChallengeEntity(
+                    id = 50210, lessonId = 304, type = ChallengeType.FILL_BLANK,
+                    question = "Me ___ un café, por favor.",
+                    orderIndex = 0,
+                    grammaticalFocus = "es.conditional.periphrasis",
+                    acceptedAnswers = "gustaría|gustaria",
+                    ruleText = "The polite request is me gustaría + infinitive, a softened 'I would like'.\nGusta is a plain liking with nothing softened about it, Quiero is a blunt demand, and Gustó is a preterite liking.",
+                ),
+                ChallengeEntity(
+                    id = 50211, lessonId = 304, type = ChallengeType.FILL_BLANK,
+                    question = "En tu lugar yo ___ viajar en tren.",
+                    orderIndex = 1,
+                    grammaticalFocus = "es.conditional.periphrasis",
+                    acceptedAnswers = "querría|querria",
+                    ruleText = "querría + infinitive is a polite supposition: 'I would like to travel by train'.\nQuerer is the infinitive and fills no slot, Quería is the imperfecto of a wish that lived in the past, and Querrás is the future.",
+                ),
+                ChallengeEntity(
+                    id = 50212, lessonId = 304, type = ChallengeType.FILL_BLANK,
+                    question = "¿___ ayudarme con la maleta?",
+                    orderIndex = 2,
+                    grammaticalFocus = "es.conditional.periphrasis",
+                    acceptedAnswers = "podría|podria",
+                    ruleText = "podría + infinitive is the polite, uncertain offer: 'could you help me?'\nPuedes is a flat present, Poder is the infinitive, and Podré is the future, which commits to the help instead of offering it.",
+                ),
+                ChallengeEntity(
+                    id = 50213, lessonId = 304, type = ChallengeType.SELECT,
+                    question = "Which one asks for the bill politely?",
+                    orderIndex = 3,
+                    grammaticalFocus = "es.conditional.periphrasis",
+                    ruleText = "Me trae la cuenta, por favor is the polite conditional request: me + trae + la cuenta.\nQuiero la cuenta demands, Trae la cuenta is a bare order, and Me da la cuenta is a statement that never asks for anything.",
+                ),
+                ChallengeEntity(
+                    id = 50214, lessonId = 304, type = ChallengeType.CONJUGATE,
+                    question = "Which form says 'I would have time' rather than promising it?",
+                    orderIndex = 4,
+                    grammaticalFocus = "es.conditional.irregular",
+                    ruleText = "The conditional is a polite maybe and the future is a promise: yo tendría 'I would have time', yo tendré 'I will have time'.\nTendríamos is nosotros and Tenemos is the present; neither is a future form at all.",
+                ),
+                ChallengeEntity(
+                    id = 50215, lessonId = 304, type = ChallengeType.WORD_BANK,
+                    question = "Assemble: 'I would like to book a table'",
+                    orderIndex = 5,
+                    grammaticalFocus = "es.conditional.periphrasis",
+                    ruleText = "The polite frame is me gustaría + infinitive, so Me gustaría reservar una mesa.\nQuiero is the blunt version, Gustaba is the imperfecto of a liking that belonged to the past, and Reservó is the preterite of the whole verb.",
+                ),
+                ChallengeEntity(
+                    id = 50216, lessonId = 304, type = ChallengeType.FILL_BLANK,
+                    question = "En casa siempre ___ la comida a las dos.",
+                    orderIndex = 6,
+                    grammaticalFocus = "es.conditional.regular",
+                    acceptedAnswers = "comería|comeria",
+                    ruleText = "The regular conditional is infinitive + ría, so comer → comería: 'we would eat at two'.\nComer is the infinitive, Comió is one finished preterite meal, and Comeremos is the future — none of the three is a supposition.",
+                ),
+                ChallengeEntity(
+                    id = 50219, lessonId = 304, type = ChallengeType.SELECT,
+                    question = "Which one means 'the key'?",
+                    orderIndex = 7,
+                    ruleText = "la llave is the key that opens a door or a hotel room; la torre, la playa and la ventana are other things.\nIt is a feminine noun, and only one of the four is something you turn in a lock.",
+                ),
+                ChallengeEntity(
+                    id = 50241, lessonId = 304, type = ChallengeType.CONJUGATE,
+                    question = "Which conditional form of comer goes with 'yo'?",
+                    orderIndex = 8,
+                    heldOut = true,
+                    grammaticalFocus = "es.conditional.regular",
+                    ruleText = "The regular conditional is infinitive + ría, so comer → comería, and the answer for yo is Comería.\nComerías is tú, Comeré is the future, Comía is the imperfecto of a meal that repeated in the past, and Comer is the infinitive.",
+                ),
+                ChallengeEntity(
+                    id = 50242, lessonId = 304, type = ChallengeType.FILL_BLANK,
+                    question = "En ese caso, yo no ___ la verdad.",
+                    orderIndex = 9,
+                    heldOut = true,
+                    grammaticalFocus = "es.conditional.irregular",
+                    acceptedAnswers = "diría|diria",
+                    ruleText = "A supposition about someone else's action is the conditional, so the answer is diría.\ndigo is the present, decía is the imperfecto of a habit in the past, and decir is the infinitive — none of the three supposes anything about the future.",
+                ),
+
+                ChallengeEntity(
+                    id = 50220, lessonId = 305, type = ChallengeType.FILL_BLANK,
+                    question = "Estudié mucho ___ quería aprobar.",
+                    orderIndex = 0,
+                    grammaticalFocus = "es.connectives",
+                    acceptedAnswers = "porque",
+                    ruleText = "porque states the reason of a past action and opens a whole clause: estudié mucho porque quería aprobar.\nEntonces states a result, Además adds extra information and También stacks another item; none of the three opens a clause of cause.",
+                ),
+                ChallengeEntity(
+                    id = 50221, lessonId = 305, type = ChallengeType.FILL_BLANK,
+                    question = "No dormí temprano, ___ no me levanté.",
+                    orderIndex = 1,
+                    grammaticalFocus = "es.connectives",
+                    acceptedAnswers = "entonces",
+                    ruleText = "entonces states a result, so the sentence runs cause and then effect: no dormí temprano, entonces no me levanté.\nTambién, Sin embargo and Además all add or contrast a second fact; none of the three carries a consequence.",
+                ),
+                ChallengeEntity(
+                    id = 50222, lessonId = 305, type = ChallengeType.FILL_BLANK,
+                    question = "___ hacía frío, salimos a pasear.",
+                    orderIndex = 2,
+                    grammaticalFocus = "es.connectives",
+                    acceptedAnswers = "aunque",
+                    ruleText = "aunque states a concession: the second half happens in spite of the first, not because of it.\nTambién, Sin embargo and Además cannot open a clause; they only join something that already stands on its own.",
+                ),
+                ChallengeEntity(
+                    id = 50223, lessonId = 305, type = ChallengeType.FILL_BLANK,
+                    question = "Estudio español ___ viajar a España.",
+                    orderIndex = 3,
+                    grammaticalFocus = "es.connectives",
+                    acceptedAnswers = "para",
+                    ruleText = "para states the aim of an action: estudio español para viajar a España.\nTambién, Sin embargo and Además express no aim at all; none of them opens a clause that states a purpose.",
+                ),
+                ChallengeEntity(
+                    id = 50224, lessonId = 305, type = ChallengeType.WORD_BANK,
+                    question = "Assemble: 'It was late, so we went home'",
+                    orderIndex = 4,
+                    grammaticalFocus = "es.connectives",
+                    ruleText = "así que joins two facts as cause and result: era tarde, así que nos fuimos a casa.\nTambién and Además only add a second fact to one that already stands; neither carries the result.",
+                ),
+                ChallengeEntity(
+                    id = 50225, lessonId = 305, type = ChallengeType.SELECT,
+                    question = "Which one means 'I called her because I needed money'?",
+                    orderIndex = 5,
+                    grammaticalFocus = "es.connectives",
+                    ruleText = "porque states the reason of a past action: la llamé porque necesitaba dinero.\nTambién and Sin embargo can sit in the middle of a sentence, but they open no clause and carry no reason, so neither fits this slot.",
+                ),
+                ChallengeEntity(
+                    id = 50226, lessonId = 305, type = ChallengeType.SELECT,
+                    question = "Which one states a purpose?",
+                    orderIndex = 6,
+                    grammaticalFocus = "es.connectives",
+                    ruleText = "para states the aim of an action: estudio español para viajar a España.\nSin embargo and Además join clauses that already stand on their own; neither of the two states an aim.",
+                ),
+                ChallengeEntity(
+                    id = 50227, lessonId = 305, type = ChallengeType.STORY,
+                    question = "El plan cambió\n\nQuería ir a la playa.\nAun así, hacía frío.\nEntonces me quedé en casa y leí un libro.",
+                    orderIndex = 7,
+                ),
+                ChallengeEntity(
+                    id = 50228, lessonId = 305, type = ChallengeType.WORD_BANK,
+                    question = "Assemble: 'Although it was expensive, we bought two bikes'",
+                    orderIndex = 8,
+                    grammaticalFocus = "es.connectives",
+                    ruleText = "aunque opens a concession and the main clause carries the surprise: aunque costaba mucho, compramos dos bicicletas.\nEntonces states a result and para states an aim; neither opens a clause that is being conceded.",
+                ),
+                ChallengeEntity(
+                    id = 50229, lessonId = 305, type = ChallengeType.SELECT,
+                    question = "Which one means 'the weekend'?",
+                    orderIndex = 9,
+                    ruleText = "el fin de semana is a masculine noun, and both halves of it stay as they are.\nLa fin de semana takes the wrong article, El fin de mes is the end of the month, and El fin de año is the end of the year.",
+                ),
+                ChallengeEntity(
+                    id = 50243, lessonId = 305, type = ChallengeType.FILL_BLANK,
+                    question = "Era tarde, ___ seguimos trabajando.",
+                    orderIndex = 10,
+                    heldOut = true,
+                    grammaticalFocus = "es.connectives",
+                    acceptedAnswers = "pero",
+                    ruleText = "pero contrasts two facts that are both true, with no result and no aim: era tarde, pero seguimos trabajando.\ntambién only adds a fact, sin embargo sets the contrast down as an aside instead of joining two clauses, and además adds one more; none of them sets one clause against another.",
+                ),
+            ),
+            options = listOf(
+                ChallengeOptionEntity(id = 501000, challengeId = 50200, text = "hablaría", correct = true),
+                ChallengeOptionEntity(id = 501001, challengeId = 50200, text = "hablarías", correct = false, errorTag = "WRONG_PERSON"),
+                ChallengeOptionEntity(id = 501002, challengeId = 50200, text = "hablaré", correct = false, errorTag = "WRONG_TENSE"),
+                ChallengeOptionEntity(id = 501003, challengeId = 50200, text = "hablaba", correct = false, errorTag = "WRONG_TENSE"),
+
+                ChallengeOptionEntity(id = 501010, challengeId = 50201, text = "Hablaría", correct = true),
+                ChallengeOptionEntity(id = 501011, challengeId = 50201, text = "Hablaba", correct = false, errorTag = "WRONG_TENSE"),
+                ChallengeOptionEntity(id = 501012, challengeId = 50201, text = "Hablaré", correct = false, errorTag = "WRONG_TENSE"),
+                ChallengeOptionEntity(id = 501013, challengeId = 50201, text = "Hablar", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 501020, challengeId = 50202, text = "viviríamos", correct = true),
+                ChallengeOptionEntity(id = 501021, challengeId = 50202, text = "viviríais", correct = false, errorTag = "WRONG_PERSON"),
+                ChallengeOptionEntity(id = 501022, challengeId = 50202, text = "viviremos", correct = false, errorTag = "WRONG_TENSE"),
+                ChallengeOptionEntity(id = 501023, challengeId = 50202, text = "vivíamos", correct = false, errorTag = "WRONG_TENSE"),
+
+                ChallengeOptionEntity(id = 501030, challengeId = 50203, text = "tendría", correct = true),
+                ChallengeOptionEntity(id = 501031, challengeId = 50203, text = "tendrías", correct = false, errorTag = "WRONG_PERSON"),
+                ChallengeOptionEntity(id = 501032, challengeId = 50203, text = "tendré", correct = false, errorTag = "WRONG_TENSE"),
+                ChallengeOptionEntity(id = 501033, challengeId = 50203, text = "tenía", correct = false, errorTag = "WRONG_TENSE"),
+
+                ChallengeOptionEntity(id = 501040, challengeId = 50204, text = "podríamos", correct = true),
+                ChallengeOptionEntity(id = 501041, challengeId = 50204, text = "podré", correct = false, errorTag = "WRONG_TENSE"),
+                ChallengeOptionEntity(id = 501042, challengeId = 50204, text = "podían", correct = false, errorTag = "WRONG_PERSON"),
+                ChallengeOptionEntity(id = 501043, challengeId = 50204, text = "podemos", correct = false, errorTag = "WRONG_TENSE"),
+
+                ChallengeOptionEntity(id = 501050, challengeId = 50205, text = "diría", correct = true),
+                ChallengeOptionEntity(id = 501051, challengeId = 50205, text = "dirían", correct = false, errorTag = "WRONG_PERSON"),
+                ChallengeOptionEntity(id = 501052, challengeId = 50205, text = "dirá", correct = false, errorTag = "WRONG_TENSE"),
+                ChallengeOptionEntity(id = 501053, challengeId = 50205, text = "dice", correct = false, errorTag = "WRONG_TENSE"),
+
+                ChallengeOptionEntity(id = 501060, challengeId = 50206, text = "saldría", correct = true),
+                ChallengeOptionEntity(id = 501061, challengeId = 50206, text = "saldrías", correct = false, errorTag = "WRONG_PERSON"),
+                ChallengeOptionEntity(id = 501062, challengeId = 50206, text = "saldré", correct = false, errorTag = "WRONG_TENSE"),
+                ChallengeOptionEntity(id = 501063, challengeId = 50206, text = "salía", correct = false, errorTag = "WRONG_TENSE"),
+
+                ChallengeOptionEntity(id = 501070, challengeId = 50207, text = "Estaría", correct = true),
+                ChallengeOptionEntity(id = 501071, challengeId = 50207, text = "Estará", correct = false, errorTag = "WRONG_TENSE"),
+                ChallengeOptionEntity(id = 501072, challengeId = 50207, text = "Estaba", correct = false, errorTag = "WRONG_TENSE"),
+                ChallengeOptionEntity(id = 501073, challengeId = 50207, text = "Estar", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 501080, challengeId = 50208, text = "vendríamos", correct = true),
+                ChallengeOptionEntity(id = 501081, challengeId = 50208, text = "vendremos", correct = false, errorTag = "WRONG_TENSE"),
+                ChallengeOptionEntity(id = 501082, challengeId = 50208, text = "venían", correct = false, errorTag = "WRONG_PERSON"),
+                ChallengeOptionEntity(id = 501083, challengeId = 50208, text = "venir", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 501090, challengeId = 50209, text = "La cita", correct = true),
+                ChallengeOptionEntity(id = 501091, challengeId = 50209, text = "La factura", correct = false),
+                ChallengeOptionEntity(id = 501092, challengeId = 50209, text = "La receta", correct = false),
+                ChallengeOptionEntity(id = 501093, challengeId = 50209, text = "La entrada", correct = false),
+
+                ChallengeOptionEntity(id = 501400, challengeId = 50240, text = "Harías", correct = true),
+                ChallengeOptionEntity(id = 501401, challengeId = 50240, text = "Harás", correct = false, errorTag = "WRONG_TENSE"),
+                ChallengeOptionEntity(id = 501402, challengeId = 50240, text = "Haré", correct = false, errorTag = "WRONG_TENSE"),
+                ChallengeOptionEntity(id = 501403, challengeId = 50240, text = "Hacer", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 501100, challengeId = 50210, text = "gustaría", correct = true),
+                ChallengeOptionEntity(id = 501101, challengeId = 50210, text = "gusta", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 501102, challengeId = 50210, text = "quiero", correct = false, errorTag = "WRONG_REGISTER"),
+                ChallengeOptionEntity(id = 501103, challengeId = 50210, text = "gustó", correct = false, errorTag = "WRONG_TENSE"),
+
+                ChallengeOptionEntity(id = 501110, challengeId = 50211, text = "querría", correct = true),
+                ChallengeOptionEntity(id = 501111, challengeId = 50211, text = "querrás", correct = false, errorTag = "WRONG_TENSE"),
+                ChallengeOptionEntity(id = 501112, challengeId = 50211, text = "quería", correct = false, errorTag = "WRONG_TENSE"),
+                ChallengeOptionEntity(id = 501113, challengeId = 50211, text = "querer", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 501120, challengeId = 50212, text = "podría", correct = true),
+                ChallengeOptionEntity(id = 501121, challengeId = 50212, text = "puedes", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 501122, challengeId = 50212, text = "poder", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 501123, challengeId = 50212, text = "podré", correct = false, errorTag = "WRONG_TENSE"),
+
+                ChallengeOptionEntity(id = 501130, challengeId = 50213, text = "¿Me trae la cuenta, por favor?", correct = true),
+                ChallengeOptionEntity(id = 501131, challengeId = 50213, text = "Quiero la cuenta.", correct = false, errorTag = "WRONG_REGISTER"),
+                ChallengeOptionEntity(id = 501132, challengeId = 50213, text = "Trae la cuenta.", correct = false, errorTag = "WRONG_REGISTER"),
+                ChallengeOptionEntity(id = 501133, challengeId = 50213, text = "Me da la cuenta.", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 501140, challengeId = 50214, text = "tendría", correct = true),
+                ChallengeOptionEntity(id = 501141, challengeId = 50214, text = "tendríamos", correct = false, errorTag = "WRONG_PERSON"),
+                ChallengeOptionEntity(id = 501142, challengeId = 50214, text = "tendré", correct = false, errorTag = "WRONG_TENSE"),
+                ChallengeOptionEntity(id = 501143, challengeId = 50214, text = "tenemos", correct = false, errorTag = "WRONG_TENSE"),
+
+                ChallengeOptionEntity(id = 501150, challengeId = 50215, text = "Me", correct = true),
+                ChallengeOptionEntity(id = 501151, challengeId = 50215, text = "gustaría", correct = true),
+                ChallengeOptionEntity(id = 501152, challengeId = 50215, text = "reservar", correct = true),
+                ChallengeOptionEntity(id = 501153, challengeId = 50215, text = "una", correct = true),
+                ChallengeOptionEntity(id = 501154, challengeId = 50215, text = "mesa", correct = true),
+                ChallengeOptionEntity(id = 501155, challengeId = 50215, text = "quiero", correct = false, errorTag = "WRONG_REGISTER"),
+                ChallengeOptionEntity(id = 501156, challengeId = 50215, text = "gustaba", correct = false, errorTag = "WRONG_TENSE"),
+                ChallengeOptionEntity(id = 501157, challengeId = 50215, text = "reservó", correct = false, errorTag = "WRONG_TENSE"),
+
+                ChallengeOptionEntity(id = 501160, challengeId = 50216, text = "Comería", correct = true),
+                ChallengeOptionEntity(id = 501161, challengeId = 50216, text = "Comer", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 501162, challengeId = 50216, text = "Comió", correct = false, errorTag = "WRONG_TENSE"),
+                ChallengeOptionEntity(id = 501163, challengeId = 50216, text = "Comeremos", correct = false, errorTag = "WRONG_TENSE"),
+
+                ChallengeOptionEntity(id = 501190, challengeId = 50219, text = "La llave", correct = true),
+                ChallengeOptionEntity(id = 501191, challengeId = 50219, text = "La torre", correct = false),
+                ChallengeOptionEntity(id = 501192, challengeId = 50219, text = "La playa", correct = false),
+                ChallengeOptionEntity(id = 501193, challengeId = 50219, text = "La ventana", correct = false),
+
+                ChallengeOptionEntity(id = 501410, challengeId = 50241, text = "Comería", correct = true),
+                ChallengeOptionEntity(id = 501411, challengeId = 50241, text = "Comerías", correct = false, errorTag = "WRONG_PERSON"),
+                ChallengeOptionEntity(id = 501412, challengeId = 50241, text = "Comeré", correct = false, errorTag = "WRONG_TENSE"),
+                ChallengeOptionEntity(id = 501413, challengeId = 50241, text = "Comía", correct = false, errorTag = "WRONG_TENSE"),
+
+                ChallengeOptionEntity(id = 501420, challengeId = 50242, text = "diría", correct = true),
+                ChallengeOptionEntity(id = 501421, challengeId = 50242, text = "digo", correct = false, errorTag = "WRONG_TENSE"),
+                ChallengeOptionEntity(id = 501422, challengeId = 50242, text = "decía", correct = false, errorTag = "WRONG_TENSE"),
+                ChallengeOptionEntity(id = 501423, challengeId = 50242, text = "decir", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 501200, challengeId = 50220, text = "porque", correct = true),
+                ChallengeOptionEntity(id = 501201, challengeId = 50220, text = "entonces", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 501202, challengeId = 50220, text = "además", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 501203, challengeId = 50220, text = "también", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 501210, challengeId = 50221, text = "entonces", correct = true),
+                ChallengeOptionEntity(id = 501211, challengeId = 50221, text = "sin embargo", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 501212, challengeId = 50221, text = "también", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 501213, challengeId = 50221, text = "además", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 501220, challengeId = 50222, text = "aunque", correct = true),
+                ChallengeOptionEntity(id = 501221, challengeId = 50222, text = "también", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 501222, challengeId = 50222, text = "sin embargo", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 501223, challengeId = 50222, text = "además", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 501230, challengeId = 50223, text = "para", correct = true),
+                ChallengeOptionEntity(id = 501231, challengeId = 50223, text = "también", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 501232, challengeId = 50223, text = "sin embargo", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 501233, challengeId = 50223, text = "además", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 501240, challengeId = 50224, text = "Era", correct = true),
+                ChallengeOptionEntity(id = 501241, challengeId = 50224, text = "tarde", correct = true),
+                ChallengeOptionEntity(id = 501242, challengeId = 50224, text = "así", correct = true),
+                ChallengeOptionEntity(id = 501243, challengeId = 50224, text = "que", correct = true),
+                ChallengeOptionEntity(id = 501244, challengeId = 50224, text = "nos", correct = true),
+                ChallengeOptionEntity(id = 501245, challengeId = 50224, text = "fuimos", correct = true),
+                ChallengeOptionEntity(id = 501246, challengeId = 50224, text = "a", correct = true),
+                ChallengeOptionEntity(id = 501247, challengeId = 50224, text = "casa", correct = true),
+                ChallengeOptionEntity(id = 501248, challengeId = 50224, text = "también", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 501249, challengeId = 50224, text = "además", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 501250, challengeId = 50225, text = "La llamé porque necesitaba dinero", correct = true),
+                ChallengeOptionEntity(id = 501251, challengeId = 50225, text = "La llamé también necesitaba dinero", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 501252, challengeId = 50225, text = "La llamé sin embargo necesitaba dinero", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 501260, challengeId = 50226, text = "Estudio español para viajar a España", correct = true),
+                ChallengeOptionEntity(id = 501261, challengeId = 50226, text = "Estudio español sin embargo viajar a España", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 501262, challengeId = 50226, text = "Estudio español además viajar a España", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 501270, challengeId = 50227, text = "A plan that changed", correct = true),
+                ChallengeOptionEntity(id = 501271, challengeId = 50227, text = "A day at the beach", correct = false),
+                ChallengeOptionEntity(id = 501272, challengeId = 50227, text = "A week in the mountains", correct = false),
+                ChallengeOptionEntity(id = 501273, challengeId = 50227, text = "A long train ride", correct = false),
+
+                ChallengeOptionEntity(id = 501280, challengeId = 50228, text = "Aunque", correct = true),
+                ChallengeOptionEntity(id = 501281, challengeId = 50228, text = "costaba", correct = true),
+                ChallengeOptionEntity(id = 501282, challengeId = 50228, text = "mucho", correct = true),
+                ChallengeOptionEntity(id = 501283, challengeId = 50228, text = "compramos", correct = true),
+                ChallengeOptionEntity(id = 501284, challengeId = 50228, text = "dos", correct = true),
+                ChallengeOptionEntity(id = 501285, challengeId = 50228, text = "bicicletas", correct = true),
+                ChallengeOptionEntity(id = 501286, challengeId = 50228, text = "también", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 501287, challengeId = 50228, text = "además", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 501290, challengeId = 50229, text = "El fin de semana", correct = true),
+                ChallengeOptionEntity(id = 501291, challengeId = 50229, text = "La fin de semana", correct = false),
+                ChallengeOptionEntity(id = 501292, challengeId = 50229, text = "El fin de mes", correct = false),
+                ChallengeOptionEntity(id = 501293, challengeId = 50229, text = "El fin de año", correct = false),
+
+                ChallengeOptionEntity(id = 501430, challengeId = 50243, text = "Pero", correct = true),
+                ChallengeOptionEntity(id = 501431, challengeId = 50243, text = "también", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 501432, challengeId = 50243, text = "sin embargo", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 501433, challengeId = 50243, text = "además", correct = false, errorTag = "WRONG_FORM"),
             ),
         ),
     )
