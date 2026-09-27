@@ -135,7 +135,7 @@ object B1CurriculumData {
                     question = "Mi amigo ___ el billete ayer.",
                     orderIndex = 4,
                     grammaticalFocus = "es.preterito.regular",
-                    acceptedAnswers = "compró|compro",
+                    acceptedAnswers = "compró",
                     ruleText = "A single completed purchase in the past is preterite: él compró.\nThe 3rd person preterite of -ar/-er is an accented -ó; the present of the same verb is compra, with no accent.",
                 ),
                 ChallengeEntity(
@@ -587,7 +587,7 @@ object B1CurriculumData {
                     orderIndex = 7,
                     heldOut = true,
                     grammaticalFocus = "ja.request_polite",
-                    acceptedAnswers = "言って|いって",
+                    acceptedAnswers = "言って",
                     ruleText = "言う is an irregular: its te-form is 言って, not 言いて.\n言う is the dictionary form and 言います the plain polite — neither attaches to ください.",
                 ),
             ),
@@ -658,7 +658,7 @@ object B1CurriculumData {
                 ChallengeOptionEntity(id = 310102, challengeId = 31010, text = "聞き", romaji = "kiki", correct = false, errorTag = "WRONG_FORM"),
                 ChallengeOptionEntity(id = 310103, challengeId = 31010, text = "聞いています", romaji = "kite imasu", correct = false, errorTag = "WRONG_FORM"),
 
-                ChallengeOptionEntity(id = 310104, challengeId = 31011, text = "言って", romaji = "itte", correct = true),
+                ChallengeOptionEntity(id = 310104, challengeId = 31011, text = "言って", romaji = "iitte", correct = true),
                 ChallengeOptionEntity(id = 310105, challengeId = 31011, text = "言う", romaji = "iu", correct = false, errorTag = "WRONG_FORM"),
                 ChallengeOptionEntity(id = 310106, challengeId = 31011, text = "言います", romaji = "iimasu", correct = false, errorTag = "WRONG_FORM"),
             ),

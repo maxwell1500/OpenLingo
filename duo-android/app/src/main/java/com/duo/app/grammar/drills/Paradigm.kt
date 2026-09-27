@@ -15,8 +15,8 @@ import com.duo.app.grammar.GrammarFocus
  *
  * [accepted] is deliberately in [AnswerGrader] form rather than a raw column string, so
  * the drill screen cannot grade with a different comparison than the lesson does. A
- * Spanish `es.ser_present` drill accepts both `compro` and `compró` because the
- * authored challenge accepted both, and a Japanese answer keeps its dakuten.
+ * Spanish `es.imperfecto` drill for `vivía` accepts `vivia` as well, because the
+ * authored challenge accepts both, and a Japanese answer keeps its dakuten.
  */
 data class ParadigmEntry(
     /** The curriculum row this form was read from; the drill never creates one. */
