@@ -113,20 +113,33 @@ Status: **Units 9–12 have shipped.** Units 9–10 are in `B1CurriculumData.kt`
   challenge.
 
 ### Unit 12: Ability, Opinion & Giving *(shipped, `japaneseN4ExtensionUnits` unit 41)*
-• Focus: ability as ます → せます and ます + ことができます, opinion as 〜と思います (which drills the
-  plain-form endings unit 11 taught), and the あげる / くれる / もらう trio with から and に
+• Focus: ability, opinion as 〜と思います (which drills the plain-form endings unit 11 taught), and the
+  あげる / くれる / もらう trio with から and に
+• Ability has two routes and lesson 403 teaches both: the potential on its own (乗れます, 作れます,
+  食べられません, 歌えます) and the plain verb + ことができます. ことができます is 「〜こと が できます」
+  and こと is the する→す nominaliser, so the verb keeps its **plain** form — 書く ことが できます,
+  運転する ことが できます — and a ます form can never head it, because 泳ぎますこと is not a word.
+  Unit 10 already drilled the こと route under `ja.potential_nominal`; lesson 23 puts both under
+  `ja.ability_polite`, so every ability rule text there names the potential as a separate way of
+  saying 'can'.
 • Lessons: *I Can Do That* / *I Think* / *Gifts and Favours*
 • Grammar slugs: `ja.ability_polite`, `ja.think`, `ja.giving_receiving`
 • Held out for the N4 checkpoint: 歌えます, あつい, もらった
 • Audio: recorded — all 22 clips wired, 16 on the challenge and 12 on the option that speaks the
-  same text. `kuruma_wo_unten_suru_koto_ga_dekimasu`
-  speaks 車を運転することができます and the FILL_BLANK 60025 scaffold reads 車を___ことができます, so the
-  clip now sits on the challenge: the item keys 運転する (plus うんてんする) and composes exactly the
-  sentence the clip speaks. It was the one clip left unwired until the item was corrected — the old key
-  took 運転 alone, which composes 車を運転ことができます, a noun in a verb slot. `CurriculumIntegrityTest`
-  now fails any 「〜___ことができます。」 key that is not a verb, so that class cannot ship again. The
-  seven MATCH_PAIRS clips hang off their paired options: those challenges' prompts are the instruction
-  "Match the ...", not a sentence, so there is nothing for a challenge-level clip to speak.
+  same text. Two of those wirings were corrected with the grammar they speak:
+  - `kuruma_wo_unten_suru_koto_ga_dekimasu` speaks 車を運転することができます and the FILL_BLANK 60025
+    scaffold reads 車を___ことができます, so the clip sits on the challenge: the item keys 運転する
+    (plus うんてんする) and composes exactly the sentence the clip speaks. It was the one clip left
+    unwired until the item was corrected — the old key took 運転 alone, which composes into
+    車を運転ことができます: a noun in a verb slot.
+  - `oyogu.ogg` speaks the bare 泳ぐ that CONJUGATE 60024 now keys. The item used to key 泳ぎます and
+    carry `oyogimasu.ogg`, which cannot appear before ことができます at all; a CONJUGATE speaks the
+    target form on the challenge alone, like every other one in these units, so the bare form is the
+    clip. `oyogimasu.ogg` was recorded only for that wrong answer and has been removed.
+  `CurriculumIntegrityTest` now fails any 「〜___ことができます。」 key that is not a verb, so the
+  class that produced both corrections cannot ship again. The seven MATCH_PAIRS clips hang off their
+  paired options: those challenges' prompts are the instruction "Match the ...", not a sentence, so
+  there is nothing for a challenge-level clip to speak.
 
 ---
 
