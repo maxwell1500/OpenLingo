@@ -28,8 +28,8 @@ class StructureDrillTest {
             ExpandedCurriculumData.japaneseExpandedUnits +
             AdvancedCurriculumData.spanishAdvancedUnits +
             AdvancedCurriculumData.japaneseAdvancedUnits +
-            B1CurriculumData.spanishB1Units +
-            B1CurriculumData.japaneseB1Units
+            B1CurriculumData.spanishA2Units +
+            B1CurriculumData.japaneseN4Units
 
     /** The shipped corpus, shaped exactly as the repository hands it to the generator. */
     private val corpus: List<ChallengeWithOptions> = allPayloads.flatMap { payload ->

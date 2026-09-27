@@ -27,8 +27,8 @@ class ErrorHintTest {
             ExpandedCurriculumData.japaneseExpandedUnits +
             AdvancedCurriculumData.spanishAdvancedUnits +
             AdvancedCurriculumData.japaneseAdvancedUnits +
-            B1CurriculumData.spanishB1Units +
-            B1CurriculumData.japaneseB1Units
+            B1CurriculumData.spanishA2Units +
+            B1CurriculumData.japaneseN4Units
 
     /** The fixed errorTag vocabulary, mirroring the KDoc on ChallengeOptionEntity.errorTag. */
     private val errorTagVocabulary = setOf(

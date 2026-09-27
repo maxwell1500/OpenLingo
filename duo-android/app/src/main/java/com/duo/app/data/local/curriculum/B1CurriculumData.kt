@@ -7,9 +7,17 @@ import com.duo.app.data.local.entities.UnitEntity
 import com.duo.app.data.local.models.ChallengeType
 
 /**
- * B1 / N4 threshold units:
- *   Spanish (CEFR B1): Units 9-10 (Pretérito Indefinido, Imperfecto)
- *   Japanese (JLPT N4): Units 9-10 (Te-form & Requests, Potential & Ability)
+ * The intermediate stage of the curriculum. The `B1` in this file's name is the
+ * *roadmap workstream* — `docs/CURRICULUM_B1_N4_ROADMAP.md` — and not a claim about
+ * the level of what is authored here. What has actually shipped is:
+ *   Spanish: Units 9-10 (unit ids 18-19) — Pretérito Indefinido and Imperfecto, both
+ *     **regular only**. There is no irregular preterite (tuve, pude, hice, dije,
+ *     estuve, quise), no conditional, no subjunctive, no imperative, no object or
+ *     reflexive pronouns and no por/para. That is **CEFR A2**, so these units are
+ *     labelled A2 everywhere a learner can see them; the B1 material the roadmap
+ *     wants is Units 11-12 and it is not authored.
+ *   Japanese: Units 9-10 (unit ids 28-29) — Te-form & Requests, Potential & Ability.
+ *     These are genuinely JLPT N4 grammar points, so N4 is the honest label.
  *
  * All audio assets are bundled Kokoro-82M Ogg files.
  *
@@ -23,9 +31,9 @@ import com.duo.app.data.local.models.ChallengeType
 object B1CurriculumData {
 
     // =========================================================================
-    // SPANISH CEFR B1 (Units 9 - 10)
+    // SPANISH CEFR A2 (Units 9 - 10)
     // =========================================================================
-    val spanishB1Units: List<UnitPayload> = listOf(
+    val spanishA2Units: List<UnitPayload> = listOf(
         // Unit 9: Past Tense — Pretérito Indefinido
         UnitPayload(
             unit = UnitEntity(
@@ -469,7 +477,7 @@ object B1CurriculumData {
     // =========================================================================
     // JAPANESE JLPT N4 (Units 9 - 10)
     // =========================================================================
-    val japaneseB1Units: List<UnitPayload> = listOf(
+    val japaneseN4Units: List<UnitPayload> = listOf(
         // Unit 9: Te-form & Requests (~てください / ~ています)
         UnitPayload(
             unit = UnitEntity(

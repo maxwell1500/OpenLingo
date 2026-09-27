@@ -67,7 +67,7 @@ All curriculum is compiled into the app as Kotlin data — there are no bundled 
 - The remaining units come from compiled `UnitPayload` lists in `data/local/curriculum/`:
   - `ExpandedCurriculumData` — Spanish units 3–5, Japanese units 3–4 (`spanishExpandedUnits`, `japaneseExpandedUnits`)
   - `AdvancedCurriculumData` — Spanish units 6–8, Japanese units 5–8 (`spanishAdvancedUnits`, `japaneseAdvancedUnits`)
-  - `B1CurriculumData` — Spanish and Japanese units 9–10 (`spanishB1Units`, `japaneseB1Units`)
+  - `B1CurriculumData` — Spanish and Japanese units 9–10 (`spanishA2Units`, `japaneseN4Units`). The file name is the roadmap workstream, not the level: the Spanish units 9–10 teach regular preterite and imperfecto only, which is CEFR **A2**, so the checkpoint that draws them is labelled A2. The Japanese units 9–10 (te-form, potential) are genuinely JLPT N4.
 - Each `UnitPayload` bundles a `UnitEntity` with its `lessons`, `challenges`, and `options`.
 - Totals: **20 units / 38 lessons / 158 challenges** (150 on the lesson path, 8 held out for checkpoints).
 - Inserts use REPLACE-on-conflict, so newly added lessons/challenges roll out to existing installs without a wipe — no migration needed for content growth.

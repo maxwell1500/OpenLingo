@@ -749,7 +749,7 @@ private fun LessonMapScreen(
         }
 
         // Checkpoint tests section
-        val levels = if (courseId == 1) listOf("A1", "B1") else listOf("N5", "N4")
+        val levels = if (courseId == 1) listOf("A1", "A2") else listOf("N5", "N4")
         Card(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(16.dp),

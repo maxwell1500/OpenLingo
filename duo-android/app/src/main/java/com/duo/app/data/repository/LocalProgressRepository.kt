@@ -395,7 +395,7 @@ class LocalProgressRepository(private val database: DuoDatabase) {
      */
     suspend fun completeChallengesUpToUnit(unitId: Int) = withContext(Dispatchers.IO) {
         val unitIds = when (unitId) {
-            // Placement skipped into Intermediate (B1/N4): mark A1/N5 units complete
+            // Placement skipped into Intermediate (A2/N4): mark A1/N5 units complete
             18 -> listOf(1, 2, 10, 11, 12, 13, 14, 15, 16, 17)
             14 -> listOf(1, 2, 10, 11, 12, 13)
             else -> emptyList()
@@ -1022,8 +1022,8 @@ class LocalProgressRepository(private val database: DuoDatabase) {
     }
 
     private suspend fun seedB1Curricula() {
-        val spanishUnits = com.duo.app.data.local.curriculum.B1CurriculumData.spanishB1Units
-        val japaneseUnits = com.duo.app.data.local.curriculum.B1CurriculumData.japaneseB1Units
+        val spanishUnits = com.duo.app.data.local.curriculum.B1CurriculumData.spanishA2Units
+        val japaneseUnits = com.duo.app.data.local.curriculum.B1CurriculumData.japaneseN4Units
 
         for (payload in (spanishUnits + japaneseUnits)) {
             courseDao.insertUnits(listOf(payload.unit))

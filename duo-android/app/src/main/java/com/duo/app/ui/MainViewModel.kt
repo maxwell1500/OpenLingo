@@ -483,11 +483,11 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     /**
      * Starts a checkpoint assessment for a given level.
      *
-     * WI-08: the session is drawn from the level's **held-out** pool — sentences in the
+     * WI-08: the session draws the level's **held-out** pool first — sentences in the
      * same grammar structures the lessons taught, which never appear on a lesson path —
-     * and topped up with taught items so a level that has no held-out content yet still
-     * produces a usable session. Passing the checkpoint therefore measures whether the
-     * rule generalised, not whether the 124 taught sentences were memorised.
+     * and tops it up with taught items up to `MAX_CHECKPOINT_CHALLENGES`. A2 and N4
+     * have four held-out items each; A1 and N5 have none yet, so those two levels are
+     * drawn entirely from taught items and measure recall rather than generalisation.
      */
     fun startCheckpoint(level: String) {
         val courseId = userProgress.value?.activeCourseId ?: 1
@@ -534,7 +534,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private fun getUnitIdsForLevel(courseId: Int, level: String): List<Int> {
         return when (level) {
             "A1" -> if (courseId == 1) listOf(10, 11, 12, 13, 14, 15, 16, 17) else emptyList()
-            "B1" -> if (courseId == 1) listOf(18, 19) else emptyList()
+            "A2" -> if (courseId == 1) listOf(18, 19) else emptyList()
             "N5" -> if (courseId == 2) listOf(20, 21, 22, 23, 24, 25, 26, 27) else emptyList()
             "N4" -> if (courseId == 2) listOf(28, 29) else emptyList()
             else -> emptyList()
@@ -575,7 +575,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         val percent = if (total > 0) (correct * 100) / total else 0
         viewModelScope.launch {
             when {
-                percent >= 80 -> repository.completeChallengesUpToUnit(18) // Jump to B1 / N4
+                percent >= 80 -> repository.completeChallengesUpToUnit(18) // Jump to A2 / N4
                 percent >= 50 -> repository.completeChallengesUpToUnit(14) // Jump to mid-A1 / mid-N5
                 else -> { /* Start at beginning */ }
             }

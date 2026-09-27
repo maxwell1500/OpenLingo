@@ -42,8 +42,8 @@ class DictionaryIndexTest {
             ExpandedCurriculumData.japaneseExpandedUnits +
             AdvancedCurriculumData.spanishAdvancedUnits +
             AdvancedCurriculumData.japaneseAdvancedUnits +
-            B1CurriculumData.spanishB1Units +
-            B1CurriculumData.japaneseB1Units
+            B1CurriculumData.spanishA2Units +
+            B1CurriculumData.japaneseN4Units
 
     private val challenges = payloads.flatMap { it.challenges }
     private val options = payloads.flatMap { it.options }

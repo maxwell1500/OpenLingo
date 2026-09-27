@@ -3,11 +3,21 @@
 This document outlines the pedagogical scope, unit structure, and audio
 production requirements for expanding Duo into intermediate levels.
 
+**Status summary.** Units 9–10 of both courses have shipped. The Japanese units are
+genuinely at the level this roadmap names (JLPT N4: te-form, polite requests and
+potential forms). The Spanish units 9–10 are **not** at the level this roadmap names:
+they teach the regular preterite and the imperfecto only — no irregular preterite
+(`tuve`, `pude`, `hice`, `dije`, `estuve`, `quise`), no conditional, no subjunctive, no
+imperative, no object or reflexive pronouns, no `por`/`para` — which is **CEFR A2**. The
+app therefore labels the Spanish checkpoint that draws those units **A2**, not B1. The
+actual B1 material is Units 11–12 and it is **not authored**. Nothing in this roadmap
+has been deleted; the target is unchanged, the labels now describe what exists.
+
 ## Spanish (CEFR B1 Threshold)
 
 Target: Units 9–12 (8 lessons, ~28 challenges).
 
-Status: Units 9–10 have shipped in `B1CurriculumData.kt` — 4 lessons and 31 challenges. Units 11–12 are not authored yet.
+Status: Units 9–10 have shipped in `B1CurriculumData.kt` (`spanishA2Units`) — 4 lessons and 31 challenges, and they are **A2-level content, not B1** (regular preterite and imperfecto only; see the summary above). Units 11–12 — the actual B1 material — are not authored yet.
 
 ### Unit 9: Past Tense — Pretérito Indefinido
 • Focus: Regular `-ar`, `-er`, `-ir` past actions (hablé, comí, viví)
@@ -41,7 +51,7 @@ Status: Units 9–10 have shipped in `B1CurriculumData.kt` — 4 lessons and 31 
 
 Target: Units 9–12 (8 lessons, ~28 challenges).
 
-Status: Units 9–10 have shipped in `B1CurriculumData.kt` — 4 lessons and 27 challenges. Units 11–12 are not authored yet.
+Status: Units 9–10 have shipped in `B1CurriculumData.kt` (`japaneseN4Units`) — 4 lessons and 27 challenges, at the JLPT N4 level this section names. Units 11–12 are not authored yet.
 
 ### Unit 9: Te-form & Requests (〜てください / 〜ています)
 • Focus: Connecting verbs, ongoing actions, polite requests
@@ -73,5 +83,5 @@ Status: Units 9–10 have shipped in `B1CurriculumData.kt` — 4 lessons and 27 
 
 ## Technical Prerequisites for Ingest
 1. Python Kokoro pipeline, documented in `docs/kokoro-tts.md` at the repository root (ef_dora / jf_alpha @ 24kHz mono)
-2. `UnitPayload` additions in new file `B1CurriculumData.kt`
+2. `UnitPayload` additions in `B1CurriculumData.kt` (already exists; Units 9–10 are in `spanishA2Units` / `japaneseN4Units`)
 3. Referential integrity tests in `CurriculumIntegrityTest.kt` ensure zero FK / audio regressions
