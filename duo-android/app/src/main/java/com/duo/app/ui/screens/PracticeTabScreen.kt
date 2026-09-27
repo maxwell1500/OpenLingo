@@ -38,6 +38,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.duo.app.grammar.GrammarFocus
 
 data class VocabWord(
     val foreign: String,
@@ -663,7 +664,7 @@ private fun MistakesReviewCard(
                         color = Color(0xFF4B4B4B),
                     )
                     Text(
-                        text = "Answer them correctly in a practice session to clear them",
+                        text = "Each one shows its rule first — read it, then retry",
                         style = MaterialTheme.typography.bodySmall,
                         color = Color(0xFF777777),
                     )
@@ -673,7 +674,7 @@ private fun MistakesReviewCard(
             mistakes.take(5).forEach { mistake ->
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
+                    verticalAlignment = Alignment.Top,
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     Text(
@@ -689,12 +690,24 @@ private fun MistakesReviewCard(
                             color = Color(0xFF4B4B4B),
                             maxLines = 2,
                         )
-                        if (mistake.lessonName.isNotBlank()) {
+                        // WI-16: the review entry names the lesson and the grammar
+                        // point, then shows the rule itself. A re-ask with no
+                        // explanation is the memorization loop this card exists
+                        // to break, so the rule is readable *before* the retry,
+                        // while the learner is still deciding what to answer.
+                        MistakeProvenance(mistake)
+                        // A mistake on a challenge written before the grammar
+                        // overhaul has no ruleText. It still clears, and the
+                        // provenance line above is all it claims — an empty
+                        // rule card would be worse than none.
+                        mistake.ruleText?.takeIf { it.isNotBlank() }?.let { rule ->
                             Text(
-                                text = mistake.lessonName,
+                                text = rule,
                                 style = MaterialTheme.typography.bodySmall,
-                                color = Color(0xFF999999),
-                                maxLines = 1,
+                                lineHeight = 16.sp,
+                                color = Color(0xFF7A5C5C),
+                                modifier = Modifier.padding(top = 2.dp),
+                                maxLines = 4,
                             )
                         }
                     }
@@ -722,4 +735,23 @@ private fun MistakesReviewCard(
             }
         }
     }
+}
+
+/** Lesson and grammar point a mistake came from, or nothing at all if unknown. */
+@Composable
+private fun MistakeProvenance(mistake: com.duo.app.data.local.entities.MistakeEntry) {
+    val focus = GrammarFocus.label(mistake.grammaticalFocus)
+    val lesson = mistake.lessonName.takeIf { it.isNotBlank() }
+    val line = when {
+        lesson != null && focus != null -> "$lesson • $focus"
+        lesson != null -> lesson
+        focus != null -> focus
+        else -> return
+    }
+    Text(
+        text = line,
+        style = MaterialTheme.typography.bodySmall,
+        color = Color(0xFF999999),
+        maxLines = 1,
+    )
 }

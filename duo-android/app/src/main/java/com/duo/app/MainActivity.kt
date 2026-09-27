@@ -36,6 +36,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.widthIn
@@ -89,11 +91,20 @@ import com.duo.app.data.local.entities.LessonEntity
 import com.duo.app.data.local.entities.UnitEntity
 import com.duo.app.data.local.entities.UnitWithLessons
 import com.duo.app.data.local.entities.UserProgressEntity
+import com.duo.app.data.local.models.ChallengeType
 import com.duo.app.data.repository.ChallengeWithOptions
+import com.duo.app.data.repository.DailyQuest
+import com.duo.app.data.repository.LocalProgressRepository
+import com.duo.app.grammar.BlankPlaceholder
+import com.duo.app.ui.DictionarySheet
+import com.duo.app.ui.LookupText
+import com.duo.app.ui.StructureDrillScreen
+import com.duo.app.grammar.GrammarFocus
 import com.duo.app.ui.ActiveScreen
 import com.duo.app.ui.FeedbackState
-import com.duo.app.ui.MainViewModel
 import com.duo.app.ui.MainTab
+import com.duo.app.ui.MainViewModel
+import com.duo.app.ui.components.RuleCard
 import kotlinx.coroutines.flow.StateFlow
 
 class MainActivity : ComponentActivity() {
@@ -112,17 +123,27 @@ class MainActivity : ComponentActivity() {
             val courses by viewModel.courses.collectAsStateWithLifecycle()
             val unitsWithLessons by viewModel.unitsWithLessons.collectAsStateWithLifecycle()
             val completedChallengeIds by viewModel.completedChallengeIds.collectAsStateWithLifecycle()
+            val unitRuleTexts by viewModel.unitRuleTexts.collectAsStateWithLifecycle()
             val activeScreen by viewModel.activeScreen.collectAsStateWithLifecycle()
             val currentTab by viewModel.currentTab.collectAsStateWithLifecycle()
             val masteredCharacters by viewModel.masteredCharacters.collectAsStateWithLifecycle()
             val mistakes by viewModel.mistakes.collectAsStateWithLifecycle()
             val completedLessonCount by viewModel.completedLessonCount.collectAsStateWithLifecycle()
-            val todayXp by viewModel.todayXp.collectAsStateWithLifecycle()
+            val dailyQuest by viewModel.dailyQuest.collectAsStateWithLifecycle()
             val completedLessonIds by viewModel.completedLessonIds.collectAsStateWithLifecycle()
             val courseComplete by viewModel.courseComplete.collectAsStateWithLifecycle()
             val allVocab by viewModel.allVocab.collectAsStateWithLifecycle()
             val dueVocabCount by viewModel.dueVocabCount.collectAsStateWithLifecycle()
+            val unitVocabulary by viewModel.unitVocabulary.collectAsStateWithLifecycle()
+            val unitVocabCounts by viewModel.unitVocabCounts.collectAsStateWithLifecycle()
+            val grammarDrills by viewModel.grammarDrills.collectAsStateWithLifecycle()
+            val unitDrillCounts by viewModel.unitDrillCounts.collectAsStateWithLifecycle()
             val typeStats by viewModel.exerciseTypeStats.collectAsStateWithLifecycle()
+            val dictionary by viewModel.dictionary.collectAsStateWithLifecycle()
+            // WI-11: which definition sheet is open, if any. Held here rather
+            // than in ActiveScreen because a lookup is an overlay on whatever
+            // the learner is already doing, not a place they navigated to.
+            var lookupEntry by remember { mutableStateOf<com.duo.app.dictionary.DictionaryEntry?>(null) }
             val showRomaji = userProgress?.showRomaji ?: true
             val isJapanese = (userProgress?.activeCourseId ?: 1) == 2
 
@@ -190,12 +211,16 @@ class MainActivity : ComponentActivity() {
                                             label = "CourseCrossfade",
                                         ) { _ ->
                                             LessonMapScreen(
+                                                unitVocabCounts = unitVocabCounts,
+                                                onOpenUnitVocabulary = viewModel::openUnitVocabulary,
+                                                unitDrillCounts = unitDrillCounts,
+                                                onOpenDrills = viewModel::openGrammarDrills,
+                                                unitRuleTexts = unitRuleTexts,
                                                 unitsWithLessons = unitsWithLessons,
                                                 completedChallengeIds = completedChallengeIds.toSet(),
                                                 completedLessonIds = completedLessonIds,
                                                 onStartLesson = viewModel::startLesson,
-                                                todayXp = todayXp,
-                                                questGoal = com.duo.app.data.repository.LocalProgressRepository.DAILY_QUEST_XP,
+                                                quest = dailyQuest,
                                                 brokenStreak = userProgress?.brokenStreak ?: 0,
                                                 courseId = userProgress?.activeCourseId ?: 1,
                                                 onStartCheckpoint = viewModel::startCheckpoint,
@@ -271,13 +296,15 @@ class MainActivity : ComponentActivity() {
                             is ActiveScreen.Exercise -> {
                                 ExerciseScreen(
                                     exercise = screen,
+                                    dictionary = dictionary,
+                                    onLookup = { entry -> lookupEntry = entry },
                                     showRomaji = showRomaji,
                                     onToggleRomaji = viewModel::toggleRomaji,
                                     onSelectOption = viewModel::selectOption,
                                     onSelectWordTile = viewModel::selectWordTile,
                                     onRemoveWordTile = viewModel::removeWordTile,
-                                    onPlayVoice = viewModel::playVoice,
-                                    onPlayVoiceSlow = { src -> viewModel.playVoice(src, 0.6f) },
+                                    onPlayVoice = { src, speed -> viewModel.playVoice(src, speed) },
+                                    onTypedAnswerChange = viewModel::updateTypedAnswer,
                                     onSelectPairTile = viewModel::selectPairTile,
                                     onCheckAnswer = viewModel::checkAnswer,
                                     onNextChallenge = viewModel::nextChallengeOrFinish,
@@ -301,6 +328,28 @@ class MainActivity : ComponentActivity() {
                                     onDone = viewModel::closeCheckpointResult,
                                 )
                             }
+                            is ActiveScreen.UnitVocabulary -> {
+                                UnitVocabularyScreen(
+                                    unit = unitsWithLessons.firstOrNull { it.unit.id == screen.unitId }?.unit,
+                                    words = unitVocabulary,
+                                    dictionary = dictionary,
+                                    onLookup = { entry -> lookupEntry = entry },
+                                    onPlayVoice = { src -> viewModel.playVoice(src) },
+                                    onBack = viewModel::closeUnitVocabulary,
+                                )
+                            }
+                            is ActiveScreen.GrammarDrills -> {
+                                StructureDrillScreen(
+                                    unitTitle = unitsWithLessons
+                                        .firstOrNull { it.unit.id == screen.unitId }?.unit?.title
+                                        ?: "Conjugation Drills",
+                                    paradigms = grammarDrills,
+                                    onPlayVoice = { src, fallback ->
+                                        viewModel.playVoice(src, fallbackText = fallback)
+                                    },
+                                    onBack = viewModel::closeGrammarDrills,
+                                )
+                            }
                             is ActiveScreen.Settings -> {
                                 SettingsScreen(
                                     userProgress = userProgress,
@@ -309,12 +358,24 @@ class MainActivity : ComponentActivity() {
                                     onToggleRomaji = { viewModel.toggleRomaji() },
                                     onSelectThemeAccent = viewModel::setThemeAccent,
                                     onSelectThemeMode = viewModel::setThemeMode,
+                                    onSelectDailyQuestGoal = viewModel::setDailyQuestGoal,
                                     onResetProgress = viewModel::resetAllProgress,
                                     onExportBackup = viewModel::exportBackup,
                                     onImportBackup = viewModel::importBackup,
                                     onBack = viewModel::closeSettings,
                                 )
                             }
+                        }
+
+                        // WI-11: one definition sheet, reachable from every
+                        // surface, and a study surface only — opening it writes
+                        // nothing.
+                        lookupEntry?.let { entry ->
+                            DictionarySheet(
+                                entry = entry,
+                                onPlayVoice = { src -> viewModel.playVoice(src) },
+                                onDismiss = { lookupEntry = null },
+                            )
                         }
                     }
                 }
@@ -564,6 +625,13 @@ private fun DuoTopAppBar(
 // -------------------------------------------------------------------------
 // Screen 1: Lesson Map (Units, Lesson Nodes, Offline Info Banner)
 // -------------------------------------------------------------------------
+/** WI-14: discrete playback speeds. 1.0x is the default; 0.5x/0.75x cover
+ *  phonemes too fast to catch, which is what the old hardcoded turtle served. */
+private val AUDIO_SPEEDS = listOf(0.5f, 0.75f, 1.0f)
+
+/** Rendered in place of an authored `___` run inside a prompt. */
+private const val BLANK_PLACEHOLDER = "______"
+
 private enum class LessonState {
     COMPLETED,
     ACTIVE,
@@ -573,11 +641,15 @@ private enum class LessonState {
 @Composable
 private fun LessonMapScreen(
     unitsWithLessons: List<UnitWithLessons>,
+    unitRuleTexts: Map<Int, List<String>>,
+    unitVocabCounts: Map<Int, Int>,
+    onOpenUnitVocabulary: (Int) -> Unit,
+    unitDrillCounts: Map<Int, Int>,
+    onOpenDrills: (Int) -> Unit,
     completedChallengeIds: Set<Int>,
     completedLessonIds: Set<Int>,
     onStartLesson: (Int) -> Unit,
-    todayXp: Int,
-    questGoal: Int,
+    quest: DailyQuest,
     brokenStreak: Int,
     courseId: Int,
     onStartCheckpoint: (String) -> Unit,
@@ -598,7 +670,7 @@ private fun LessonMapScreen(
         verticalArrangement = Arrangement.spacedBy(20.dp),
     ) {
         // Daily quest card
-        val questDone = todayXp >= questGoal
+        val questDone = quest.isComplete
         Card(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(16.dp),
@@ -617,13 +689,13 @@ private fun LessonMapScreen(
                         fontWeight = FontWeight.Bold,
                     )
                     Text(
-                        text = "$todayXp/$questGoal XP",
+                        text = "${quest.xp}/${quest.goal} XP",
                         fontWeight = FontWeight.Bold,
                         color = Color(0xFF58CC02),
                     )
                 }
                 LinearProgressIndicator(
-                    progress = { (todayXp.toFloat() / questGoal).coerceIn(0f, 1f) },
+                    progress = { (quest.xp.toFloat() / quest.goal).coerceIn(0f, 1f) },
                     modifier = Modifier.fillMaxWidth().height(10.dp),
                     color = Color(0xFF58CC02),
                     trackColor = Color(0xFFE5E5E5),
@@ -662,10 +734,14 @@ private fun LessonMapScreen(
                 }
             }
         }
-
         unitsWithLessons.forEach { unitWithLessons ->
             UnitSection(
                 unitWithLessons = unitWithLessons,
+                ruleTexts = unitRuleTexts[unitWithLessons.unit.id].orEmpty(),
+                vocabCount = unitVocabCounts[unitWithLessons.unit.id] ?: 0,
+                onOpenVocabulary = { onOpenUnitVocabulary(unitWithLessons.unit.id) },
+                drillCount = unitDrillCounts[unitWithLessons.unit.id] ?: 0,
+                onOpenDrills = { onOpenDrills(unitWithLessons.unit.id) },
                 allLessons = allLessons,
                 completedLessonIds = completedLessonIds,
                 onStartLesson = onStartLesson,
@@ -748,6 +824,11 @@ private fun LessonMapScreen(
 @Composable
 private fun UnitSection(
     unitWithLessons: UnitWithLessons,
+    ruleTexts: List<String>,
+    vocabCount: Int,
+    onOpenVocabulary: () -> Unit,
+    drillCount: Int,
+    onOpenDrills: () -> Unit,
     allLessons: List<LessonEntity>,
     completedLessonIds: Set<Int>,
     onStartLesson: (Int) -> Unit,
@@ -772,11 +853,98 @@ private fun UnitSection(
                     color = Color.White,
                 )
                 Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = unit.description,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = Color(0xFFD7FFB8),
-                )
+                // WI-01b: once a unit's challenges carry rule text, the header explains the
+                // grammar up front instead of only naming the unit. Units with no authored
+                // rule yet render the one-line description exactly as before.
+                if (ruleTexts.isEmpty()) {
+                    Text(
+                        text = unit.description,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color(0xFFD7FFB8),
+                    )
+                } else {
+                    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Text(
+                            text = "GRAMMAR",
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFFE8FFD0),
+                        )
+                        ruleTexts.forEach { rule ->
+                            Text(
+                                text = rule,
+                                style = MaterialTheme.typography.bodySmall,
+                                lineHeight = 17.sp,
+                                color = Color(0xFFFFFFFF),
+                            )
+                        }
+                    }
+                }
+                Spacer(modifier = Modifier.height(10.dp))
+                // WI-12: the unit's vocabulary was previously only reachable as implicit
+                // challenge options and FSRS rows. A unit with nothing scheduled for it
+                // says so here rather than offering a tap that opens an empty screen.
+                // FlowRow, not Row: this header now carries two chips under a rule
+                // block that can be several lines long, so at a large font scale a
+                // plain Row would overflow the card and clip. FlowRow wraps the second
+                // chip onto its own line instead, at any font scale and any card width.
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(10.dp))
+                            .background(Color(0xFF4CAF00))
+                            .clickable(onClick = onOpenVocabulary)
+                            .padding(horizontal = 12.dp, vertical = 6.dp),
+                    ) {
+                        Text(
+                            text = "📖",
+                            fontSize = 13.sp,
+                        )
+                        Text(
+                            text = if (vocabCount > 0) {
+                                "VOCABULARY · $vocabCount ${if (vocabCount == 1) "word" else "words"}"
+                            } else {
+                                "VOCABULARY · NOT YET ADDED"
+                            },
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White,
+                        )
+                    }
+                    // The generated conjugation drill, beside the vocabulary list because
+                    // both are study surfaces this unit's own challenges make possible.
+                    // A unit that teaches no drillable form says so here rather than
+                    // offering a tap that opens an empty table.
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(10.dp))
+                            .background(Color(0xFF4CAF00))
+                            .clickable(onClick = onOpenDrills)
+                            .padding(horizontal = 12.dp, vertical = 6.dp),
+                    ) {
+                        Text(
+                            text = "🔤",
+                            fontSize = 13.sp,
+                        )
+                        Text(
+                            text = if (drillCount > 0) {
+                                "DRILLS · $drillCount ${if (drillCount == 1) "form" else "forms"}"
+                            } else {
+                                "DRILLS · NONE YET"
+                            },
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White,
+                        )
+                    }
+                }
             }
         }
 
@@ -802,6 +970,156 @@ private fun UnitSection(
                     horizontalOffset = horizontalOffset,
                     onStart = { onStartLesson(lesson.id) },
                 )
+            }
+        }
+    }
+}
+
+/**
+ * WI-12: every scheduled word this unit's exercises teach, grouped by the category the
+ * word was filed under, with the audio that the rest of the app already plays.
+ *
+ * Browse and listen only. Grading lives in the FSRS review in the Practice tab, and
+ * duplicating it here would give the learner two schedules for one set of words.
+ */
+@Composable
+private fun UnitVocabularyScreen(
+    unit: UnitEntity?,
+    words: List<com.duo.app.data.local.entities.VocabScheduleEntity>,
+    dictionary: com.duo.app.dictionary.Dictionary,
+    onLookup: (com.duo.app.dictionary.DictionaryEntry) -> Unit,
+    onPlayVoice: (String) -> Unit,
+    onBack: () -> Unit,
+) {
+    val grouped = remember(words) { words.groupBy { it.category }.toList() }
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .widthIn(max = 640.dp)
+            .verticalScroll(rememberScrollState())
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                text = "←",
+                fontSize = 22.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color(0xFF1CB0F6),
+                modifier = Modifier.clickable(onClick = onBack).padding(8.dp),
+            )
+            Spacer(modifier = Modifier.width(4.dp))
+            Text(
+                text = unit?.title ?: "Vocabulary",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = Color(0xFF4B4B4B),
+            )
+        }
+
+        if (words.isEmpty()) {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = Color(0xFFF7F7F7)),
+            ) {
+                Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(
+                        text = "📖 No vocabulary here yet",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF4B4B4B),
+                    )
+                    Text(
+                        text = "This unit's words have not been added to your vocabulary list " +
+                            "yet. The words you meet in the Practice tab will show up here " +
+                            "once they do.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color(0xFF777777),
+                    )
+                }
+            }
+        } else {
+            Text(
+                text = "${words.size} ${if (words.size == 1) "word" else "words"} · tap a word for its definition, 🔊 to hear it",
+                style = MaterialTheme.typography.bodySmall,
+                color = Color(0xFF888888),
+            )
+            grouped.forEach { (category, categoryWords) ->
+                Text(
+                    text = category.uppercase(),
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF888888),
+                )
+                categoryWords.forEach { word ->
+                    UnitVocabularyRow(
+                        word = word,
+                        dictionary = dictionary,
+                        onLookup = onLookup,
+                        onPlayVoice = onPlayVoice,
+                    )
+                }
+            }
+        }
+        Spacer(modifier = Modifier.height(16.dp))
+    }
+}
+
+@Composable
+private fun UnitVocabularyRow(
+    word: com.duo.app.data.local.entities.VocabScheduleEntity,
+    dictionary: com.duo.app.dictionary.Dictionary,
+    onLookup: (com.duo.app.dictionary.DictionaryEntry) -> Unit,
+    onPlayVoice: (String) -> Unit,
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(14.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFE5E5E5)),
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                LookupText(
+                    text = word.foreign,
+                    dictionary = dictionary,
+                    onLookup = onLookup,
+                    preferWholeTerm = true,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF4B4B4B),
+                )
+                if (!word.romaji.isNullOrBlank()) {
+                    Text(
+                        text = word.romaji,
+                        style = MaterialTheme.typography.bodySmall,
+                        fontSize = 12.sp,
+                        color = Color(0xFF1CB0F6),
+                    )
+                }
+                Text(
+                    text = word.translation,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Color(0xFF888888),
+                )
+            }
+            val audioSrc = word.audioSrc
+            if (audioSrc != null) {
+                Box(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .background(Color(0xFFE5F5FF), CircleShape)
+                        .clickable { onPlayVoice(audioSrc) },
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text(text = "🔊", fontSize = 18.sp)
+                }
             }
         }
     }
@@ -925,14 +1243,16 @@ private fun LessonNode(
 @Composable
 private fun ExerciseScreen(
     exercise: ActiveScreen.Exercise,
+    dictionary: com.duo.app.dictionary.Dictionary,
+    onLookup: (com.duo.app.dictionary.DictionaryEntry) -> Unit,
     showRomaji: Boolean,
     onToggleRomaji: () -> Unit,
     onSelectOption: (Int) -> Unit,
     onSelectWordTile: (Int) -> Unit,
     onSelectPairTile: (Int) -> Unit = {},
     onRemoveWordTile: (Int) -> Unit,
-    onPlayVoice: (String) -> Unit,
-    onPlayVoiceSlow: ((String) -> Unit)? = null,
+    onPlayVoice: (String, Float) -> Unit,
+    onTypedAnswerChange: (String) -> Unit = {},
     onCheckAnswer: () -> Unit,
     onNextChallenge: () -> Unit,
     onExit: () -> Unit,
@@ -942,17 +1262,40 @@ private fun ExerciseScreen(
     val challenge = exercise.currentChallenge.challenge
     val options = exercise.currentChallenge.options
     val progressFraction = (exercise.challengeIndex + 1).toFloat() / exercise.totalChallenges.toFloat()
-    val isWordBank = challenge.type == "WORD_BANK"
-    val isListen = challenge.type == "LISTEN"
-    val isMatchPairs = challenge.type == "MATCH_PAIRS"
+    val isWordBank = challenge.type == ChallengeType.WORD_BANK
+    val isListen = challenge.type == ChallengeType.LISTEN
+    val isMatchPairs = challenge.type == ChallengeType.MATCH_PAIRS
+    val isConjugate = challenge.type == ChallengeType.CONJUGATE
+    val isFillBlank = challenge.type == ChallengeType.FILL_BLANK
+    val isAssist = challenge.type == ChallengeType.ASSIST
     val hasSelection = when {
         isMatchPairs -> exercise.matchedPairIds.size >= options.size
         isWordBank -> exercise.selectedWordTileIds.isNotEmpty()
+        isFillBlank -> exercise.typedAnswer.isNotBlank()
         else -> exercise.selectedOptionId != null
     }
     // Transcript fallback for LISTEN: resets with each new challenge.
     var transcriptShown by remember(challenge.id) { mutableStateOf(false) }
     val listenAnswer = options.firstOrNull { it.correct }
+    // WI-01a: the rule card is a per-challenge disclosure, dismissed for the
+    // rest of this challenge's display and reset by the next one.
+    var ruleDismissed by remember(challenge.id) { mutableStateOf(false) }
+    // WI-14: playback speed for every audio button on this screen. 1.0x is the
+    // default; 0.5x/0.75x cover the "too fast to catch the phonemes" case that
+    // the old hardcoded 0.6f turtle button served.
+    //
+    // Session scope is deliberate and is what `remember` (with no key) already
+    // gives: ExerciseScreen is composed only while an exercise session is on
+    // screen, so leaving the session (exit, lesson complete, checkpoint result)
+    // discards this state and the next session starts at 1.0x. That resets the
+    // speed between lessons, so a learner who picked 0.5x in lesson 3 does not
+    // silently get 0.5x in lesson 4 with no visible indication why. It is NOT
+    // keyed on challenge.id, so the choice persists across the consecutive
+    // challenges of one session — re-picking per question would be tedious.
+    var audioSpeed by remember { mutableStateOf(1.0f) }
+    val playAtChosenSpeed: (String) -> Unit = { src -> onPlayVoice(src, audioSpeed) }
+    val ruleText = challenge.ruleText
+    val showRuleCard = ruleText != null && !ruleDismissed
 
     Scaffold(
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
@@ -1037,11 +1380,14 @@ private fun ExerciseScreen(
             // Prompt
             Text(
                 text = when (challenge.type) {
-                    "SELECT" -> "Select the correct meaning"
-                    "WORD_BANK" -> "Tap the matching tiles"
-                    "LISTEN" -> "Tap what you hear"
-                    "STORY" -> "Read the story and answer the question"
-                    else -> "Translate this phrase"
+                    ChallengeType.SELECT -> "Select the correct meaning"
+                    ChallengeType.ASSIST -> "Finish the translation"
+                    ChallengeType.WORD_BANK -> "Tap the matching tiles"
+                    ChallengeType.LISTEN -> "Tap what you hear"
+                    ChallengeType.MATCH_PAIRS -> "Tap the matching pairs"
+                    ChallengeType.STORY -> "Read the story and answer the question"
+                    ChallengeType.CONJUGATE -> "Pick the correct form"
+                    ChallengeType.FILL_BLANK -> "Fill in the blank"
                 },
                 style = MaterialTheme.typography.titleMedium,
                 color = Color(0xFF777777),
@@ -1061,26 +1407,19 @@ private fun ExerciseScreen(
                     ) {
                         AudioSpeakerButton(
                             size = 72.dp,
-                            onClick = { challenge.audioSrc?.let(onPlayVoice) },
+                            onClick = { challenge.audioSrc?.let(playAtChosenSpeed) },
                         )
-                        // Slow button: 0.6x speed for tricky phonemes (🐢)
-                        Box(
-                            modifier = Modifier
-                                .size(56.dp)
-                                .background(Color(0xFFFFF6DB), CircleShape)
-                                .border(2.dp, Color(0xFFFFC800), CircleShape)
-                                .clickable {
-                                    challenge.audioSrc?.let { src ->
-                                        onPlayVoiceSlow?.invoke(src) ?: onPlayVoice(src)
-                                    }
-                                },
-                            contentAlignment = Alignment.Center,
-                        ) {
-                            Text(text = "🐢", fontSize = 26.sp)
-                        }
+                        // WI-14: the turtle's fixed 0.6x becomes a real speed
+                        // stepper, so the same control also reaches SELECT,
+                        // STORY and every other challenge that has audio.
+                        AudioSpeedSelector(
+                            selected = audioSpeed,
+                            onSelect = { audioSpeed = it },
+                            onPlayAt = { speed -> challenge.audioSrc?.let { onPlayVoice(it, speed) } },
+                        )
                     }
                     Text(
-                        text = "Tap to listen • 🐢 slow",
+                        text = "Tap to listen • pick a speed to replay",
                         style = MaterialTheme.typography.bodyMedium,
                         color = Color(0xFF1CB0F6),
                         fontWeight = FontWeight.SemiBold,
@@ -1110,8 +1449,10 @@ private fun ExerciseScreen(
                                     fontWeight = FontWeight.Bold,
                                     color = Color(0xFF777777),
                                 )
-                                Text(
+                                LookupText(
                                     text = listenAnswer.text,
+                                    dictionary = dictionary,
+                                    onLookup = onLookup,
                                     style = MaterialTheme.typography.titleMedium,
                                     fontWeight = FontWeight.Bold,
                                     color = Color(0xFF4B4B4B),
@@ -1127,7 +1468,7 @@ private fun ExerciseScreen(
                         }
                     }
                 }
-            } else if (challenge.type == "STORY") {
+            } else if (challenge.type == ChallengeType.STORY) {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(16.dp),
@@ -1144,16 +1485,95 @@ private fun ExerciseScreen(
                             if (challenge.audioSrc != null) {
                                 AudioSpeakerButton(
                                     size = 36.dp,
-                                    onClick = { challenge.audioSrc.let(onPlayVoice) },
+                                    onClick = { challenge.audioSrc.let(playAtChosenSpeed) },
                                 )
                             }
                         }
-                        Text(
+                        LookupText(
                             text = challenge.question,
+                            dictionary = dictionary,
+                            onLookup = onLookup,
                             style = MaterialTheme.typography.bodyMedium,
                             color = Color(0xFF2C2C2C),
                             lineHeight = 22.sp,
                         )
+                    }
+                }
+            } else if (isFillBlank || isAssist) {
+                // WI-04 / WI-15: both carry their scaffold inside `question` as a
+                // `___` run. FILL_BLANK then asks the learner to *type* the missing
+                // form; ASSIST offers it as options. The sentence and its blank are
+                // rendered identically so the two mechanics differ only in how the
+                // answer is produced.
+                val scaffold = BlankPlaceholder.parse(challenge.question)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    if (challenge.audioSrc != null) {
+                        AudioSpeakerButton(
+                            size = 44.dp,
+                            onClick = { challenge.audioSrc.let(playAtChosenSpeed) },
+                        )
+                    }
+                    LookupText(
+                        text = if (scaffold != null) {
+                            scaffold.before.trimEnd() + " " + BLANK_PLACEHOLDER + scaffold.after
+                        } else {
+                            challenge.question
+                        },
+                        dictionary = dictionary,
+                        onLookup = onLookup,
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF4B4B4B),
+                        lineHeight = 30.sp,
+                        modifier = Modifier.weight(1f),
+                    )
+                }
+            } else if (isConjugate) {
+                // WI-03: the prompt already names the required form ("the preterite
+                // of hablar — yo"); what makes this readable is the lemma at headline
+                // scale plus the machine focus tag, humanised, so the learner sees
+                // which paradigm they are working in.
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    if (challenge.audioSrc != null) {
+                        AudioSpeakerButton(
+                            size = 44.dp,
+                            onClick = { challenge.audioSrc.let(playAtChosenSpeed) },
+                        )
+                    }
+                    Column(modifier = Modifier.weight(1f)) {
+                        LookupText(
+                            text = challenge.question,
+                            dictionary = dictionary,
+                            onLookup = onLookup,
+                            style = MaterialTheme.typography.headlineSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF4B4B4B),
+                            lineHeight = 30.sp,
+                        )
+                        GrammarFocus.label(challenge.grammaticalFocus)?.let { focus ->
+                            Spacer(modifier = Modifier.height(6.dp))
+                            Surface(
+                                shape = RoundedCornerShape(8.dp),
+                                color = Color(0xFFF0F7FF),
+                                border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFB8DCFF)),
+                            ) {
+                                Text(
+                                    text = focus,
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color(0xFF1B6FB8),
+                                )
+                            }
+                        }
                     }
                 }
             } else {
@@ -1165,17 +1585,51 @@ private fun ExerciseScreen(
                     if (challenge.audioSrc != null) {
                         AudioSpeakerButton(
                             size = 44.dp,
-                            onClick = { challenge.audioSrc.let(onPlayVoice) },
+                            onClick = { challenge.audioSrc.let(playAtChosenSpeed) },
                         )
                     }
-                    Text(
+                    LookupText(
                         text = challenge.question,
+                        dictionary = dictionary,
+                        onLookup = onLookup,
                         style = MaterialTheme.typography.headlineSmall,
                         fontWeight = FontWeight.Bold,
                         color = Color(0xFF4B4B4B),
                         modifier = Modifier.weight(1f),
                     )
                 }
+            }
+
+            // WI-14: LISTEN carries the speed stepper inline with its large
+            // speaker; every other challenge that has audio gets it here, so
+            // the control is not a LISTEN-only privilege.
+            challenge.audioSrc?.takeIf { !isListen }?.let { src ->
+                AudioSpeedSelector(
+                    selected = audioSpeed,
+                    onSelect = { audioSpeed = it },
+                    onPlayAt = { speed -> onPlayVoice(src, speed) },
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
+
+            // WI-11: the lookup is invisible until it is named once. A tap on
+            // the prompt, a hold on an answer - the gesture differs because a
+            // tap on an answer is the lesson, and that is not this feature's
+            // to take away.
+            Text(
+                text = "Tap a word above to look it up · hold an answer for its definition",
+                style = MaterialTheme.typography.labelSmall,
+                color = Color(0xFFAAAAAA),
+            )
+
+            // WI-01a: the rule this challenge teaches, above the answers and
+            // dismissible. Instruction, never a choice.
+            if (showRuleCard) {
+                RuleCard(
+                    ruleText = ruleText,
+                    grammaticalFocus = challenge.grammaticalFocus,
+                    onDismiss = { ruleDismissed = true },
+                )
             }
 
             // Exercise Body: WORD_BANK vs Options List
@@ -1185,6 +1639,8 @@ private fun ExerciseScreen(
                     selectedFirstId = exercise.selectedPairFirstId,
                     matchedIds = exercise.matchedPairIds,
                     showRomaji = showRomaji,
+                    dictionary = dictionary,
+                    onLookup = onLookup,
                     onSelect = onSelectPairTile,
                 )
             } else if (isWordBank) {
@@ -1193,8 +1649,22 @@ private fun ExerciseScreen(
                     selectedOptionIds = exercise.selectedWordTileIds,
                     showRomaji = showRomaji,
                     isChecked = exercise.feedback != null,
+                    dictionary = dictionary,
+                    onLookup = onLookup,
                     onSelectTile = onSelectWordTile,
                     onRemoveTile = onRemoveWordTile,
+                )
+            } else if (isFillBlank) {
+                // WI-04: typed production. The field follows the styling of the
+                // backup-import field and is disabled once feedback exists, so
+                // the typed answer cannot be edited after it is graded.
+                androidx.compose.material3.OutlinedTextField(
+                    value = exercise.typedAnswer,
+                    onValueChange = onTypedAnswerChange,
+                    enabled = exercise.feedback == null,
+                    singleLine = true,
+                    placeholder = { Text("Type the missing word or ending") },
+                    modifier = Modifier.fillMaxWidth(),
                 )
             } else {
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -1209,8 +1679,10 @@ private fun ExerciseScreen(
                             isSelected = isSelected,
                             isChecked = isChecked,
                             hasAudio = option.audioSrc != null,
+                            dictionary = dictionary,
+                            onLookup = onLookup,
                             onClick = { onSelectOption(option.id) },
-                            onAudioClick = { option.audioSrc?.let(onPlayVoice) },
+                            onAudioClick = { option.audioSrc?.let(playAtChosenSpeed) },
                         )
                     }
                 }
@@ -1225,6 +1697,8 @@ private fun WordBankContent(
     options: List<ChallengeOptionEntity>,
     selectedOptionIds: List<Int>,
     showRomaji: Boolean,
+    dictionary: com.duo.app.dictionary.Dictionary,
+    onLookup: (com.duo.app.dictionary.DictionaryEntry) -> Unit,
     isChecked: Boolean,
     onSelectTile: (Int) -> Unit,
     onRemoveTile: (Int) -> Unit,
@@ -1259,6 +1733,8 @@ private fun WordBankContent(
                                 text = option.text,
                                 romaji = option.romaji,
                                 showRomaji = showRomaji,
+                                dictionary = dictionary,
+                                onLookup = onLookup,
                                 onClick = { if (!isChecked) onRemoveTile(optionId) },
                             )
                         }
@@ -1282,6 +1758,8 @@ private fun WordBankContent(
                     romaji = option.romaji,
                     showRomaji = showRomaji,
                     isPlaced = isPlaced,
+                    dictionary = dictionary,
+                    onLookup = onLookup,
                     onClick = { if (!isChecked) onSelectTile(option.id) },
                 )
             }
@@ -1289,16 +1767,22 @@ private fun WordBankContent(
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun WordTileChip(
     text: String,
     romaji: String? = null,
     showRomaji: Boolean = true,
     isPlaced: Boolean = false,
+    dictionary: com.duo.app.dictionary.Dictionary,
+    onLookup: (com.duo.app.dictionary.DictionaryEntry) -> Unit,
     onClick: () -> Unit,
 ) {
     Surface(
-        modifier = Modifier.clickable(enabled = !isPlaced, onClick = onClick),
+        modifier = Modifier.combinedClickable(
+            onClick = { if (!isPlaced) onClick() },
+            onLongClick = { dictionary.lookup(text)?.let(onLookup) },
+        ),
         shape = RoundedCornerShape(12.dp),
         color = if (isPlaced) Color(0xFFE5E5E5) else Color.White,
         shadowElevation = if (isPlaced) 0.dp else 2.dp,
@@ -1329,15 +1813,21 @@ private fun WordTileChip(
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun AssembledWordTileChip(
     text: String,
     romaji: String? = null,
     showRomaji: Boolean = true,
+    dictionary: com.duo.app.dictionary.Dictionary,
+    onLookup: (com.duo.app.dictionary.DictionaryEntry) -> Unit,
     onClick: () -> Unit,
 ) {
     Surface(
-        modifier = Modifier.clickable(onClick = onClick),
+        modifier = Modifier.combinedClickable(
+            onClick = onClick,
+            onLongClick = { dictionary.lookup(text)?.let(onLookup) },
+        ),
         shape = RoundedCornerShape(12.dp),
         color = Color(0xFFE5F5FF),
         shadowElevation = 2.dp,
@@ -1368,12 +1858,15 @@ private fun AssembledWordTileChip(
         }
     }
 }
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun MatchPairsContent(
     options: List<ChallengeOptionEntity>,
     selectedFirstId: Int?,
     matchedIds: Set<Int>,
     showRomaji: Boolean,
+    dictionary: com.duo.app.dictionary.Dictionary,
+    onLookup: (com.duo.app.dictionary.DictionaryEntry) -> Unit,
     onSelect: (Int) -> Unit,
 ) {
     Text(
@@ -1396,7 +1889,10 @@ private fun MatchPairsContent(
                         .weight(1f)
                         .height(72.dp)
                         .alpha(if (isMatched) 0.3f else 1f)
-                        .clickable(enabled = !isMatched) { onSelect(opt.id) },
+                        .combinedClickable(
+                            onClick = { if (!isMatched) onSelect(opt.id) },
+                            onLongClick = { dictionary.lookup(opt.text)?.let(onLookup) },
+                        ),
                     shape = RoundedCornerShape(14.dp),
                     colors = CardDefaults.cardColors(
                         containerColor = when {
@@ -1455,6 +1951,69 @@ private fun AudioSpeakerButton(
     }
 }
 
+/**
+ * WI-14: discrete playback speeds, replacing the fixed 0.6f turtle button.
+ *
+ * Tapping a step both selects it (so the main speaker button replays at that
+ * speed) and plays the clip once at it, so the learner hears the difference
+ * immediately rather than having to select then press play. One control, no
+ * competing slow affordance.
+ */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun AudioSpeedSelector(
+    selected: Float,
+    onSelect: (Float) -> Unit,
+    onPlayAt: (Float) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Text(
+            text = "SPEED",
+            fontSize = 9.sp,
+            fontWeight = FontWeight.Bold,
+            color = Color(0xFF8C6B1F),
+        )
+        // FlowRow, not Row: the three labels are fixed-width text, so at a large
+        // font scale a plain Row would overflow its parent and clip. FlowRow
+        // wraps onto a second line instead, so the selector cannot clip at any
+        // font scale regardless of how the surrounding row is constrained.
+        FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+            AUDIO_SPEEDS.forEach { speed ->
+                val isSelected = speed == selected
+                Surface(
+                    modifier = Modifier.clickable {
+                        onSelect(speed)
+                        onPlayAt(speed)
+                    },
+                    shape = RoundedCornerShape(8.dp),
+                    color = if (isSelected) Color(0xFFFFC800) else Color(0xFFFFF6DB),
+                    border = androidx.compose.foundation.BorderStroke(
+                        width = if (isSelected) 2.dp else 1.dp,
+                        color = if (isSelected) Color(0xFFB8860B) else Color(0xFFFFC800),
+                    ),
+                ) {
+                    Text(
+                        text = "${speed}x",
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp),
+                        fontSize = 12.sp,
+                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                        color = Color(0xFF8C6B1F),
+                    )
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun OptionCard(
     text: String,
@@ -1463,13 +2022,27 @@ private fun OptionCard(
     isSelected: Boolean,
     isChecked: Boolean,
     hasAudio: Boolean,
+    dictionary: com.duo.app.dictionary.Dictionary,
+    onLookup: (com.duo.app.dictionary.DictionaryEntry) -> Unit,
     onClick: () -> Unit,
     onAudioClick: () -> Unit,
 ) {
+    // WI-11: the long press stays live after the answer is graded, when the
+    // learner is most likely to want the definition. `enabled` is deliberately
+    // NOT used to gate it — `combinedClickable(enabled = false)` kills
+    // onLongClick along with onClick, which took the lookup away from a graded
+    // question. Selection is gated inside onClick instead, so a tap after
+    // grading still does nothing, and the submitted answer cannot change: the
+    // card's highlight is driven by `isSelected`, which only a tap CHECK
+    // accepts ever moves, so a long press leaves the graded state looking
+    // exactly as it did.
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(enabled = !isChecked, onClick = onClick),
+            .combinedClickable(
+                onClick = { if (!isChecked) onClick() },
+                onLongClick = { dictionary.lookup(text)?.let(onLookup) },
+            ),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
             containerColor = when {
@@ -1605,7 +2178,9 @@ private fun ExerciseBottomBar(
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
                         Text(text = "✕", fontSize = 24.sp, color = Color(0xFFFF4B4B), fontWeight = FontWeight.Bold)
-                        Column {
+                        // weight(1f): the hint is a full sentence, so the
+                        // column has to wrap rather than push the ✕ off-screen.
+                        Column(modifier = Modifier.weight(1f)) {
                             Text(
                                 text = "Correct answer:",
                                 fontWeight = FontWeight.Bold,
@@ -1618,6 +2193,35 @@ private fun ExerciseBottomBar(
                                 fontWeight = FontWeight.SemiBold,
                                 color = Color(0xFF4B4B4B),
                             )
+                            // WI-09: the error-specific sentence first — the
+                            // rule the *picked* answer broke, derived from that
+                            // option's errorTag and the challenge's focus. It
+                            // answers the learner's actual mistake, which
+                            // "Correct answer: X" on its own does not.
+                            feedback.hint?.let { hint ->
+                                Spacer(modifier = Modifier.height(6.dp))
+                                Text(
+                                    text = hint,
+                                    fontSize = 12.sp,
+                                    lineHeight = 16.sp,
+                                    fontWeight = FontWeight.Medium,
+                                    color = Color(0xFF8A3A3A),
+                                )
+                            }
+                            // WI-04c: on a rule-bearing challenge the rule is
+                            // restated here, so a typed answer that broke it is
+                            // explained at the moment it was broken. The hint
+                            // above and the rule below are the two halves:
+                            // what you did wrong, and what the rule is.
+                            feedback.ruleText?.let { rule ->
+                                Spacer(modifier = Modifier.height(6.dp))
+                                Text(
+                                    text = rule,
+                                    fontSize = 12.sp,
+                                    lineHeight = 16.sp,
+                                    color = Color(0xFF7A5C5C),
+                                )
+                            }
                         }
                     }
                     }
@@ -1961,6 +2565,7 @@ private fun SettingsScreen(
     onToggleRomaji: () -> Unit,
     onSelectThemeAccent: (String) -> Unit,
     onSelectThemeMode: (String) -> Unit,
+    onSelectDailyQuestGoal: (Int) -> Unit,
     onResetProgress: () -> Unit,
     onExportBackup: ((String) -> Unit) -> Unit,
     onImportBackup: (String, (Boolean) -> Unit) -> Unit,
@@ -2027,6 +2632,54 @@ private fun SettingsScreen(
                 prefs.edit().putBoolean("reminders_enabled", enabled).apply()
             },
         )
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // Daily goal (WI-13): the XP the learner has chosen to chase each day.
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(text = "🎯", fontSize = 24.sp)
+            Spacer(modifier = Modifier.width(12.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(text = "Daily goal", fontWeight = FontWeight.Bold)
+                Text(
+                    text = "XP per day to finish your quest",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Color(0xFF777777),
+                )
+            }
+        }
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            LocalProgressRepository.DAILY_QUEST_XP_OPTIONS.forEach { goal ->
+                val isSelected = (userProgress?.dailyQuestGoal ?: LocalProgressRepository.DAILY_QUEST_XP) == goal
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(if (isSelected) Color(0xFF58CC02).copy(alpha = 0.15f) else Color(0xFFF7F7F7))
+                        .border(
+                            width = if (isSelected) 2.dp else 1.dp,
+                            color = if (isSelected) Color(0xFF58CC02) else Color(0xFFE5E5E5),
+                            shape = RoundedCornerShape(12.dp),
+                        )
+                        .clickable { onSelectDailyQuestGoal(goal) }
+                        .padding(vertical = 10.dp, horizontal = 4.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text(
+                        text = "$goal",
+                        fontSize = 13.sp,
+                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                        color = if (isSelected) Color(0xFF58CC02) else Color(0xFF777777),
+                    )
+                }
+            }
+        }
+
 
 
         // Theme Accent Selector
@@ -2204,7 +2857,7 @@ private fun SettingsScreen(
                     androidx.compose.material3.OutlinedTextField(
                         value = importJsonText,
                         onValueChange = { importJsonText = it },
-                        placeholder = { Text("{ \"version\": 1, ... }") },
+                        placeholder = { Text("{ \"version\": 2, ... }") },
                         modifier = Modifier.fillMaxWidth().height(140.dp),
                     )
                 }

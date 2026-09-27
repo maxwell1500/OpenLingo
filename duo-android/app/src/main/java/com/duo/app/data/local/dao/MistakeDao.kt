@@ -11,10 +11,21 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface MistakeDao {
 
+    /**
+     * A mistake joined to the rule it broke (WI-16).
+     *
+     * `grammaticalFocus` and `ruleText` are the challenge's own columns, so
+     * selecting them is a query change only — no new table, no new column, and
+     * therefore no migration. Without them the review list could only re-ask
+     * the raw item, which is the memorization loop: a learner who cannot name
+     * why "hablábamos" is wrong will keep re-answering until they pass by
+     * recall rather than by rule.
+     */
     @Query(
         "SELECT m.challengeId AS challengeId, m.lessonId AS lessonId, " +
             "l.title AS lessonName, " +
-            "c.question AS question, c.type AS type, m.timestamp AS timestamp " +
+            "c.question AS question, c.type AS type, m.timestamp AS timestamp, " +
+            "c.grammaticalFocus AS grammaticalFocus, c.ruleText AS ruleText " +
             "FROM mistakes AS m " +
             "INNER JOIN challenges AS c ON c.id = m.challengeId " +
             "INNER JOIN lessons AS l ON l.id = m.lessonId " +

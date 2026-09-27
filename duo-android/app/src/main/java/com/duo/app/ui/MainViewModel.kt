@@ -9,8 +9,13 @@ import com.duo.app.data.local.entities.LessonEntity
 import com.duo.app.data.local.entities.UnitEntity
 import com.duo.app.data.local.entities.UserProgressEntity
 import com.duo.app.data.local.entities.UnitWithLessons
+import com.duo.app.data.local.models.ChallengeType
 import com.duo.app.data.repository.AnswerResult
 import com.duo.app.data.repository.ChallengeWithOptions
+import com.duo.app.data.repository.DailyQuest
+import com.duo.app.grammar.AnswerGrader
+import com.duo.app.grammar.ErrorHint
+import com.duo.app.grammar.drills.StructureDrill
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -18,6 +23,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -41,6 +47,8 @@ sealed interface ActiveScreen {
         val selectedPairFirstId: Int? = null,
         val matchedPairIds: Set<Int> = emptySet(),
         val feedback: FeedbackState? = null,
+        /** Free text typed by the learner on a FILL_BLANK challenge. */
+        val typedAnswer: String = "",
     ) : ActiveScreen
     data class CharacterDrawing(
         val character: com.duo.app.data.local.character.JapaneseCharacter,
@@ -48,6 +56,14 @@ sealed interface ActiveScreen {
         val isCompleted: Boolean = false,
     ) : ActiveScreen
     data class LessonComplete(val lessonId: Int, val pointsGained: Int, val perfectBonus: Int = 0) : ActiveScreen
+    /** WI-12: the browse-and-listen vocabulary list for one unit. */
+    data class UnitVocabulary(val unitId: Int) : ActiveScreen
+    /**
+     * The generated conjugation drill for one unit. A study surface, not a lesson: it
+     * is opened from the unit header beside the vocabulary list and closed back to the
+     * lesson map the same way.
+     */
+    data class GrammarDrills(val unitId: Int) : ActiveScreen
     data class CheckpointResult(
         val level: String,
         val correct: Int,
@@ -58,12 +74,31 @@ sealed interface ActiveScreen {
 
 sealed interface FeedbackState {
     data class Correct(val pointsGained: Int, val combo: Int = 0) : FeedbackState
-    data class Incorrect(val correctAnswer: String) : FeedbackState
+    /**
+     * [ruleText] is carried for challenges that teach a rule (FILL_BLANK above
+     * all): the learner sees *why* the answer was wrong at the moment they got
+     * it wrong, not after a re-read of the unit.
+     *
+     * [hint] (WI-09) is the error-specific half of that, derived from the
+     * option the learner actually picked: which rule *their* answer broke, not
+     * just which rule the challenge teaches. Null when the picked option
+     * carries no errorTag, in which case [ruleText] alone explains the miss.
+     */
+    data class Incorrect(
+        val correctAnswer: String,
+        val ruleText: String? = null,
+        val hint: String? = null,
+    ) : FeedbackState
 }
 
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class MainViewModel(application: Application) : AndroidViewModel(application) {
+
+    /** Longest session a checkpoint may run; held-out items are never dropped to fit. */
+    private companion object {
+        const val MAX_CHECKPOINT_CHALLENGES = 30
+    }
 
     private val repository = (application as DuoApplication).repository
     private val audioPlayer = (application as DuoApplication).audioPlayer
@@ -80,6 +115,35 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             repository.getUnitsWithLessonsForCourse(courseId)
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    /**
+     * Rule text per unit id, derived from the unit's challenges (WI-01b) rather
+     * than stored on `units`, so a header and its lessons can never disagree
+     * about what they teach. Reuses the lesson-path challenge query, which
+     * already excludes held-out checkpoint items — a rule the learner has not
+     * been taught must not advertise itself on the unit header.
+     */
+    val unitRuleTexts: StateFlow<Map<Int, List<String>>> = unitsWithLessons
+        .flatMapLatest { units ->
+            flow {
+                if (units.isEmpty()) {
+                    emit(emptyMap())
+                } else {
+                    val unitIdByLesson = units.flatMap { u -> u.lessons.map { it.id to u.unit.id } }.toMap()
+                    val rules = LinkedHashMap<Int, MutableList<String>>()
+                    repository.getChallengesForUnits(units.map { it.unit.id })
+                        .forEach { withOptions ->
+                            val unitId = unitIdByLesson[withOptions.challenge.lessonId] ?: return@forEach
+                            val rule = withOptions.challenge.ruleText?.trim().orEmpty()
+                            if (rule.isNotEmpty()) {
+                                rules.getOrPut(unitId) { mutableListOf() }.let { if (rule !in it) it.add(rule) }
+                            }
+                        }
+                    emit(rules.mapValues { (_, value) -> value.toList() })
+                }
+            }
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
 
     val completedChallengeIds: StateFlow<List<Int>> = repository.getCompletedChallengeIds()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
@@ -144,6 +208,120 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
 
+    /**
+     * WI-11: the offline dictionary, built once from the tables already on the
+     * device. Empty until it loads, and an empty dictionary declines every
+     * lookup, so a sheet can never open on a half-built index.
+     */
+    val dictionary: StateFlow<com.duo.app.dictionary.Dictionary> = flow {
+        emit(repository.loadDictionary())
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), com.duo.app.dictionary.Dictionary.EMPTY)
+
+    /** Target-language strings each unit's own exercises offer, bucketed by unit. */
+    private val taughtTermsByUnit: StateFlow<Map<Int, Set<String>>> = unitsWithLessons
+        .flatMapLatest { units ->
+            flow { emit(UnitVocabularyIndex.taughtTermsByUnit(repository, units)) }
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
+
+    private val openUnitId: StateFlow<Int?> = _activeScreen
+        .map { (it as? ActiveScreen.UnitVocabulary)?.unitId }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
+    private val openDrillUnitId: StateFlow<Int?> = _activeScreen
+        .map { (it as? ActiveScreen.GrammarDrills)?.unitId }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
+    /**
+     * The conjugation paradigms the open unit's lessons generate.
+     *
+     * Read from the lesson-path query, so held-out checkpoint items are excluded twice
+     * over: the query filters them and [StructureDrill] refuses them again. Nothing here
+     * is written back — a drill is study, not a lesson, so it records no progress, no
+     * mistake and no exercise-type statistic.
+     */
+    val grammarDrills: StateFlow<List<com.duo.app.grammar.drills.Paradigm>> =
+        openDrillUnitId
+            .map { unitId ->
+                if (unitId == null) {
+                    emptyList()
+                } else {
+                    StructureDrill.paradigms(repository.getChallengesForUnits(listOf(unitId)))
+                }
+            }
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    /**
+     * Words the open unit teaches. See [UnitVocabularyIndex] for why the unit grouping
+     * is derived rather than stored; a unit with nothing scheduled shows the empty state.
+     */
+    val unitVocabulary: StateFlow<List<com.duo.app.data.local.entities.VocabScheduleEntity>> =
+        combine(openUnitId, allVocab, taughtTermsByUnit) { unitId, vocab, terms ->
+            if (unitId == null) {
+                emptyList()
+            } else {
+                UnitVocabularyIndex.wordsFor(vocab, terms[unitId].orEmpty())
+            }
+        }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    /** Word count per unit, for the unit header affordance. */
+    val unitVocabCounts: StateFlow<Map<Int, Int>> =
+        combine(allVocab, taughtTermsByUnit) { vocab, terms ->
+            UnitVocabularyIndex.countsByUnit(vocab, terms)
+        }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
+
+    /**
+     * Drillable forms per unit, for the unit header chip. Derived the same way the drill
+     * itself is — from the lesson-path challenges — so the number on the chip and the
+     * table behind it cannot disagree. Units with nothing drillable are left out, so
+     * a caller can tell "no drill" from "not loaded yet".
+     *
+     * Grouping happens **per unit, before** paradigms are built, because that is the
+     * only order the two can agree in. `StructureDrill.paradigms` folds two rows for
+     * the same form of the same focus into one, and that fold is correct for a table
+     * — a form taught twice is one conjugation, not two. Run across every unit at
+     * once, though, the fold also collapses a form that unit 9 and unit 10 each teach
+     * under the same slug, and the survivor is attributed to whichever unit won, so
+     * the other unit silently lost a row. The chip then read "5 forms" above a table
+     * with six. Slicing per unit first makes this the same computation the screen
+     * performs, and the counts agree by construction rather than by coincidence.
+     */
+    val unitDrillCounts: StateFlow<Map<Int, Int>> = unitsWithLessons
+        .flatMapLatest { units ->
+            flow {
+                if (units.isEmpty()) {
+                    emit(emptyMap())
+                } else {
+                    val unitIdByLesson = units.flatMap { u -> u.lessons.map { it.id to u.unit.id } }.toMap()
+                    val byUnit = repository.getChallengesForUnits(units.map { it.unit.id })
+                        .filter { it.challenge.lessonId in unitIdByLesson }
+                        .groupBy { unitIdByLesson.getValue(it.challenge.lessonId) }
+                    emit(
+                        byUnit.mapValues { (_, challenges) ->
+                            StructureDrill.paradigms(challenges).sumOf { it.entries.size }
+                        },
+                    )
+                }
+            }
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
+
+    fun openUnitVocabulary(unitId: Int) {
+        _activeScreen.value = ActiveScreen.UnitVocabulary(unitId)
+    }
+
+    fun closeUnitVocabulary() {
+        _activeScreen.value = ActiveScreen.LessonMap
+    }
+
+    fun openGrammarDrills(unitId: Int) {
+        _activeScreen.value = ActiveScreen.GrammarDrills(unitId)
+    }
+
+    fun closeGrammarDrills() {
+        _activeScreen.value = ActiveScreen.LessonMap
+    }
+
     fun reviewVocab(item: com.duo.app.data.local.entities.VocabScheduleEntity, rating: Int) {
         viewModelScope.launch {
             repository.reviewVocab(item, rating)
@@ -172,6 +350,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     fun setThemeMode(mode: String) {
         viewModelScope.launch { repository.setThemeMode(mode) }
+    }
+
+    fun setDailyQuestGoal(goal: Int) {
+        viewModelScope.launch { repository.setDailyQuestGoal(goal) }
     }
 
     fun completeOnboarding() {
@@ -219,8 +401,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private var lessonPointsAccumulated: Int = 0
     private var lessonMistakes: Int = 0
     private var lessonCombo: Int = 0
-    val todayXp: StateFlow<Int> = repository.getTodayXp()
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
+    val dailyQuest: StateFlow<DailyQuest> = repository.getDailyQuest()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), DailyQuest(0, 30))
 
 
     fun switchCourse(courseId: Int) {
@@ -300,8 +482,12 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     /**
      * Starts a checkpoint assessment for a given level.
-     * Loads a shuffled sample of challenges from all units in that level,
-     * runs them as a practice session (no XP, no hearts), and shows a score at the end.
+     *
+     * WI-08: the session is drawn from the level's **held-out** pool — sentences in the
+     * same grammar structures the lessons taught, which never appear on a lesson path —
+     * and topped up with taught items so a level that has no held-out content yet still
+     * produces a usable session. Passing the checkpoint therefore measures whether the
+     * rule generalised, not whether the 124 taught sentences were memorised.
      */
     fun startCheckpoint(level: String) {
         val courseId = userProgress.value?.activeCourseId ?: 1
@@ -314,10 +500,15 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             // Determine unit IDs for this level
             val unitIds = getUnitIdsForLevel(courseId, level)
             if (unitIds.isEmpty()) return@launch
-            val challenges = repository.getChallengesForUnits(unitIds)
-            if (challenges.isEmpty()) return@launch
-            // Shuffle and cap at 30 for a manageable session
-            val sample = if (challenges.size > 30) challenges.shuffled().take(30) else challenges.shuffled()
+            val heldOut = repository.getHeldOutChallengesForUnits(unitIds).shuffled()
+            val heldOutIds = heldOut.map { it.challenge.id }.toSet()
+            val taught = repository.getChallengesForUnits(unitIds)
+                .filterNot { it.challenge.id in heldOutIds }
+                .shuffled()
+            if (heldOut.isEmpty() && taught.isEmpty()) return@launch
+            // Every held-out item is included; taught items top the session up to the cap.
+            val sample = (heldOut + taught.take((MAX_CHECKPOINT_CHALLENGES - heldOut.size).coerceAtLeast(0)))
+                .shuffled()
             isInPracticeSession = true
             currentLessonChallenges = sample
             lessonPointsAccumulated = 0
@@ -334,13 +525,18 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    /** Maps a CEFR/JLPT level name to the unit IDs that belong to it. */
+    /**
+     * Maps a CEFR/JLPT level name to the unit IDs that belong to it.
+     *
+     * Spanish units are 10-19 and Japanese units are 20-29; the two courses never share
+     * a unit id, so the level->unit map has to branch on the course.
+     */
     private fun getUnitIdsForLevel(courseId: Int, level: String): List<Int> {
         return when (level) {
-            "A1" -> if (courseId == 1) listOf(1, 2, 12, 13, 14, 15, 16, 17) else emptyList()
+            "A1" -> if (courseId == 1) listOf(10, 11, 12, 13, 14, 15, 16, 17) else emptyList()
             "B1" -> if (courseId == 1) listOf(18, 19) else emptyList()
-            "N5" -> if (courseId == 2) listOf(1, 2, 12, 13, 14, 15, 16, 17) else emptyList()
-            "N4" -> if (courseId == 2) listOf(18, 19) else emptyList()
+            "N5" -> if (courseId == 2) listOf(20, 21, 22, 23, 24, 25, 26, 27) else emptyList()
+            "N4" -> if (courseId == 2) listOf(28, 29) else emptyList()
             else -> emptyList()
         }
     }
@@ -356,7 +552,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             val courseId = checkpointCourseId
             val allUnitIds = if (courseId == 1) listOf(10, 11, 12, 13, 14, 15, 16, 17, 18, 19)
-                             else listOf(10, 11, 12, 13, 14, 15, 16, 17, 18, 19)
+                             else listOf(20, 21, 22, 23, 24, 25, 26, 27, 28, 29)
             val sample = repository.getChallengesForUnits(allUnitIds).shuffled().take(25)
             if (sample.isNotEmpty()) {
                 currentLessonChallenges = sample
@@ -500,29 +696,65 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         )
     }
 
+    /** Records the learner's keystrokes on a FILL_BLANK challenge. */
+    fun updateTypedAnswer(text: String) {
+        val current = _activeScreen.value as? ActiveScreen.Exercise ?: return
+        if (current.feedback != null) return
+        _activeScreen.value = current.copy(typedAnswer = text)
+    }
+
     fun checkAnswer() {
         val current = _activeScreen.value as? ActiveScreen.Exercise ?: return
-        val isWordBank = current.currentChallenge.challenge.type == "WORD_BANK"
+        val challenge = current.currentChallenge.challenge
 
         val isCorrect: Boolean
         val correctSolution: String
+        /** WI-09: the option(s) this attempt was built from, for the error hint. */
+        val chosenOptions: List<com.duo.app.data.local.entities.ChallengeOptionEntity>
 
-        if (isWordBank) {
-            if (current.selectedWordTileIds.isEmpty()) return
-            val correctOptions = current.currentChallenge.options
-                .filter { it.correct }
-                .sortedBy { it.id }
-            correctSolution = correctOptions.joinToString(" ") { it.text }
-            val chosenSentence = current.selectedWordTileIds.mapNotNull { id ->
-                current.currentChallenge.options.find { it.id == id }?.text
-            }.joinToString(" ")
+        when (challenge.type) {
+            ChallengeType.WORD_BANK -> {
+                if (current.selectedWordTileIds.isEmpty()) return
+                val correctOptions = current.currentChallenge.options
+                    .filter { it.correct }
+                    .sortedBy { it.id }
+                correctSolution = correctOptions.joinToString(" ") { it.text }
+                val chosenSentence = current.selectedWordTileIds.mapNotNull { id ->
+                    current.currentChallenge.options.find { it.id == id }?.text
+                }.joinToString(" ")
 
-            isCorrect = chosenSentence.trim().equals(correctSolution.trim(), ignoreCase = true)
+                isCorrect = chosenSentence.trim().equals(correctSolution.trim(), ignoreCase = true)
+                chosenOptions = current.selectedWordTileIds.mapNotNull { id ->
+                    current.currentChallenge.options.find { it.id == id }
+                }
+            }
+            ChallengeType.FILL_BLANK -> {
+                if (current.typedAnswer.isBlank()) return
+                // The primary answer stays on the correct option; acceptedAnswers
+                // adds the legitimate variants ("soy|estoy"). Accents and
+                // full-width IME output are forgiven — see AnswerGrader.
+                val primary = current.currentChallenge.options.firstOrNull { it.correct }?.text
+                val accepted = listOfNotNull(primary) + AnswerGrader.acceptedVariants(challenge.acceptedAnswers)
+                correctSolution = primary.orEmpty()
+                isCorrect = AnswerGrader.matches(current.typedAnswer, accepted)
+                // Typed answers have no picked option, so there is no tag to
+                // read: the hint comes from the focus and the required form.
+                chosenOptions = emptyList()
+            }
+            else -> {
+                val selectedId = current.selectedOptionId ?: return
+                val chosenOption = current.currentChallenge.options.find { it.id == selectedId } ?: return
+                isCorrect = chosenOption.correct
+                correctSolution = current.currentChallenge.options.find { it.correct }?.text ?: ""
+                chosenOptions = listOf(chosenOption)
+            }
+        }
+
+        // Derived once, on the miss, so a correct answer pays nothing for it.
+        val hint = if (isCorrect) {
+            null
         } else {
-            val selectedId = current.selectedOptionId ?: return
-            val chosenOption = current.currentChallenge.options.find { it.id == selectedId } ?: return
-            isCorrect = chosenOption.correct
-            correctSolution = current.currentChallenge.options.find { it.correct }?.text ?: ""
+            errorHint(challenge, correctSolution, chosenOptions, current.typedAnswer)
         }
 
         viewModelScope.launch {
@@ -551,12 +783,39 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     lessonMistakes += 1
                     lessonCombo = 0
                     _activeScreen.value = current.copy(
-                        feedback = FeedbackState.Incorrect(correctSolution)
+                        feedback = FeedbackState.Incorrect(correctSolution, challenge.ruleText, hint)
                     )
                 }
             }
             com.duo.app.widget.OpenLingoWidgetProvider.updateAll(getApplication())
         }
+    }
+
+    /**
+     * The error-specific explanation for a miss (WI-09).
+     *
+     * A picked option carries the reason it is wrong in its own `errorTag`, so
+     * the sentence names the rule *this* answer broke. On a WORD_BANK assembly
+     * several options are in play; a specific grammar tag is preferred over a
+     * plain "different word", because that is the one the learner can act on.
+     * With no option at all (FILL_BLANK / ASSIST) the explanation is derived
+     * from the focus and the form that fills the slot. Returns null when the
+     * data offers nothing to derive, leaving the challenge's `ruleText` to
+     * explain the miss on its own.
+     */
+    private fun errorHint(
+        challenge: com.duo.app.data.local.entities.ChallengeEntity,
+        correctSolution: String,
+        chosenOptions: List<com.duo.app.data.local.entities.ChallengeOptionEntity>,
+        typedAnswer: String,
+    ): String? {
+        if (chosenOptions.isEmpty()) {
+            return ErrorHint.forTypedAnswer(typedAnswer, correctSolution, challenge.grammaticalFocus)
+        }
+        val tagSource = chosenOptions.firstOrNull { !it.errorTag.isNullOrBlank() && it.errorTag != "UNRELATED" }
+            ?: chosenOptions.firstOrNull { !it.errorTag.isNullOrBlank() }
+        val chosen = tagSource?.text ?: chosenOptions.first().text
+        return ErrorHint.forChoice(chosen, correctSolution, tagSource?.errorTag, challenge.grammaticalFocus)
     }
 
     fun nextChallengeOrFinish() {

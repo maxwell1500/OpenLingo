@@ -27,6 +27,11 @@ data class UserProgressBackup(
     val hapticsEnabled: Boolean = true,
     val themeAccent: String = "TEAL",
     val themeMode: String = "SYSTEM",
+    /**
+     * WI-13. Defaults to 30 so a v1/v2 backup written before the goal became a
+     * setting restores the quest the learner actually had: the fixed 30 XP one.
+     */
+    val dailyQuestGoal: Int = 30,
 )
 
 @Serializable

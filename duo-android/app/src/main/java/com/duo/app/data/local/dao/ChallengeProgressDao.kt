@@ -17,16 +17,18 @@ interface ChallengeProgressDao {
     @Query("""
         SELECT c.lessonId FROM challenges c
         INNER JOIN challenge_progress cp ON c.id = cp.challengeId AND cp.userId = :userId AND cp.completed = 1
+        WHERE c.heldOut = 0
         GROUP BY c.lessonId
-        HAVING COUNT(c.id) = (SELECT COUNT(c2.id) FROM challenges c2 WHERE c2.lessonId = c.lessonId)
+        HAVING COUNT(c.id) = (SELECT COUNT(c2.id) FROM challenges c2 WHERE c2.lessonId = c.lessonId AND c2.heldOut = 0)
     """)
     fun getCompletedLessonIds(userId: String): Flow<List<Int>>
 
     @Query("""
         SELECT c.lessonId FROM challenges c
         INNER JOIN challenge_progress cp ON c.id = cp.challengeId AND cp.userId = :userId AND cp.completed = 1
+        WHERE c.heldOut = 0
         GROUP BY c.lessonId
-        HAVING COUNT(c.id) = (SELECT COUNT(c2.id) FROM challenges c2 WHERE c2.lessonId = c.lessonId)
+        HAVING COUNT(c.id) = (SELECT COUNT(c2.id) FROM challenges c2 WHERE c2.lessonId = c.lessonId AND c2.heldOut = 0)
     """)
     suspend fun getCompletedLessonIdsDirect(userId: String): List<Int>
 

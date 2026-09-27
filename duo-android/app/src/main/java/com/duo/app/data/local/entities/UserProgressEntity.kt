@@ -20,5 +20,11 @@ data class UserProgressEntity(
     val brokenStreak: Int = 0,
     val themeAccent: String = "TEAL",
     val themeMode: String = "SYSTEM", // SYSTEM, LIGHT, DARK
+    /**
+     * WI-13: the learner's own daily XP goal for the daily quest. The default
+     * keeps the pre-WI-13 behaviour (a fixed 30 XP quest) for a learner who
+     * never touches the setting. See `LocalProgressRepository.DAILY_QUEST_XP_OPTIONS`.
+     */
+    val dailyQuestGoal: Int = 30,
     val lastSynced: Long = System.currentTimeMillis(),
 )

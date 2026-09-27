@@ -1,7 +1,10 @@
 package com.duo.app.data.local.dao
 
 import androidx.room.Dao
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import com.duo.app.data.local.entities.DailyActivityEntity
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -20,4 +23,19 @@ interface DailyActivityDao {
             "ON CONFLICT(date) DO UPDATE SET xp = xp + :delta"
     )
     suspend fun addXp(date: String, delta: Int)
+
+    /**
+     * Writes the day's total outright rather than adding to it.
+     *
+     * [addXp] is the accumulator the answering path needs — each correct
+     * answer adds to today's total. A backup row is not a delta, it is the
+     * total as it stood at export time, so restoring it through [addXp] adds
+     * the exported XP on top of whatever is already in the row.
+     */
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun putDay(item: DailyActivityEntity)
+
+    /** Wipes the table so an import replaces it instead of adding to it. */
+    @Query("DELETE FROM daily_activity")
+    suspend fun clearAllActivity()
 }

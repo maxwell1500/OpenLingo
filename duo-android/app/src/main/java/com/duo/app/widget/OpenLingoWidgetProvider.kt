@@ -10,7 +10,6 @@ import android.widget.RemoteViews
 import com.duo.app.DuoApplication
 import com.duo.app.MainActivity
 import com.duo.app.R
-import java.time.LocalDate
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -42,10 +41,7 @@ class OpenLingoWidgetProvider : AppWidgetProvider() {
             CoroutineScope(Dispatchers.IO).launch {
                 val user = app.repository.getUserProgressDirect()
                 val streak = user?.streak ?: 1
-                val today = LocalDate.now().toString()
-                val todayXp = app.database.dailyActivityDao().getXpDirect(today) ?: 0
-                val questGoal = 30
-                val questDone = todayXp >= questGoal
+                val quest = app.repository.getDailyQuestDirect()
 
                 val launchIntent = Intent(context, MainActivity::class.java).apply {
                     flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
@@ -59,11 +55,11 @@ class OpenLingoWidgetProvider : AppWidgetProvider() {
 
                 val views = RemoteViews(context.packageName, R.layout.widget_openlingo).apply {
                     setTextViewText(R.id.widget_streak, "🔥 $streak")
-                    setTextViewText(R.id.widget_quest_xp, "$todayXp/$questGoal XP")
-                    setProgressBar(R.id.widget_progress, questGoal, todayXp, false)
+                    setTextViewText(R.id.widget_quest_xp, "${quest.xp}/${quest.goal} XP")
+                    setProgressBar(R.id.widget_progress, quest.goal, quest.xp, false)
                     setOnClickPendingIntent(R.id.widget_root, pendingIntent)
 
-                    if (questDone) {
+                    if (quest.isComplete) {
                         setTextViewText(R.id.widget_quest_title, "✅ Quest Complete!")
                         setTextViewText(R.id.widget_subtitle, "Great job today! Stay chill ☕")
                     } else {

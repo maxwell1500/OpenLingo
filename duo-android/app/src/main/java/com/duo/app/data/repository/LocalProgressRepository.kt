@@ -11,6 +11,7 @@ import com.duo.app.data.local.entities.UserProgressEntity
 import com.duo.app.data.local.entities.UnitWithLessons
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
@@ -23,18 +24,33 @@ import com.duo.app.data.local.models.OpenLingoBackup
 import com.duo.app.data.local.models.UserProgressBackup
 import com.duo.app.data.local.models.CheckpointScoreBackup
 import com.duo.app.data.local.models.VocabScheduleBackup
+import com.duo.app.data.local.models.ChallengeType
 import com.duo.app.data.local.entities.CharacterMasteryEntity
 import com.duo.app.data.local.entities.MistakeEntity
 import com.duo.app.data.local.entities.CheckpointScoreEntity
 import com.duo.app.data.local.entities.VocabScheduleEntity
 import com.duo.app.data.local.entities.ExerciseTypeStatsEntity
 import com.duo.app.data.fsrs.FsrsScheduler
+import com.duo.app.dictionary.Dictionary
+import com.duo.app.dictionary.DictionaryIndex
 
 data class ChallengeWithOptions(
     val challenge: ChallengeEntity,
     val options: List<ChallengeOptionEntity>,
     val isCompleted: Boolean,
 )
+
+/**
+ * WI-13: the daily quest, measured against the learner's own goal rather than
+ * a fixed constant. [isComplete] is the single definition of "quest met", used
+ * by the lesson-map card, the home-screen widget, and the tests alike.
+ */
+data class DailyQuest(
+    val xp: Int,
+    val goal: Int,
+) {
+    val isComplete: Boolean get() = xp >= goal
+}
 
 sealed interface AnswerResult {
     data class Correct(val pointsGained: Int, val totalPoints: Int, val hearts: Int, val streakRepaired: Boolean = false) : AnswerResult
@@ -47,7 +63,14 @@ class LocalProgressRepository(private val database: DuoDatabase) {
         const val GUEST_USER_ID = "guest_local"
         const val MAX_HEARTS = 5
         const val POINTS_PER_CHALLENGE = 10
+        /**
+         * The daily XP target a learner gets before choosing one: the value the
+         * quest was hardcoded to before WI-13. Falls back to this only when no
+         * profile row exists yet.
+         */
         const val DAILY_QUEST_XP = 30
+        /** The steps a learner may pick their daily XP goal from. */
+        val DAILY_QUEST_XP_OPTIONS = listOf(10, 20, 30, 50, 100)
         const val PERFECT_BONUS = 5
     }
 
@@ -178,7 +201,7 @@ class LocalProgressRepository(private val database: DuoDatabase) {
             val statsMap = exerciseTypeStatsDao.getAllStatsDirect().associateBy { it.type }
             // Sort weakest type first (lowest accuracy percent), then by challenge order
             val sortedChallenges = challenges.sortedBy { challenge ->
-                statsMap[challenge.type]?.accuracyPercent ?: 100
+                statsMap[challenge.type.rawValue]?.accuracyPercent ?: 100
             }
             sortedChallenges.map { challenge ->
                 val options = lessonDao.getOptionsForChallenge(challenge.id)
@@ -211,7 +234,7 @@ class LocalProgressRepository(private val database: DuoDatabase) {
 
             // Track accuracy per exercise type
             lessonDao.getChallengeById(challengeId)?.let { challenge ->
-                val typeName = challenge.type
+                val typeName = challenge.type.rawValue
                 val currentStats = exerciseTypeStatsDao.getStatsForType(typeName)
                 val newAttempts = (currentStats?.attempts ?: 0) + 1
                 val newCorrect = (currentStats?.correct ?: 0) + if (isCorrect) 1 else 0
@@ -299,6 +322,37 @@ class LocalProgressRepository(private val database: DuoDatabase) {
                 }
             }
         }
+
+    /** The learner's own daily XP goal; [DAILY_QUEST_XP] until they pick one. */
+    fun getDailyQuestGoal(): Flow<Int> =
+        getUserProgress()
+            .map { it?.dailyQuestGoal ?: DAILY_QUEST_XP }
+            .flowOn(Dispatchers.IO)
+
+    /** The learner's own daily XP goal, read once. */
+    suspend fun getDailyQuestGoalDirect(): Int = withContext(Dispatchers.IO) {
+        userProgressDao.getUserProgressDirect(GUEST_USER_ID)?.dailyQuestGoal ?: DAILY_QUEST_XP
+    }
+
+    /** Today's XP against the learner's own goal. */
+    fun getDailyQuest(): Flow<DailyQuest> =
+        combine(getTodayXp(), getDailyQuestGoal()) { xp, goal ->
+            DailyQuest(xp = xp, goal = goal)
+        }
+
+    /** Today's quest, read once; backs the home-screen widget. */
+    suspend fun getDailyQuestDirect(): DailyQuest = withContext(Dispatchers.IO) {
+        DailyQuest(
+            xp = dailyActivityDao.getXpDirect(java.time.LocalDate.now().toString()) ?: 0,
+            goal = getDailyQuestGoalDirect(),
+        )
+    }
+
+    suspend fun setDailyQuestGoal(goal: Int) = withContext(Dispatchers.IO) {
+        require(goal in DAILY_QUEST_XP_OPTIONS) { "daily goal must be one of $DAILY_QUEST_XP_OPTIONS, was $goal" }
+        userProgressDao.setDailyQuestGoal(GUEST_USER_ID, goal)
+    }
+
     /** XP earned today (local date); backs the daily quest card. */
     fun getTodayXp(): Flow<Int> =
         dailyActivityDao.getXp(java.time.LocalDate.now().toString())
@@ -363,13 +417,20 @@ class LocalProgressRepository(private val database: DuoDatabase) {
     }
 
     /**
-     * Full local reset: wipes completions, mistakes, and kana mastery, then
-     * restores a fresh guest profile. Curriculum seeds are preserved.
+     * Full local reset: wipes completions, mistakes, kana mastery and the day's
+     * quest progress, then restores a fresh guest profile. Curriculum seeds are
+     * preserved.
+     *
+     * The daily-activity wipe is part of the reset, not an oversight: the reset
+     * dialog promises that XP goes back to zero, and leaving the day row behind
+     * put a learner on 0 points looking at a quest reading 20/30 — so one
+     * correct answer later the bar claimed the day was complete at 10 points.
      */
     suspend fun resetAllProgress() = withContext(Dispatchers.IO) {
         challengeProgressDao.clearProgressForUser(GUEST_USER_ID)
         mistakeDao.clearAllMistakes()
         characterMasteryDao.clearAllMastery()
+        dailyActivityDao.clearAllActivity()
         userProgressDao.upsertUserProgress(
             UserProgressEntity(
                 userId = GUEST_USER_ID,
@@ -382,6 +443,7 @@ class LocalProgressRepository(private val database: DuoDatabase) {
                 lastActiveDate = java.time.LocalDate.now().toString(),
                 themeAccent = "TEAL",
                 themeMode = "SYSTEM",
+                dailyQuestGoal = DAILY_QUEST_XP,
             )
         )
     }
@@ -401,6 +463,7 @@ class LocalProgressRepository(private val database: DuoDatabase) {
                 hapticsEnabled = it.hapticsEnabled,
                 themeAccent = it.themeAccent,
                 themeMode = it.themeMode,
+                dailyQuestGoal = it.dailyQuestGoal,
             )
         }
         val completed = challengeProgressDao.getCompletedChallengeIdsDirect(GUEST_USER_ID)
@@ -469,6 +532,7 @@ class LocalProgressRepository(private val database: DuoDatabase) {
                         hapticsEnabled = u.hapticsEnabled,
                         themeAccent = u.themeAccent,
                         themeMode = u.themeMode,
+                        dailyQuestGoal = u.dailyQuestGoal,
                     )
                 )
             }
@@ -508,8 +572,18 @@ class LocalProgressRepository(private val database: DuoDatabase) {
                 )
             }
 
+            // An import restores an absolute total, not a delta. `addXp` is the
+            // answering path's accumulator, so restoring through it added the
+            // exported XP on top of the row that was already there: a learner
+            // who reset and then restored ended up with double the day's XP and
+            // a quest reading higher than the points they actually have. The
+            // table is replaced wholesale, like mistakes, mastery and
+            // checkpoints above it.
+            dailyActivityDao.clearAllActivity()
             backup.dailyActivity.forEach { d ->
-                dailyActivityDao.addXp(d.date, d.xp)
+                dailyActivityDao.putDay(
+                    com.duo.app.data.local.entities.DailyActivityEntity(d.date, d.xp),
+                )
             }
 
             checkpointScoreDao.clearAllScoresForUser(GUEST_USER_ID)
@@ -612,10 +686,10 @@ class LocalProgressRepository(private val database: DuoDatabase) {
         // Challenges for Lesson 100 (Unit 1)
         lessonDao.insertChallenges(
             listOf(
-                ChallengeEntity(id = 1001, lessonId = 100, type = "SELECT", question = "Which one of these is 'The man'?", orderIndex = 0),
-                ChallengeEntity(id = 1002, lessonId = 100, type = "ASSIST", question = "Translate: 'Good morning'", audioSrc = "asset:///audio/es/buenos_dias.ogg", orderIndex = 1),
-                ChallengeEntity(id = 1003, lessonId = 100, type = "WORD_BANK", question = "Translate: 'Hello, good morning'", orderIndex = 2),
-                ChallengeEntity(id = 1004, lessonId = 100, type = "LISTEN", question = "Tap what you hear", audioSrc = "asset:///audio/es/buenos_dias.ogg", orderIndex = 3),
+                ChallengeEntity(id = 1001, lessonId = 100, type = ChallengeType.SELECT, question = "Which one of these is 'The man'?", orderIndex = 0),
+                ChallengeEntity(id = 1002, lessonId = 100, type = ChallengeType.ASSIST, question = "Translate: 'Good morning'", audioSrc = "asset:///audio/es/buenos_dias.ogg", orderIndex = 1),
+                ChallengeEntity(id = 1003, lessonId = 100, type = ChallengeType.WORD_BANK, question = "Translate: 'Hello, good morning'", orderIndex = 2),
+                ChallengeEntity(id = 1004, lessonId = 100, type = ChallengeType.LISTEN, question = "Tap what you hear", audioSrc = "asset:///audio/es/buenos_dias.ogg", orderIndex = 3),
             )
         )
         lessonDao.insertOptions(
@@ -635,19 +709,19 @@ class LocalProgressRepository(private val database: DuoDatabase) {
                 ChallengeOptionEntity(id = 10010, challengeId = 1003, text = "adiós", correct = false),
                 ChallengeOptionEntity(id = 10011, challengeId = 1003, text = "noche", correct = false),
 
-                ChallengeOptionEntity(id = 10012, challengeId = 1004, text = "Good morning", correct = true),
-                ChallengeOptionEntity(id = 10013, challengeId = 1004, text = "Good night", correct = false),
-                ChallengeOptionEntity(id = 10014, challengeId = 1004, text = "Goodbye", correct = false),
+                ChallengeOptionEntity(id = 10012, challengeId = 1004, text = "Buenos días", correct = true),
+                ChallengeOptionEntity(id = 10013, challengeId = 1004, text = "Buenos noches", correct = false),
+                ChallengeOptionEntity(id = 10014, challengeId = 1004, text = "Buenas días", correct = false),
             )
         )
 
         // Challenges for Lesson 101 (Unit 1)
         lessonDao.insertChallenges(
             listOf(
-                ChallengeEntity(id = 1005, lessonId = 101, type = "SELECT", question = "How do you say 'Thank you'?", audioSrc = "asset:///audio/es/gracias.ogg", orderIndex = 0),
-                ChallengeEntity(id = 1006, lessonId = 101, type = "WORD_BANK", question = "Translate: 'Yes, please'", orderIndex = 1),
-                ChallengeEntity(id = 1007, lessonId = 101, type = "LISTEN", question = "Tap what you hear", audioSrc = "asset:///audio/es/por_favor.ogg", orderIndex = 2),
-                ChallengeEntity(id = 1008, lessonId = 101, type = "SELECT", question = "What is 'You're welcome'?", audioSrc = "asset:///audio/es/de_nada.ogg", orderIndex = 3),
+                ChallengeEntity(id = 1005, lessonId = 101, type = ChallengeType.SELECT, question = "How do you say 'Thank you'?", audioSrc = "asset:///audio/es/gracias.ogg", orderIndex = 0),
+                ChallengeEntity(id = 1006, lessonId = 101, type = ChallengeType.WORD_BANK, question = "Translate: 'Yes, please'", orderIndex = 1),
+                ChallengeEntity(id = 1007, lessonId = 101, type = ChallengeType.LISTEN, question = "Tap what you hear", audioSrc = "asset:///audio/es/por_favor.ogg", orderIndex = 2),
+                ChallengeEntity(id = 1008, lessonId = 101, type = ChallengeType.SELECT, question = "What is 'You're welcome'?", audioSrc = "asset:///audio/es/de_nada.ogg", orderIndex = 3),
             )
         )
         lessonDao.insertOptions(
@@ -663,9 +737,9 @@ class LocalProgressRepository(private val database: DuoDatabase) {
                 ChallengeOptionEntity(id = 10021, challengeId = 1006, text = "no", correct = false),
                 ChallengeOptionEntity(id = 10022, challengeId = 1006, text = "gracias", correct = false),
 
-                ChallengeOptionEntity(id = 10023, challengeId = 1007, text = "Please", correct = true),
-                ChallengeOptionEntity(id = 10024, challengeId = 1007, text = "Thank you", correct = false),
-                ChallengeOptionEntity(id = 10025, challengeId = 1007, text = "You're welcome", correct = false),
+                ChallengeOptionEntity(id = 10023, challengeId = 1007, text = "Por favor", correct = true),
+                ChallengeOptionEntity(id = 10024, challengeId = 1007, text = "Por favores", correct = false),
+                ChallengeOptionEntity(id = 10025, challengeId = 1007, text = "Por la favor", correct = false),
 
                 ChallengeOptionEntity(id = 10026, challengeId = 1008, text = "De nada", correct = true, audioSrc = "asset:///audio/es/de_nada.ogg"),
                 ChallengeOptionEntity(id = 10027, challengeId = 1008, text = "Perdón", correct = false),
@@ -676,10 +750,10 @@ class LocalProgressRepository(private val database: DuoDatabase) {
         // Challenges for Lesson 102 (Unit 2: Family)
         lessonDao.insertChallenges(
             listOf(
-                ChallengeEntity(id = 1009, lessonId = 102, type = "SELECT", question = "Translate: 'The father'", audioSrc = "asset:///audio/es/el_padre.ogg", orderIndex = 0),
-                ChallengeEntity(id = 1010, lessonId = 102, type = "SELECT", question = "Translate: 'The mother'", audioSrc = "asset:///audio/es/la_madre.ogg", orderIndex = 1),
-                ChallengeEntity(id = 1011, lessonId = 102, type = "WORD_BANK", question = "Translate: 'The father and the mother'", orderIndex = 2),
-                ChallengeEntity(id = 1012, lessonId = 102, type = "LISTEN", question = "Tap what you hear", audioSrc = "asset:///audio/es/la_familia.ogg", orderIndex = 3),
+                ChallengeEntity(id = 1009, lessonId = 102, type = ChallengeType.SELECT, question = "Translate: 'The father'", audioSrc = "asset:///audio/es/el_padre.ogg", orderIndex = 0),
+                ChallengeEntity(id = 1010, lessonId = 102, type = ChallengeType.SELECT, question = "Translate: 'The mother'", audioSrc = "asset:///audio/es/la_madre.ogg", orderIndex = 1),
+                ChallengeEntity(id = 1011, lessonId = 102, type = ChallengeType.WORD_BANK, question = "Translate: 'The father and the mother'", orderIndex = 2),
+                ChallengeEntity(id = 1012, lessonId = 102, type = ChallengeType.LISTEN, question = "Tap what you hear", audioSrc = "asset:///audio/es/la_familia.ogg", orderIndex = 3),
             )
         )
         lessonDao.insertOptions(
@@ -700,18 +774,31 @@ class LocalProgressRepository(private val database: DuoDatabase) {
                 ChallengeOptionEntity(id = 10039, challengeId = 1011, text = "madre", correct = true),
                 ChallengeOptionEntity(id = 10040, challengeId = 1011, text = "hijo", correct = false),
 
-                ChallengeOptionEntity(id = 10041, challengeId = 1012, text = "The family", correct = true),
-                ChallengeOptionEntity(id = 10042, challengeId = 1012, text = "The house", correct = false),
-                ChallengeOptionEntity(id = 10043, challengeId = 1012, text = "The city", correct = false),
+                ChallengeOptionEntity(id = 10041, challengeId = 1012, text = "La familia", correct = true),
+                ChallengeOptionEntity(id = 10042, challengeId = 1012, text = "El familia", correct = false),
+                ChallengeOptionEntity(id = 10043, challengeId = 1012, text = "La familiar", correct = false),
             )
         )
 
         // Challenges for Lesson 103 (Unit 2: Introductions)
         lessonDao.insertChallenges(
             listOf(
-                ChallengeEntity(id = 1013, lessonId = 103, type = "SELECT", question = "How do you say 'Nice to meet you'?", audioSrc = "asset:///audio/es/mucho_gusto.ogg", orderIndex = 0),
-                ChallengeEntity(id = 1014, lessonId = 103, type = "WORD_BANK", question = "Translate: 'I am a boy'", orderIndex = 1),
-                ChallengeEntity(id = 1015, lessonId = 103, type = "LISTEN", question = "Tap what you hear", audioSrc = "asset:///audio/es/yo_soy_un_nino.ogg", orderIndex = 2),
+                ChallengeEntity(id = 1013, lessonId = 103, type = ChallengeType.SELECT, question = "How do you say 'Nice to meet you'?", audioSrc = "asset:///audio/es/mucho_gusto.ogg", orderIndex = 0),
+                ChallengeEntity(
+                    id = 1014, lessonId = 103, type = ChallengeType.WORD_BANK,
+                    question = "Assemble: 'I am a boy'",
+                    orderIndex = 1,
+                    grammaticalFocus = "es.ser_present",
+                    ruleText = "ser (to be, identity) is irregular in the present: yo soy, tú eres, él es, nosotros somos, ellos son.\nAfter 'yo' the only form that fits is soy. son goes with ellos/ellas, and estar is a different verb: yo estoy.",
+                ),
+                ChallengeEntity(
+                    id = 1015, lessonId = 103, type = ChallengeType.LISTEN,
+                    question = "Tap what you hear",
+                    audioSrc = "asset:///audio/es/yo_soy_un_nino.ogg",
+                    orderIndex = 2,
+                    grammaticalFocus = "es.ser_present",
+                    ruleText = "ser (to be, identity) is irregular: yo soy, tú eres, él es. estar is a different verb: yo estoy, tú estás.\nSo 'I am a boy' is Yo soy un niño — never Yo estoy un niño.",
+                ),
             )
         )
         lessonDao.insertOptions(
@@ -725,12 +812,12 @@ class LocalProgressRepository(private val database: DuoDatabase) {
                 ChallengeOptionEntity(id = 10048, challengeId = 1014, text = "soy", correct = true),
                 ChallengeOptionEntity(id = 10049, challengeId = 1014, text = "un", correct = true),
                 ChallengeOptionEntity(id = 10050, challengeId = 1014, text = "niño", correct = true),
-                ChallengeOptionEntity(id = 10051, challengeId = 1014, text = "chica", correct = false),
-                ChallengeOptionEntity(id = 10052, challengeId = 1014, text = "una", correct = false),
+                ChallengeOptionEntity(id = 10051, challengeId = 1014, text = "son", correct = false, errorTag = "WRONG_PERSON"),
+                ChallengeOptionEntity(id = 10052, challengeId = 1014, text = "estoy", correct = false, errorTag = "WRONG_COPULA"),
 
-                ChallengeOptionEntity(id = 10053, challengeId = 1015, text = "I am a boy", correct = true),
-                ChallengeOptionEntity(id = 10054, challengeId = 1015, text = "I am a girl", correct = false),
-                ChallengeOptionEntity(id = 10055, challengeId = 1015, text = "I am a student", correct = false),
+                ChallengeOptionEntity(id = 10053, challengeId = 1015, text = "Yo soy un niño", correct = true),
+                ChallengeOptionEntity(id = 10054, challengeId = 1015, text = "Yo estoy un niño", correct = false, errorTag = "WRONG_COPULA"),
+                ChallengeOptionEntity(id = 10055, challengeId = 1015, text = "Yo soy un nino", correct = false),
             )
         )
     }
@@ -771,10 +858,16 @@ class LocalProgressRepository(private val database: DuoDatabase) {
         // Challenges for Lesson 200 (Unit 1)
         lessonDao.insertChallenges(
             listOf(
-                ChallengeEntity(id = 2001, lessonId = 200, type = "SELECT", question = "Which one means 'Hello / Good day'?", audioSrc = "asset:///audio/ja/konnichiwa.ogg", orderIndex = 0),
-                ChallengeEntity(id = 2002, lessonId = 200, type = "ASSIST", question = "Which phrase means 'Good morning'?", audioSrc = "asset:///audio/ja/ohayou.ogg", orderIndex = 1),
-                ChallengeEntity(id = 2003, lessonId = 200, type = "WORD_BANK", question = "Assemble: 'Thank you very much'", orderIndex = 2),
-                ChallengeEntity(id = 2004, lessonId = 200, type = "LISTEN", question = "Tap what you hear", audioSrc = "asset:///audio/ja/konnichiwa.ogg", orderIndex = 3),
+                ChallengeEntity(id = 2001, lessonId = 200, type = ChallengeType.SELECT, question = "Which one means 'Hello / Good day'?", audioSrc = "asset:///audio/ja/konnichiwa.ogg", orderIndex = 0),
+                ChallengeEntity(id = 2002, lessonId = 200, type = ChallengeType.ASSIST, question = "Which phrase means 'Good morning'?", audioSrc = "asset:///audio/ja/ohayou.ogg", orderIndex = 1),
+                ChallengeEntity(
+                    id = 2003, lessonId = 200, type = ChallengeType.WORD_BANK,
+                    question = "Assemble: 'Thank you very much'",
+                    orderIndex = 2,
+                    grammaticalFocus = "ja.polite_register",
+                    ruleText = "ございます is the polite form of あります. ある is what you use about yourself and people close to you (友達がいる); ございます is the polite form you use with a teacher, a customer, or anyone you do not know well.\nどうも ありがとうございます is the polite thank-you; どうも ありがとう あります is not a sentence anyone says.",
+                ),
+                ChallengeEntity(id = 2004, lessonId = 200, type = ChallengeType.LISTEN, question = "Tap what you hear", audioSrc = "asset:///audio/ja/konnichiwa.ogg", orderIndex = 3),
             )
         )
         lessonDao.insertOptions(
@@ -791,22 +884,22 @@ class LocalProgressRepository(private val database: DuoDatabase) {
                 ChallengeOptionEntity(id = 20007, challengeId = 2003, text = "どうも", romaji = "doumo", correct = true),
                 ChallengeOptionEntity(id = 20008, challengeId = 2003, text = "ありがとう", romaji = "arigatou", correct = true, audioSrc = "asset:///audio/ja/arigatou.ogg"),
                 ChallengeOptionEntity(id = 20009, challengeId = 2003, text = "ございます", romaji = "gozaimasu", correct = true),
-                ChallengeOptionEntity(id = 20010, challengeId = 2003, text = "いいえ", romaji = "iie", correct = false),
+                ChallengeOptionEntity(id = 20010, challengeId = 2003, text = "あります", romaji = "arimasu", correct = false, errorTag = "WRONG_REGISTER"),
                 ChallengeOptionEntity(id = 20011, challengeId = 2003, text = "こんにちは", romaji = "konnichiwa", correct = false),
 
-                ChallengeOptionEntity(id = 20012, challengeId = 2004, text = "Hello / Good day", correct = true),
-                ChallengeOptionEntity(id = 20013, challengeId = 2004, text = "Goodbye", correct = false),
-                ChallengeOptionEntity(id = 20014, challengeId = 2004, text = "Excuse me", correct = false),
+                ChallengeOptionEntity(id = 20012, challengeId = 2004, text = "こんにちは", romaji = "Konnichiwa", correct = true),
+                ChallengeOptionEntity(id = 20013, challengeId = 2004, text = "こんばんは", romaji = "Konbanwa", correct = false),
+                ChallengeOptionEntity(id = 20014, challengeId = 2004, text = "こんにちわ", romaji = "Konnichiwa", correct = false),
             )
         )
 
         // Challenges for Lesson 201 (Unit 1: Numbers)
         lessonDao.insertChallenges(
             listOf(
-                ChallengeEntity(id = 2005, lessonId = 201, type = "SELECT", question = "Which kanji is 'One (1)'?", orderIndex = 0),
-                ChallengeEntity(id = 2006, lessonId = 201, type = "SELECT", question = "Which kanji is 'Two (2)'?", orderIndex = 1),
-                ChallengeEntity(id = 2007, lessonId = 201, type = "WORD_BANK", question = "Assemble: 'One, two, three'", orderIndex = 2),
-                ChallengeEntity(id = 2008, lessonId = 201, type = "LISTEN", question = "Tap what you hear", audioSrc = "asset:///audio/ja/ichi_ni_san.ogg", orderIndex = 3),
+                ChallengeEntity(id = 2005, lessonId = 201, type = ChallengeType.SELECT, question = "Which kanji is 'One (1)'?", orderIndex = 0),
+                ChallengeEntity(id = 2006, lessonId = 201, type = ChallengeType.SELECT, question = "Which kanji is 'Two (2)'?", orderIndex = 1),
+                ChallengeEntity(id = 2007, lessonId = 201, type = ChallengeType.WORD_BANK, question = "Assemble: 'One, two, three'", orderIndex = 2),
+                ChallengeEntity(id = 2008, lessonId = 201, type = ChallengeType.LISTEN, question = "Tap what you hear", audioSrc = "asset:///audio/ja/ichi_ni_san.ogg", orderIndex = 3),
             )
         )
         lessonDao.insertOptions(
@@ -826,19 +919,19 @@ class LocalProgressRepository(private val database: DuoDatabase) {
                 ChallengeOptionEntity(id = 20024, challengeId = 2007, text = "よん", romaji = "yon", correct = false),
                 ChallengeOptionEntity(id = 20025, challengeId = 2007, text = "ご", romaji = "go", correct = false),
 
-                ChallengeOptionEntity(id = 20026, challengeId = 2008, text = "One, two, three", correct = true),
-                ChallengeOptionEntity(id = 20027, challengeId = 2008, text = "Four, five, six", correct = false),
-                ChallengeOptionEntity(id = 20028, challengeId = 2008, text = "Seven, eight, nine", correct = false),
+                ChallengeOptionEntity(id = 20026, challengeId = 2008, text = "いち に さん", romaji = "ichi ni san", correct = true),
+                ChallengeOptionEntity(id = 20027, challengeId = 2008, text = "いち に よん", romaji = "ichi ni yon", correct = false),
+                ChallengeOptionEntity(id = 20028, challengeId = 2008, text = "いっ に さん", romaji = "it ni san", correct = false),
             )
         )
 
         // Challenges for Lesson 202 (Unit 2: Eating & Drinking)
         lessonDao.insertChallenges(
             listOf(
-                ChallengeEntity(id = 2009, lessonId = 202, type = "SELECT", question = "What is 'Water' in Japanese?", audioSrc = "asset:///audio/ja/mizu.ogg", orderIndex = 0),
-                ChallengeEntity(id = 2010, lessonId = 202, type = "SELECT", question = "What is 'Green Tea'?", audioSrc = "asset:///audio/ja/ocha.ogg", orderIndex = 1),
-                ChallengeEntity(id = 2011, lessonId = 202, type = "WORD_BANK", question = "Assemble: 'Water, please'", orderIndex = 2),
-                ChallengeEntity(id = 2012, lessonId = 202, type = "LISTEN", question = "Tap what you hear", audioSrc = "asset:///audio/ja/itadakimasu.ogg", orderIndex = 3),
+                ChallengeEntity(id = 2009, lessonId = 202, type = ChallengeType.SELECT, question = "What is 'Water' in Japanese?", audioSrc = "asset:///audio/ja/mizu.ogg", orderIndex = 0),
+                ChallengeEntity(id = 2010, lessonId = 202, type = ChallengeType.SELECT, question = "What is 'Green Tea'?", audioSrc = "asset:///audio/ja/ocha.ogg", orderIndex = 1),
+                ChallengeEntity(id = 2011, lessonId = 202, type = ChallengeType.WORD_BANK, question = "Assemble: 'Water, please'", orderIndex = 2),
+                ChallengeEntity(id = 2012, lessonId = 202, type = ChallengeType.LISTEN, question = "Tap what you hear", audioSrc = "asset:///audio/ja/itadakimasu.ogg", orderIndex = 3),
             )
         )
         lessonDao.insertOptions(
@@ -858,19 +951,25 @@ class LocalProgressRepository(private val database: DuoDatabase) {
                 ChallengeOptionEntity(id = 20038, challengeId = 2011, text = "お茶", romaji = "ocha", correct = false),
                 ChallengeOptionEntity(id = 20039, challengeId = 2011, text = "はい", romaji = "hai", correct = false),
 
-                ChallengeOptionEntity(id = 20040, challengeId = 2012, text = "Thank you for the food (Bon appetit)", correct = true),
-                ChallengeOptionEntity(id = 20041, challengeId = 2012, text = "Excuse me", correct = false),
-                ChallengeOptionEntity(id = 20042, challengeId = 2012, text = "Good morning", correct = false),
+                ChallengeOptionEntity(id = 20040, challengeId = 2012, text = "いただきます", romaji = "Itadakimasu", correct = true),
+                ChallengeOptionEntity(id = 20041, challengeId = 2012, text = "いただきません", romaji = "Itadakimasen", correct = false),
+                ChallengeOptionEntity(id = 20042, challengeId = 2012, text = "いだきます", romaji = "Idakimasu", correct = false),
             )
         )
 
         // Challenges for Lesson 203 (Unit 2: Politeness & Gratitude)
         lessonDao.insertChallenges(
             listOf(
-                ChallengeEntity(id = 2013, lessonId = 203, type = "SELECT", question = "How do you say 'Yes' in Japanese?", audioSrc = "asset:///audio/ja/hai.ogg", orderIndex = 0),
-                ChallengeEntity(id = 2014, lessonId = 203, type = "SELECT", question = "How do you say 'Excuse me / Sorry'?", audioSrc = "asset:///audio/ja/sumimasen.ogg", orderIndex = 1),
-                ChallengeEntity(id = 2015, lessonId = 203, type = "WORD_BANK", question = "Assemble: 'Yes, thank you'", orderIndex = 2),
-                ChallengeEntity(id = 2016, lessonId = 203, type = "LISTEN", question = "Tap what you hear", audioSrc = "asset:///audio/ja/sumimasen.ogg", orderIndex = 3),
+                ChallengeEntity(id = 2013, lessonId = 203, type = ChallengeType.SELECT, question = "How do you say 'Yes' in Japanese?", audioSrc = "asset:///audio/ja/hai.ogg", orderIndex = 0),
+                ChallengeEntity(id = 2014, lessonId = 203, type = ChallengeType.SELECT, question = "How do you say 'Excuse me / Sorry'?", audioSrc = "asset:///audio/ja/sumimasen.ogg", orderIndex = 1),
+                ChallengeEntity(
+                    id = 2015, lessonId = 203, type = ChallengeType.WORD_BANK,
+                    question = "Assemble: 'Yes, thank you'",
+                    orderIndex = 2,
+                    grammaticalFocus = "ja.polite_register",
+                    ruleText = "ございます is the polite form of あります. Use ある with friends and family, ございます in polite speech.\nSo the polite thank-you is ありがとうございます, never あります.",
+                ),
+                ChallengeEntity(id = 2016, lessonId = 203, type = ChallengeType.LISTEN, question = "Tap what you hear", audioSrc = "asset:///audio/ja/sumimasen.ogg", orderIndex = 3),
             )
         )
         lessonDao.insertOptions(
@@ -887,13 +986,13 @@ class LocalProgressRepository(private val database: DuoDatabase) {
                 ChallengeOptionEntity(id = 20049, challengeId = 2015, text = "はい", romaji = "hai", correct = true, audioSrc = "asset:///audio/ja/hai.ogg"),
                 ChallengeOptionEntity(id = 20050, challengeId = 2015, text = "ありがとう", romaji = "arigatou", correct = true, audioSrc = "asset:///audio/ja/arigatou.ogg"),
                 ChallengeOptionEntity(id = 20051, challengeId = 2015, text = "ございます", romaji = "gozaimasu", correct = true),
-                ChallengeOptionEntity(id = 20052, challengeId = 2015, text = "いいえ", romaji = "iie", correct = false),
+                ChallengeOptionEntity(id = 20052, challengeId = 2015, text = "あります", romaji = "arimasu", correct = false, errorTag = "WRONG_REGISTER"),
 
                 ChallengeOptionEntity(id = 20053, challengeId = 2015, text = "すみません", romaji = "sumimasen", correct = false),
 
-                ChallengeOptionEntity(id = 20054, challengeId = 2016, text = "Excuse me / Sorry", correct = true),
-                ChallengeOptionEntity(id = 20055, challengeId = 2016, text = "Goodbye", correct = false),
-                ChallengeOptionEntity(id = 20056, challengeId = 2016, text = "Hello", correct = false),
+                ChallengeOptionEntity(id = 20054, challengeId = 2016, text = "すみません", romaji = "Sumimasen", correct = true),
+                ChallengeOptionEntity(id = 20055, challengeId = 2016, text = "すいせん", romaji = "Suinsen", correct = false),
+                ChallengeOptionEntity(id = 20056, challengeId = 2016, text = "みません", romaji = "Mimasen", correct = false),
             )
         )
     }
@@ -941,6 +1040,25 @@ class LocalProgressRepository(private val database: DuoDatabase) {
         withContext(Dispatchers.IO) {
             val challenges = lessonDao.getChallengesForUnits(unitIds)
             challenges.map { challenge ->
+                ChallengeWithOptions(
+                    challenge = challenge,
+                    options = lessonDao.getOptionsForChallenge(challenge.id),
+                    isCompleted = false,
+                )
+            }
+        }
+
+    /**
+     * Retrieves the held-out challenges for the given unit IDs, with options loaded.
+     *
+     * These rows are seeded with the rest of the curriculum but are excluded from
+     * [getChallengesForLesson] and [getChallengesForUnits], so a checkpoint can
+     * assess a grammar structure the learner was taught without re-testing the exact
+     * sentences they memorised.
+     */
+    suspend fun getHeldOutChallengesForUnits(unitIds: List<Int>): List<ChallengeWithOptions> =
+        withContext(Dispatchers.IO) {
+            lessonDao.getHeldOutChallengesForUnits(unitIds).map { challenge ->
                 ChallengeWithOptions(
                     challenge = challenge,
                     options = lessonDao.getOptionsForChallenge(challenge.id),
@@ -1018,6 +1136,24 @@ class LocalProgressRepository(private val database: DuoDatabase) {
 
     fun getAllVocab(language: String): Flow<List<VocabScheduleEntity>> {
         return vocabScheduleDao.getVocabForLanguage(language)
+    }
+
+    /**
+     * WI-11: builds the offline dictionary from the tables that are already
+     * here — every seeded challenge with its options, plus the FSRS vocabulary
+     * the Practice tab reviews.
+     *
+     * Three flat reads, once, off the main thread. Nothing here writes, so a
+     * lookup can never touch the mistakes table, the challenge-progress table
+     * or the exercise-type stats: reading a definition is study, not an
+     * attempt.
+     */
+    suspend fun loadDictionary(): Dictionary = withContext(Dispatchers.IO) {
+        DictionaryIndex.build(
+            challenges = lessonDao.getAllChallenges(),
+            options = lessonDao.getAllOptions(),
+            vocab = vocabScheduleDao.getAllVocabDirect(),
+        )
     }
 
     suspend fun reviewVocab(item: VocabScheduleEntity, rating: Int) = withContext(Dispatchers.IO) {

@@ -4,6 +4,7 @@ import com.duo.app.data.local.entities.ChallengeEntity
 import com.duo.app.data.local.entities.ChallengeOptionEntity
 import com.duo.app.data.local.entities.LessonEntity
 import com.duo.app.data.local.entities.UnitEntity
+import com.duo.app.data.local.models.ChallengeType
 
 data class UnitPayload(
     val unit: UnitEntity,
@@ -32,15 +33,15 @@ object ExpandedCurriculumData {
                 LessonEntity(id = 106, unitId = 12, title = "Lesson 6: Restaurant Phrases", orderIndex = 1),
             ),
             challenges = listOf(
-                ChallengeEntity(id = 1017, lessonId = 105, type = "SELECT", question = "Which one means 'A coffee, please'?", audioSrc = "asset:///audio/es/un_cafe_por_favor.ogg", orderIndex = 0),
-                ChallengeEntity(id = 1018, lessonId = 105, type = "WORD_BANK", question = "Assemble: 'Water and bread'", orderIndex = 1),
-                ChallengeEntity(id = 1019, lessonId = 105, type = "LISTEN", question = "Tap what you hear", audioSrc = "asset:///audio/es/la_cuenta.ogg", orderIndex = 2),
+                ChallengeEntity(id = 1017, lessonId = 105, type = ChallengeType.SELECT, question = "Which one means 'A coffee, please'?", audioSrc = "asset:///audio/es/un_cafe_por_favor.ogg", orderIndex = 0),
+                ChallengeEntity(id = 1018, lessonId = 105, type = ChallengeType.WORD_BANK, question = "Assemble: 'Water and bread'", orderIndex = 1),
+                ChallengeEntity(id = 1019, lessonId = 105, type = ChallengeType.LISTEN, question = "Tap what you hear", audioSrc = "asset:///audio/es/la_cuenta.ogg", orderIndex = 2),
 
-                ChallengeEntity(id = 1020, lessonId = 106, type = "SELECT", question = "How do you ask 'Where is the restaurant?'", audioSrc = "asset:///audio/es/donde_esta_el_restaurante.ogg", orderIndex = 0),
-                ChallengeEntity(id = 1021, lessonId = 106, type = "WORD_BANK", question = "Assemble: 'The bill, please'", orderIndex = 1),
-                ChallengeEntity(id = 1022, lessonId = 106, type = "SELECT", question = "Which one means 'Delicious'?", orderIndex = 2),
-                ChallengeEntity(id = 1080, lessonId = 106, type = "MATCH_PAIRS", question = "Match the café words", orderIndex = 3),
-                ChallengeEntity(id = 1081, lessonId = 106, type = "SELECT", question = "Dialogue at the café:\nCamarero: \"¿Qué desea tomar?\"\nCliente: \"Un café, por favor.\"\nWhat did the customer order?", audioSrc = "asset:///audio/es/un_cafe_por_favor.ogg", orderIndex = 4),
+                ChallengeEntity(id = 1020, lessonId = 106, type = ChallengeType.SELECT, question = "How do you ask 'Where is the restaurant?'", audioSrc = "asset:///audio/es/donde_esta_el_restaurante.ogg", orderIndex = 0),
+                ChallengeEntity(id = 1021, lessonId = 106, type = ChallengeType.WORD_BANK, question = "Assemble: 'The bill, please'", orderIndex = 1),
+                ChallengeEntity(id = 1022, lessonId = 106, type = ChallengeType.SELECT, question = "Which one means 'Delicious'?", orderIndex = 2),
+                ChallengeEntity(id = 1080, lessonId = 106, type = ChallengeType.MATCH_PAIRS, question = "Match the café words", orderIndex = 3),
+                ChallengeEntity(id = 1081, lessonId = 106, type = ChallengeType.SELECT, question = "Dialogue at the café:\nCamarero: \"¿Qué desea tomar?\"\nCliente: \"Un café, por favor.\"\nWhat did the customer order?", audioSrc = "asset:///audio/es/un_cafe_por_favor.ogg", orderIndex = 4),
             ),
             options = listOf(
                 ChallengeOptionEntity(id = 10057, challengeId = 1017, text = "Un café, por favor", correct = true, audioSrc = "asset:///audio/es/un_cafe_por_favor.ogg"),
@@ -53,9 +54,9 @@ object ExpandedCurriculumData {
                 ChallengeOptionEntity(id = 10063, challengeId = 1018, text = "café", correct = false),
                 ChallengeOptionEntity(id = 10064, challengeId = 1018, text = "por favor", correct = false),
 
-                ChallengeOptionEntity(id = 10065, challengeId = 1019, text = "The bill / check", correct = true),
-                ChallengeOptionEntity(id = 10066, challengeId = 1019, text = "The kitchen", correct = false),
-                ChallengeOptionEntity(id = 10067, challengeId = 1019, text = "The table", correct = false),
+                ChallengeOptionEntity(id = 10065, challengeId = 1019, text = "La cuenta", correct = true),
+                ChallengeOptionEntity(id = 10066, challengeId = 1019, text = "El cuenta", correct = false),
+                ChallengeOptionEntity(id = 10067, challengeId = 1019, text = "Las cuentas", correct = false),
 
                 ChallengeOptionEntity(id = 10068, challengeId = 1020, text = "¿Dónde está el restaurante?", correct = true, audioSrc = "asset:///audio/es/donde_esta_el_restaurante.ogg"),
                 ChallengeOptionEntity(id = 10069, challengeId = 1020, text = "¿Dónde está la estación?", correct = false),
@@ -101,12 +102,24 @@ object ExpandedCurriculumData {
                 LessonEntity(id = 108, unitId = 13, title = "Lesson 8: Habits & Home", orderIndex = 1),
             ),
             challenges = listOf(
-                ChallengeEntity(id = 1023, lessonId = 107, type = "SELECT", question = "What is 'I speak Spanish'?", audioSrc = "asset:///audio/es/yo_hablo_espanol.ogg", orderIndex = 0),
-                ChallengeEntity(id = 1024, lessonId = 107, type = "WORD_BANK", question = "Assemble: 'I live in Madrid'", orderIndex = 1),
-                ChallengeEntity(id = 1025, lessonId = 107, type = "LISTEN", question = "Tap what you hear", audioSrc = "asset:///audio/es/yo_como_manzanas.ogg", orderIndex = 2),
+                ChallengeEntity(id = 1023, lessonId = 107, type = ChallengeType.SELECT, question = "What is 'I speak Spanish'?", audioSrc = "asset:///audio/es/yo_hablo_espanol.ogg", orderIndex = 0),
+                ChallengeEntity(
+                    id = 1024, lessonId = 107, type = ChallengeType.WORD_BANK,
+                    question = "Assemble: 'I live in Madrid'",
+                    orderIndex = 1,
+                    grammaticalFocus = "es.present_person",
+                    ruleText = "Regular -ir verbs in the present drop the -ir and add the person ending: yo vivo, tú vives, él vive, nosotros vivimos, ellos viven.\nAfter 'yo' the ending is always -o: neither vives nor viven can follow it.",
+                ),
+                ChallengeEntity(id = 1025, lessonId = 107, type = ChallengeType.LISTEN, question = "Tap what you hear", audioSrc = "asset:///audio/es/yo_como_manzanas.ogg", orderIndex = 2),
 
-                ChallengeEntity(id = 1026, lessonId = 108, type = "SELECT", question = "Translate: 'We study Spanish'", orderIndex = 0),
-                ChallengeEntity(id = 1027, lessonId = 108, type = "WORD_BANK", question = "Assemble: 'He eats bread'", orderIndex = 1),
+                ChallengeEntity(id = 1026, lessonId = 108, type = ChallengeType.SELECT, question = "Translate: 'We study Spanish'", orderIndex = 0),
+                ChallengeEntity(
+                    id = 1027, lessonId = 108, type = ChallengeType.WORD_BANK,
+                    question = "Assemble: 'He eats bread'",
+                    orderIndex = 1,
+                    grammaticalFocus = "es.present_person",
+                    ruleText = "Regular -er verbs in the present: yo como, tú comes, él come, nosotros comemos, ellos comen.\nÉl takes the third person ending, so él come. como is also the word 'as' — in this frame only come fits.",
+                ),
             ),
             options = listOf(
                 ChallengeOptionEntity(id = 10078, challengeId = 1023, text = "Yo hablo español", correct = true, audioSrc = "asset:///audio/es/yo_hablo_espanol.ogg"),
@@ -116,11 +129,13 @@ object ExpandedCurriculumData {
                 ChallengeOptionEntity(id = 10081, challengeId = 1024, text = "Yo vivo", correct = true),
                 ChallengeOptionEntity(id = 10082, challengeId = 1024, text = "en", correct = true),
                 ChallengeOptionEntity(id = 10083, challengeId = 1024, text = "Madrid", correct = true),
-                ChallengeOptionEntity(id = 10084, challengeId = 1024, text = "hablo", correct = false),
+                ChallengeOptionEntity(id = 10084, challengeId = 1024, text = "viven", correct = false, errorTag = "WRONG_PERSON"),
 
-                ChallengeOptionEntity(id = 10085, challengeId = 1025, text = "I eat apples", correct = true),
-                ChallengeOptionEntity(id = 10086, challengeId = 1025, text = "I drink water", correct = false),
-                ChallengeOptionEntity(id = 10087, challengeId = 1025, text = "I speak English", correct = false),
+                ChallengeOptionEntity(id = 300000, challengeId = 1024, text = "vive", correct = false, errorTag = "WRONG_PERSON"),
+
+                ChallengeOptionEntity(id = 10085, challengeId = 1025, text = "Yo como manzanas", correct = true),
+                ChallengeOptionEntity(id = 10086, challengeId = 1025, text = "Yo como mañana", correct = false),
+                ChallengeOptionEntity(id = 10087, challengeId = 1025, text = "Yo cómo manzanas", correct = false),
 
                 ChallengeOptionEntity(id = 10088, challengeId = 1026, text = "Nosotros estudiamos español", correct = true),
                 ChallengeOptionEntity(id = 10089, challengeId = 1026, text = "Ellos estudian inglés", correct = false),
@@ -128,7 +143,9 @@ object ExpandedCurriculumData {
                 ChallengeOptionEntity(id = 10090, challengeId = 1027, text = "Él", correct = true),
                 ChallengeOptionEntity(id = 10091, challengeId = 1027, text = "come", correct = true),
                 ChallengeOptionEntity(id = 10092, challengeId = 1027, text = "pan", correct = true),
-                ChallengeOptionEntity(id = 10093, challengeId = 1027, text = "bebe", correct = false),
+                ChallengeOptionEntity(id = 10093, challengeId = 1027, text = "como", correct = false, errorTag = "WRONG_PERSON"),
+
+                ChallengeOptionEntity(id = 300001, challengeId = 1027, text = "comen", correct = false, errorTag = "WRONG_PERSON"),
             )
         ),
 
@@ -145,8 +162,14 @@ object ExpandedCurriculumData {
                 LessonEntity(id = 109, unitId = 14, title = "Lesson 9: Finding Places", orderIndex = 0),
             ),
             challenges = listOf(
-                ChallengeEntity(id = 1028, lessonId = 109, type = "SELECT", question = "Which phrase means 'To the right'?", orderIndex = 0),
-                ChallengeEntity(id = 1029, lessonId = 109, type = "WORD_BANK", question = "Assemble: 'The hotel is here'", orderIndex = 1),
+                ChallengeEntity(id = 1028, lessonId = 109, type = ChallengeType.SELECT, question = "Which phrase means 'To the right'?", orderIndex = 0),
+                ChallengeEntity(
+                    id = 1029, lessonId = 109, type = ChallengeType.WORD_BANK,
+                    question = "Assemble: 'The hotel is here'",
+                    orderIndex = 1,
+                    grammaticalFocus = "es.ser_estar",
+                    ruleText = "estar marks location and temporary states: El hotel está aquí.\nser marks identity and lasting qualities: El hotel es grande, La casa es mi casa. With a place word you need está; están would not agree with the singular 'el hotel'.",
+                ),
             ),
             options = listOf(
                 ChallengeOptionEntity(id = 10094, challengeId = 1028, text = "A la derecha", correct = true),
@@ -156,7 +179,9 @@ object ExpandedCurriculumData {
                 ChallengeOptionEntity(id = 10097, challengeId = 1029, text = "El hotel", correct = true),
                 ChallengeOptionEntity(id = 10098, challengeId = 1029, text = "está", correct = true),
                 ChallengeOptionEntity(id = 10099, challengeId = 1029, text = "aquí", correct = true),
-                ChallengeOptionEntity(id = 10100, challengeId = 1029, text = "lejos", correct = false),
+                ChallengeOptionEntity(id = 10100, challengeId = 1029, text = "es", correct = false, errorTag = "WRONG_COPULA"),
+
+                ChallengeOptionEntity(id = 300002, challengeId = 1029, text = "están", correct = false, errorTag = "WRONG_PERSON"),
             )
         )
     )
@@ -179,13 +204,19 @@ object ExpandedCurriculumData {
                 LessonEntity(id = 205, unitId = 22, title = "Lesson 6: Modern Items", orderIndex = 1),
             ),
             challenges = listOf(
-                ChallengeEntity(id = 2017, lessonId = 204, type = "SELECT", question = "Which one means 'Coffee' in Japanese?", audioSrc = "asset:///audio/ja/koohii.ogg", orderIndex = 0),
-                ChallengeEntity(id = 2018, lessonId = 204, type = "WORD_BANK", question = "Assemble: 'Coffee, please'", orderIndex = 1),
-                ChallengeEntity(id = 2019, lessonId = 204, type = "LISTEN", question = "Tap what you hear", audioSrc = "asset:///audio/ja/pan.ogg", orderIndex = 2),
+                ChallengeEntity(id = 2017, lessonId = 204, type = ChallengeType.SELECT, question = "Which one means 'Coffee' in Japanese?", audioSrc = "asset:///audio/ja/koohii.ogg", orderIndex = 0),
+                ChallengeEntity(
+                    id = 2018, lessonId = 204, type = ChallengeType.WORD_BANK,
+                    question = "Assemble: 'Coffee, please'",
+                    orderIndex = 1,
+                    grammaticalFocus = "ja.request_polite",
+                    ruleText = "~てください is the polite way to ask someone to do something: コーヒーをください 'a coffee, please'.\nDropping ください leaves the plain request くれ, which sounds abrupt to a stranger. おねがいします is the softer version of the same request.",
+                ),
+                ChallengeEntity(id = 2019, lessonId = 204, type = ChallengeType.LISTEN, question = "Tap what you hear", audioSrc = "asset:///audio/ja/pan.ogg", orderIndex = 2),
 
-                ChallengeEntity(id = 2020, lessonId = 205, type = "SELECT", question = "What is 'Hotel' in Katakana?", orderIndex = 0),
-                ChallengeEntity(id = 2021, lessonId = 205, type = "WORD_BANK", question = "Assemble: 'Bread and coffee'", orderIndex = 1),
-                ChallengeEntity(id = 2080, lessonId = 205, type = "MATCH_PAIRS", question = "Match the Katakana words", orderIndex = 2),
+                ChallengeEntity(id = 2020, lessonId = 205, type = ChallengeType.SELECT, question = "What is 'Hotel' in Katakana?", orderIndex = 0),
+                ChallengeEntity(id = 2021, lessonId = 205, type = ChallengeType.WORD_BANK, question = "Assemble: 'Bread and coffee'", orderIndex = 1),
+                ChallengeEntity(id = 2080, lessonId = 205, type = ChallengeType.MATCH_PAIRS, question = "Match the Katakana words", orderIndex = 2),
             ),
             options = listOf(
                 ChallengeOptionEntity(id = 20057, challengeId = 2017, text = "コーヒー", romaji = "Koohii", correct = true, audioSrc = "asset:///audio/ja/koohii.ogg"),
@@ -195,11 +226,13 @@ object ExpandedCurriculumData {
                 ChallengeOptionEntity(id = 20060, challengeId = 2018, text = "コーヒー", romaji = "koohii", correct = true, audioSrc = "asset:///audio/ja/koohii.ogg"),
                 ChallengeOptionEntity(id = 20061, challengeId = 2018, text = "を", romaji = "o", correct = true),
                 ChallengeOptionEntity(id = 20062, challengeId = 2018, text = "ください", romaji = "kudasai", correct = true),
-                ChallengeOptionEntity(id = 20063, challengeId = 2018, text = "お水", romaji = "omizu", correct = false),
+                ChallengeOptionEntity(id = 20063, challengeId = 2018, text = "くれ", romaji = "kure", correct = false, errorTag = "WRONG_REGISTER"),
 
-                ChallengeOptionEntity(id = 20064, challengeId = 2019, text = "Bread (パン)", correct = true),
-                ChallengeOptionEntity(id = 20065, challengeId = 2019, text = "Rice (ごはん)", correct = false),
-                ChallengeOptionEntity(id = 20066, challengeId = 2019, text = "Tea (お茶)", correct = false),
+                ChallengeOptionEntity(id = 300003, challengeId = 2018, text = "おねがいします", romaji = "onegai shimasu", correct = false, errorTag = "WRONG_REGISTER"),
+
+                ChallengeOptionEntity(id = 20064, challengeId = 2019, text = "パン", romaji = "Pan", correct = true),
+                ChallengeOptionEntity(id = 20065, challengeId = 2019, text = "ばん", romaji = "ban", correct = false),
+                ChallengeOptionEntity(id = 20066, challengeId = 2019, text = "ハン", romaji = "han", correct = false),
 
                 ChallengeOptionEntity(id = 20067, challengeId = 2020, text = "ホテル", romaji = "Hoteru", correct = true),
                 ChallengeOptionEntity(id = 20068, challengeId = 2020, text = "テレビ", romaji = "Terebi", correct = false),
@@ -235,9 +268,15 @@ object ExpandedCurriculumData {
                 LessonEntity(id = 206, unitId = 23, title = "Lesson 7: Eating & Drinking Verbs", orderIndex = 0),
             ),
             challenges = listOf(
-                ChallengeEntity(id = 2022, lessonId = 206, type = "SELECT", question = "Which verb means 'To eat' (polite)?", audioSrc = "asset:///audio/ja/tabemasu.ogg", orderIndex = 0),
-                ChallengeEntity(id = 2023, lessonId = 206, type = "WORD_BANK", question = "Assemble: 'I eat bread'", orderIndex = 1),
-                ChallengeEntity(id = 2024, lessonId = 206, type = "LISTEN", question = "Tap what you hear", audioSrc = "asset:///audio/ja/nomimasu.ogg", orderIndex = 2),
+                ChallengeEntity(id = 2022, lessonId = 206, type = ChallengeType.SELECT, question = "Which verb means 'To eat' (polite)?", audioSrc = "asset:///audio/ja/tabemasu.ogg", orderIndex = 0),
+                ChallengeEntity(
+                    id = 2023, lessonId = 206, type = ChallengeType.WORD_BANK,
+                    question = "Assemble: 'I eat bread'",
+                    orderIndex = 1,
+                    grammaticalFocus = "ja.polite_verb",
+                    ruleText = "The polite (です/ます) form of 食べる is たべます: drop the る and add ます.\nThe bare dictionary form 食べる is what you use before particles, never as a polite sentence ending.",
+                ),
+                ChallengeEntity(id = 2024, lessonId = 206, type = ChallengeType.LISTEN, question = "Tap what you hear", audioSrc = "asset:///audio/ja/nomimasu.ogg", orderIndex = 2),
             ),
             options = listOf(
                 ChallengeOptionEntity(id = 20074, challengeId = 2022, text = "たべます", romaji = "Tabemasu", correct = true, audioSrc = "asset:///audio/ja/tabemasu.ogg"),
@@ -247,11 +286,13 @@ object ExpandedCurriculumData {
                 ChallengeOptionEntity(id = 20077, challengeId = 2023, text = "パン", romaji = "pan", correct = true),
                 ChallengeOptionEntity(id = 20078, challengeId = 2023, text = "を", romaji = "o", correct = true),
                 ChallengeOptionEntity(id = 20079, challengeId = 2023, text = "たべます", romaji = "tabemasu", correct = true, audioSrc = "asset:///audio/ja/tabemasu.ogg"),
-                ChallengeOptionEntity(id = 20080, challengeId = 2023, text = "ごはん", romaji = "gohan", correct = false),
+                ChallengeOptionEntity(id = 20080, challengeId = 2023, text = "たべる", romaji = "taberu", correct = false, errorTag = "WRONG_REGISTER"),
 
-                ChallengeOptionEntity(id = 20081, challengeId = 2024, text = "To drink (のみます)", correct = true),
-                ChallengeOptionEntity(id = 20082, challengeId = 2024, text = "To eat (たべます)", correct = false),
-                ChallengeOptionEntity(id = 20083, challengeId = 2024, text = "To go (いきます)", correct = false),
+                ChallengeOptionEntity(id = 300004, challengeId = 2023, text = "たべて", romaji = "tabete", correct = false),
+
+                ChallengeOptionEntity(id = 20081, challengeId = 2024, text = "のみます", romaji = "Nomimasu", correct = true),
+                ChallengeOptionEntity(id = 20082, challengeId = 2024, text = "のます", romaji = "nomasu", correct = false),
+                ChallengeOptionEntity(id = 20083, challengeId = 2024, text = "のみまず", romaji = "nomimazu", correct = false),
             )
         )
     )

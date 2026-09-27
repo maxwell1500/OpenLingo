@@ -3,6 +3,7 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import androidx.room.TypeConverter
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.duo.app.data.local.dao.CheckpointScoreDao
@@ -28,6 +29,7 @@ import com.duo.app.data.local.entities.UnitEntity
 import com.duo.app.data.local.entities.UserProgressEntity
 import com.duo.app.data.local.entities.VocabScheduleEntity
 import com.duo.app.data.local.entities.ExerciseTypeStatsEntity
+import com.duo.app.data.local.models.ChallengeType
 @Database(
     entities = [
         CourseEntity::class,
@@ -44,7 +46,7 @@ import com.duo.app.data.local.entities.ExerciseTypeStatsEntity
         VocabScheduleEntity::class,
         ExerciseTypeStatsEntity::class,
     ],
-    version = 12,
+    version = 15,
     exportSchema = false,
 )
 abstract class DuoDatabase : RoomDatabase() {
@@ -147,6 +149,46 @@ abstract class DuoDatabase : RoomDatabase() {
             }
         }
 
+        val MIGRATION_12_13 = object : Migration(12, 13) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE `challenges` ADD COLUMN `grammaticalFocus` TEXT")
+                db.execSQL("ALTER TABLE `challenges` ADD COLUMN `ruleText` TEXT")
+                db.execSQL("ALTER TABLE `challenges` ADD COLUMN `acceptedAnswers` TEXT")
+                db.execSQL("ALTER TABLE `challenge_options` ADD COLUMN `errorTag` TEXT")
+            }
+        }
+
+        /**
+         * WI-08: marks a challenge as a held-out checkpoint item. Existing rows default to 0
+         * (on the lesson path), so an upgrade never silently moves taught content out of a
+         * lesson and into the checkpoint pool.
+         */
+        val MIGRATION_13_14 = object : Migration(13, 14) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE `challenges` ADD COLUMN `heldOut` INTEGER NOT NULL DEFAULT 0")
+            }
+        }
+
+        /**
+         * WI-13: turns the daily quest XP target into a user setting. Existing
+         * rows land on 30, the value that was previously a compile-time
+         * constant, so an upgrade leaves every learner's quest exactly as it
+         * was until they pick a goal themselves.
+         */
+        val MIGRATION_14_15 = object : Migration(14, 15) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE `user_progress` ADD COLUMN `dailyQuestGoal` INTEGER NOT NULL DEFAULT 30")
+            }
+        }
+
+        @TypeConverter
+        @JvmStatic
+        fun fromChallengeType(type: ChallengeType): String = type.rawValue
+
+        @TypeConverter
+        @JvmStatic
+        fun toChallengeType(raw: String): ChallengeType = ChallengeType.fromRaw(raw)
+
         fun getInstance(context: Context): DuoDatabase {
             return INSTANCE ?: synchronized(this) {
                 INSTANCE ?: Room.databaseBuilder(
@@ -154,7 +196,7 @@ abstract class DuoDatabase : RoomDatabase() {
                     DuoDatabase::class.java,
                     "duo_local.db",
                 )
-                    .addMigrations(MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9, MIGRATION_9_10, MIGRATION_10_11, MIGRATION_11_12)
+                    .addMigrations(MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9, MIGRATION_9_10, MIGRATION_10_11, MIGRATION_11_12, MIGRATION_12_13, MIGRATION_13_14, MIGRATION_14_15)
                     .build()
                     .also { INSTANCE = it }
             }

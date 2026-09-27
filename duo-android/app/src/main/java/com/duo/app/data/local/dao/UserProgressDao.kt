@@ -47,4 +47,6 @@ interface UserProgressDao {
     suspend fun setThemeAccent(userId: String, accent: String, timestamp: Long = System.currentTimeMillis())
     @Query("UPDATE user_progress SET themeMode = :mode, lastSynced = :timestamp WHERE userId = :userId")
     suspend fun setThemeMode(userId: String, mode: String, timestamp: Long = System.currentTimeMillis())
+    @Query("UPDATE user_progress SET dailyQuestGoal = :goal, lastSynced = :timestamp WHERE userId = :userId")
+    suspend fun setDailyQuestGoal(userId: String, goal: Int, timestamp: Long = System.currentTimeMillis())
 }
