@@ -9,15 +9,11 @@ The short version: **OpenLingo collects nothing, sends nothing, and has nowhere 
 
 ---
 
-## 1. Who we are
+## 1. Who is behind this
 
-OpenLingo is an independent, volunteer-maintained open-source project.
+OpenLingo is an independent, volunteer-run open-source project. It is not a company. There is no support desk, no customer service team, and no private address to write to — that is a direct consequence of the rest of this document: the app has no account, no server, and no personal data about anyone, so there is nothing for a private conversation about a user's data to be about.
 
-- **Project / maintainer contact:** `[[MAINTAINER NAME — FILL THIS IN]]`
-- **Email for privacy questions:** `[[PRIVACY CONTACT EMAIL — FILL THIS IN]]`
-- **Source code:** <https://github.com/maxwell1500/OpenLingo> — MIT licensed; the app and this policy are published from here.
-
-> ⚠️ **Before publishing:** the two remaining bracketed placeholders in this section — the maintainer name and the privacy contact email — must be replaced with real values. This project is not incorporated, so identify the maintainer as an individual rather than inventing a company name. The source repository above is correct and needs no change.
+The full source is public at <https://github.com/maxwell1500/OpenLingo>, and the app is distributed as-is under the MIT licence, with no warranty of any kind, as the MIT licence itself states. That repository is the authority on what OpenLingo is and what it does: the code, the `LICENSE` file, and this policy are all published there, and any factual claim in this document can be checked against the code it describes. The project's public issue tracker is the only channel the project uses for anything anyone wants to raise, and it is a public record rather than a private mailbox.
 
 ---
 
@@ -130,18 +126,7 @@ This policy covers the OpenLingo Android application distributed from this repos
 
 **Changes to this policy.** If OpenLingo ever gains a feature that changes how data is handled — a sign-in, a sync service, an ad, a crash reporter, or any network capability — this document will be rewritten before that version is released, the version it applies to will be updated at the top, and the change will be noted in that release's changelog. Any such change would also require adding a network permission to the manifest, which is the change you would notice first: if a future build asks for `INTERNET`, it is no longer the app described here.
 
-**Verifying this policy.** Every factual claim above can be checked against the source. The manifest, the backup rules, the settings screen, and the local database layer are all in the public repository. If you find a discrepancy between this document and the code, that is a bug in this document — please report it.
-
----
-
-## 10. Contact
-
-Questions about this policy, or a discrepancy between it and the shipped app:
-
-- `[[PRIVACY CONTACT EMAIL — FILL THIS IN]]`
-- Security vulnerabilities: see `SECURITY.md` in the repository.
-
-> ⚠️ **Before publishing:** replace the placeholder email above with an address the maintainer actually reads. Do not publish with the bracketed placeholder in place.
+**Verifying this policy.** Every factual claim above can be checked against the source. The manifest, the backup rules, the settings screen, and the local database layer are all in the public repository. If a discrepancy between this document and the code turns up, it is a bug in this document; the repository's public issue tracker is where a project like this records such things, and fixing the document is the right outcome.
 
 ---
 
