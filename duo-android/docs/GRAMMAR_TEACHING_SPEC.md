@@ -419,7 +419,7 @@ still be completed. Held-out items live inside the existing B1 `UnitPayloads` (c
 
 ## 8. Verification
 
-- **Build/tests/release:** `gradle.bat run` from
+- **Build/tests/release:** `./gradlew run` from
   `duo-android`; tests via `:app:test` (includes `CurriculumIntegrityTest`); release `:app:assembleRelease`.
   **Pass `--rerun-tasks` when you need the numbers rather than a green build line:** a bare `:app:test`
   legitimately reports `UP-TO-DATE` and executes nothing, and `BUILD SUCCESSFUL` in that state says
@@ -523,7 +523,7 @@ state is updated, and it is updated in the same turn the work lands.
 | WI-16 Mistake reviews that teach | 3 | S | **DONE** — device-verified | `MistakeDao.getMistakeEntries` now also selects `c.grammaticalFocus` and `c.ruleText`, and `MistakeEntry` carries both. **No migration:** these are the challenge's own columns read through the join that already existed, so no table and no column was added. The rule is surfaced in **two** places, and the earlier one is the point: `MistakesReviewCard` lists it under each entry (question → lesson • focus → rule), *and* the retry screen still shows the `RuleCard` above the options because `ruleText` is on the challenge itself — so the rule is read before the learner answers, not discovered afterwards. **A `null` `ruleText` degrades to no rule line at all**, verified on device against challenge 1001 (written before the grammar overhaul): the entry showed question + lesson only, no empty card. Both properties were read out of the live `uiautomator` tree |
 
 **Final verification (2026-09-27, one authoritative run against the settled tree).**
-`gradle.bat :app:test :app:assembleRelease --rerun-tasks` from `duo-android`, `BUILD SUCCESSFUL`.
+`./gradlew :app:test :app:assembleRelease --rerun-tasks` from `duo-android`, `BUILD SUCCESSFUL`.
 Note for anyone re-running: a plain `:app:test` can report `UP-TO-DATE` and execute **nothing** —
 the first run of the day did exactly that. Use `--rerun-tasks`, and read the totals from the JUnit
 XML rather than trusting the build line.
