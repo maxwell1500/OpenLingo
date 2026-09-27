@@ -6,7 +6,7 @@ OpenLingo is a 100% free, open-source, native Android app for learning Spanish (
 
 OpenLingo's Android application (`duo-android/`) is **original work** — a native Kotlin and Jetpack Compose app written from scratch for this project in September 2026, with its own curricula, bundled audio, and on-device progress store.
 
-This repository has its origins in [**duolingo-clone**](https://github.com/sanidhyy/duolingo-clone), a Next.js web application created by **Sanidhya Kumar Verma** — the MIT-licensed project this one grew out of, and the reason this repository exists at all. The original web application has since been replaced by the native Android app, and **no upstream application source code remains here**. His original MIT licence and copyright are retained in full and unchanged in [LICENSE](LICENSE), and the full account is in [NOTICE](NOTICE).
+This repository has its origins in [**duolingo-clone**](https://github.com/sanidhyy/duolingo-clone), a Next.js web application created by **Sanidhya Kumar Verma** — the MIT-licensed project this one grew out of, and the reason this repository exists at all. The original web application has since been replaced by the native Android app, and **no upstream application source code remains in the current source tree** — it remains retrievable from this repository's git history, where it is covered by the same MIT licence. His original MIT licence and copyright are retained in full and unchanged in [LICENSE](LICENSE), and the full account is in [NOTICE](NOTICE).
 
 Thanks to Sanidhya for building the project this started from, and for licensing it openly.
 
