@@ -8,9 +8,11 @@ This project follows the [OpenLingo Code of Conduct](CODE_OF_CONDUCT.md). By par
 
 ## Building the app
 
-- JDK 17, Android SDK 36, Gradle ≥ 9.x (the repo doesn't ship a wrapper; Android Studio's bundled Gradle works out of the box).
-- Build: `gradle :app:assembleDebug`
-- Tests: `gradle :app:testDebugUnitTest` (pure JVM — Robolectric + in-memory Room, no device needed)
+- JDK 17, Android SDK 36, and nothing else: the Gradle wrapper is committed and pinned to **Gradle 9.6.0**, so always invoke `./gradlew` from `duo-android/` rather than a system `gradle`.
+- Build: `./gradlew :app:assembleDebug`
+- Tests: `./gradlew :app:test --rerun-tasks` (pure JVM — Robolectric + in-memory Room, no device needed)
+
+`--rerun-tasks` is not optional: a warm build cache makes Gradle report the test task `UP-TO-DATE`, run **zero** tests and still print `BUILD SUCCESSFUL`, which is indistinguishable from a real green run. Read the actual totals from the JUnit XML in `app/build/test-results/testDebugUnitTest/` rather than the console summary. Note that this directory retains a result file for any test class that existed at the last run, so a class deleted or merged since then lingers in it — cross-check the class count against `app/src/test/` rather than trusting the number of XML files.
 
 Run the test suite before pushing. The curriculum integrity tests in particular will catch ID collisions, dangling foreign keys, and missing audio files.
 
@@ -23,23 +25,37 @@ Run the test suite before pushing. The curriculum integrity tests in particular 
 
 ## Creating a release keystore (local only)
 
-Signing secrets live in `duo-android/keystore.properties`, which is gitignored. **Never commit the keystore or its passwords.**
+Signing secrets live in `duo-android/keystore.properties`, which is gitignored. **Never commit the keystore, the `.jks`, or its passwords.**
+
+From `duo-android/`, generate the keystore at exactly the path the build expects (`keytool` prompts you for the passwords interactively):
 
 ```bash
-keytool -genkeypair -v -keystore openlingo-release.keystore \
+keytool -genkeypair -v -keystore keystore/openlingo-release.jks \
   -keyalg RSA -keysize 2048 -validity 10000 -alias openlingo
 ```
 
-Then create `duo-android/keystore.properties` locally:
+Then create `duo-android/keystore.properties` — all four keys, with `storeFile` **relative to `duo-android/`**:
 
 ```properties
-storeFile=...
-storePassword=...
+storeFile=keystore/openlingo-release.jks
+storePassword=<the password you gave keytool>
 keyAlias=openlingo
-keyPassword=...
+keyPassword=<the password you gave keytool>
 ```
 
-Without that file, release builds fall back to the debug key (fine for local testing).
+`storeFile` must point at the file you just created. The build resolves it relative to `duo-android/`, so a path written relative to your home directory, or a stale `.jks` left over from an earlier attempt, will either fail the build or silently sign with the wrong key.
+
+Verify it with `./gradlew :app:assembleRelease`; the APK lands in `duo-android/app/build/outputs/apk/release/`.
+
+With no `keystore.properties`, `:app:assembleRelease` **fails** rather than falling back to the debug key — a debug-signed `app-release.apk` has the same name and path as a real one, so the mistake would otherwise only surface when somebody installed it. `:app:assembleDebug` and `:app:test` need no keystore and keep working.
+
+To produce a throwaway local release build signed with your machine's debug key, opt in explicitly:
+
+```bash
+./gradlew :app:assembleRelease -PallowDebugSigning
+```
+
+The build prints a warning. Never upload or share that artifact, and never use it to overwrite a real installation — debug keys are per-machine, so updates over it will fail.
 
 ## Commit style
 

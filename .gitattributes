@@ -1,0 +1,14 @@
+# Keep the Gradle wrapper byte-exact across platforms.
+#
+# A CRLF line ending in duo-android/gradlew corrupts the `#!/bin/sh` shebang and
+# the script dies on Linux with "bad interpreter: /bin/sh^M" — a CI failure caused
+# by line endings rather than by code. Pinning eol=lf makes that independent of
+# each contributor's core.autocrlf setting.
+
+duo-android/gradlew text eol=lf
+duo-android/gradlew.bat text eol=crlf
+
+# gitattributes CANNOT set a file's executable bit — no such attribute exists.
+# gradlew's mode is therefore handled by the `chmod +x gradlew` step in
+# .github/workflows/android.yml, which self-heals a lost bit instead of trusting
+# the committed mode to survive every future re-add.

@@ -26,16 +26,39 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
 
-      - name: Grant execute permission for Gradle wrapper
-        run: chmod +x duo-android/gradlew || true
+      - name: Make the Gradle wrapper executable
+        working-directory: duo-android
+        # Self-heal, not a workaround. The wrapper is committed with mode 100755,
+        # but that bit is not self-preserving: git only carries a mode into the
+        # index when core.fileMode is true, so committing this file from a
+        # filesystem that does not report exec bits (Windows) with a
+        # fileMode-aware git silently records 100644 instead. The runner would
+        # then fail with "./gradlew: Permission denied" for a reason that has
+        # nothing to do with the code. This makes that failure impossible rather
+        # than merely unlikely, so CI never depends on a bit surviving transit.
+        run: chmod +x gradlew
 
       - name: Run Unit Tests
         working-directory: duo-android
-        run: gradle :app:test
+        # --rerun-tasks is mandatory: with a warm build cache the test task is
+        # reported UP-TO-DATE, executes zero tests and still exits 0, so a
+        # cached run would look like a green run that tested nothing.
+        run: ./gradlew :app:test --rerun-tasks
+
+      - name: Build Release APK (compile check only, NOT a distributable)
+        working-directory: duo-android
+        # Proves the release variant still packages. CI has no keystore and
+        # never will, so the explicit -PallowDebugSigning opt-in is used and the
+        # result is signed with a throwaway CI debug key. assembleRelease (not
+        # bundleRelease) is chosen because it exercises the same signing path
+        # AND produces an APK whose signer block can be inspected. The artifact
+        # is deliberately NOT uploaded: a debug-signed "release" is exactly what
+        # must never be mistaken for a shippable build.
+        run: ./gradlew :app:assembleRelease -PallowDebugSigning
 
       - name: Build Debug APK
         working-directory: duo-android
-        run: gradle :app:assembleDebug
+        run: ./gradlew :app:assembleDebug
 
       - name: Upload Debug APK
         uses: actions/upload-artifact@v4

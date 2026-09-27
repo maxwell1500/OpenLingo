@@ -113,7 +113,7 @@ The test suite is pure JVM (Robolectric + in-memory Room; no emulator):
 
 ## 11. Build & signing
 
-- Gradle (wrapper ≥ 9.x on dev machines), JDK 17, `compileSdk 36`, `minSdk 26`.
-- Debug builds sign with the standard debug key.
-- Release builds read `duo-android/keystore.properties` (gitignored; `storeFile`, `storePassword`, `keyAlias`, `keyPassword`). Without it, the build falls back to the debug key — suitable for local testing only.
+- Gradle 9.6.0 (pinned by the committed wrapper), JDK 17, `compileSdk 36`, `minSdk 26`.
+- Debug builds sign with the standard debug key and need no keystore.
+- Release builds read `duo-android/keystore.properties` (gitignored; `storeFile`, `storePassword`, `keyAlias`, `keyPassword`). Without it the release packaging tasks **fail** — a debug-signed `app-release.apk` is indistinguishable by name and path from a real one, so it is only ever produced by the explicit `./gradlew :app:assembleRelease -PallowDebugSigning` opt-in, which logs a warning and is not distributable.
 - `duo-android/fastlane/` holds the Google Play store metadata.

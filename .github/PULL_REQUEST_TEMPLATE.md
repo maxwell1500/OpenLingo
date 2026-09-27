@@ -18,8 +18,8 @@
 
 <!-- Check the commands you ran. Leave items unchecked when they do not apply. -->
 
-- [ ] `gradle :app:testDebugUnitTest` (pure-JVM suite incl. curriculum integrity)
-- [ ] `gradle :app:assembleDebug` (or `assembleRelease` for signing changes)
+- [ ] `./gradlew :app:test --rerun-tasks` (pure-JVM suite incl. curriculum integrity; `--rerun-tasks` so a cached run cannot report zero tests as green)
+- [ ] `./gradlew :app:assembleDebug` (or `:app:assembleRelease` for signing changes, which needs `duo-android/keystore.properties`)
 - [ ] Manually tested the affected flow on a device/emulator
 - [ ] No new permissions, network calls, accounts, or tracking added
 

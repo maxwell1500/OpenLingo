@@ -8,6 +8,30 @@ plugins {
     id("com.google.devtools.ksp")
 }
 
+// Release signing: credentials live ONLY in a local (gitignored)
+// keystore.properties or in CI environment properties — never in source.
+// Declared at the top level, not inside `android { }`, so the task-graph guard
+// at the bottom of this file can read it too.
+val keystorePropertiesFile = rootProject.file("keystore.properties")
+val keystoreProperties = Properties().apply {
+    if (keystorePropertiesFile.exists()) {
+        keystorePropertiesFile.inputStream().use { load(it) }
+    }
+}
+val hasReleaseKey = keystorePropertiesFile.exists() &&
+    keystoreProperties.getProperty("storePassword") != null &&
+    keystoreProperties.getProperty("keyPassword") != null
+
+// Opt-in escape hatch for local throwaway release builds. Deliberately NOT read
+// from an environment variable or from gradle.properties: it has to be typed on
+// the command line by whoever wants a debug-signed release. Note that Gradle
+// sets a bare `-PallowDebugSigning` to the empty string, so mere presence is
+// the signal and only an explicit "false" turns it back off.
+val allowDebugSigningFlag =
+    (project.findProperty("allowDebugSigning") as String?)?.trim()?.lowercase()
+val allowDebugSigning =
+    allowDebugSigningFlag != null && allowDebugSigningFlag !in setOf("false", "no", "0")
+
 android {
     namespace = "com.duo.app"
     compileSdk = 36
@@ -19,18 +43,6 @@ android {
         versionCode = 2
         versionName = "1.1.0"
     }
-
-    // Release signing: credentials live ONLY in a local (gitignored)
-    // keystore.properties or in CI environment properties — never in source.
-    val keystorePropertiesFile = rootProject.file("keystore.properties")
-    val keystoreProperties = Properties().apply {
-        if (keystorePropertiesFile.exists()) {
-            keystorePropertiesFile.inputStream().use { load(it) }
-        }
-    }
-    val hasReleaseKey = keystorePropertiesFile.exists() &&
-        keystoreProperties.getProperty("storePassword") != null &&
-        keystoreProperties.getProperty("keyPassword") != null
 
     signingConfigs {
         create("release") {
@@ -49,9 +61,14 @@ android {
         release {
             isMinifyEnabled = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-            // Unsigned release (local test builds) falls back to the debug key;
-            // CI with the local keystore.properties produces the real signature.
-            signingConfig = if (hasReleaseKey) signingConfigs.getByName("release") else signingConfigs.getByName("debug")
+            // With a keystore this is the release key. Without one it is the debug
+            // key, which the guard below only permits when a developer asks for it
+            // explicitly with -PallowDebugSigning — never silently.
+            signingConfig = if (hasReleaseKey) {
+                signingConfigs.getByName("release")
+            } else {
+                signingConfigs.getByName("debug")
+            }
         }
     }
     testOptions {
@@ -66,6 +83,72 @@ android {
 
     buildFeatures {
         compose = true
+    }
+}
+
+// A debug-signed release is the worst possible failure mode: same artifact name,
+// same output path, green build, no warning — and it is only discovered by
+// whoever installs it. So a release artifact is refused outright unless a
+// keystore is configured, and the debug fallback is reachable only by opt-in.
+//
+// The check hangs off the task graph rather than plain configuration because
+// :app:assembleDebug and :app:test configure this very same release build type
+// and must keep working on a machine that has no keystore at all. Only the tasks
+// that actually package a release artifact trip it.
+// Note: taskGraph.whenReady is not configuration-cache compatible. The cache is
+// off today; if it is ever enabled, move this guard to a doFirst on the release
+// packaging tasks.
+val releasePackagingTask = Regex("^:app:(assemble|bundle|package)Release$")
+gradle.taskGraph.whenReady {
+    val releaseRequested = allTasks.any { task -> releasePackagingTask.matches(task.path) }
+    if (releaseRequested && !hasReleaseKey) {
+        if (!allowDebugSigning) {
+            throw GradleException(
+                """
+                |Refusing to build a release artifact: no release signing key is configured.
+                |
+                |duo-android/keystore.properties is missing or incomplete, and a missing
+                |keystore must never quietly produce a debug-signed "release". The artifact
+                |would keep the same name and path (app-release.apk), so the wrong signature
+                |would only surface when somebody installs it.
+                |
+                |Create duo-android/keystore.properties (gitignored — never commit it, and
+                |never commit the .jks). All four keys are required; storeFile is resolved
+                |relative to duo-android/:
+                |
+                |    storeFile=keystore/openlingo-release.jks
+                |    storePassword=<keystore password>
+                |    keyAlias=openlingo
+                |    keyPassword=<key password>
+                |
+                |See CONTRIBUTING.md, "Creating a release keystore", for the keytool command.
+                |
+                |If you only want a throwaway local artifact signed with the local DEBUG key
+                |— which is NOT distributable and must never be uploaded or shared — ask for
+                |it explicitly:
+                |
+                |    ./gradlew :app:assembleRelease -PallowDebugSigning
+                |
+                |:app:assembleDebug and :app:test need no keystore and are unaffected.
+                """.trimMargin(),
+            )
+        }
+        logger.warn(
+            """
+            |================================================================
+            | WARNING: DEBUG-SIGNED RELEASE ARTEFACT — NOT DISTRIBUTABLE
+            |================================================================
+            |duo-android/keystore.properties is missing, so -PallowDebugSigning
+            |was honoured and this release build is signed with the LOCAL DEBUG
+            |KEY. It cannot be uploaded to Google Play and must not be shared
+            |or installed by anyone else — two machines' debug keys differ, so
+            |updates over it will fail.
+            |
+            |Set up duo-android/keystore.properties and re-run without the flag
+            |for anything you intend to distribute.
+            |================================================================
+            """.trimMargin(),
+        )
     }
 }
 
