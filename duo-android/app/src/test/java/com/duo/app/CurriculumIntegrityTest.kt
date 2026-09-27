@@ -443,6 +443,49 @@ class CurriculumIntegrityTest {
     }
 
     /**
+     * `ことができます` is 「〜こと が できます」: `こと` nominalises whatever
+     * sits in front of it, so the blank in a 「〜___ことができます。」 scaffold
+     * holds a whole verb. Every Japanese verb ends in a kana — an ichidan verb
+     * in る, a godan verb in the u-row of its ます stem — and a する-verb keeps
+     * its する in writing, because こと is itself the する→す nominaliser.
+     *
+     * Challenge 60025 asked 「車を___ことができます。」 and keyed 運転, so the
+     * learner composed 車を運転ことができます: a noun in a verb slot, and not
+     * the sentence the item's own clip speaks. Nothing else here could see it —
+     * the grader matches strings, so a key that composes into nothing is a key
+     * that passes every other assertion in this file.
+     *
+     * The test is "ends in a kana that can end a verb" rather than "ends in
+     * する", because a godan ます stem (書く, keyed by 30029) and an ichidan る
+     * form (読める, keyed by 31013) fill the same slot and have to stay legal.
+     * The bare する-verb stem is the one form that cannot end a verb, and it is
+     * the whole defect, so the assertion stops there.
+     */
+    @Test
+    fun `a fill blank before ことができます keys a verb, not a bare suru stem`() {
+        val verbFinalKana = "うくぐすつぬぶむる"
+
+        val malformed = mutableListOf<String>()
+        allPayloads.flatMap { it.challenges }
+            .filter { it.type == ChallengeType.FILL_BLANK }
+            .filter { it.question.contains("ことができます") }
+            .forEach { challenge ->
+                AnswerGrader.acceptedVariants(challenge.acceptedAnswers).forEach { accepted ->
+                    if (accepted.isNotEmpty() && accepted.takeLast(1) !in verbFinalKana) {
+                        malformed += "challenge ${challenge.id} ('${challenge.question}') accepts " +
+                            "'$accepted', which does not end in a verb: こと can only nominalise a " +
+                            "verb, and a する-verb keeps its する"
+                    }
+                }
+            }
+        assertEquals(
+            "fill blanks keying a form that cannot stand as a verb before ことができます: $malformed",
+            emptyList<String>(),
+            malformed,
+        )
+    }
+
+    /**
      * The rule text is the only place a held-out item states which forms are
      * wrong, so it has to name every form the option set tags as an error, and
      * the answer key must stay clear of all of them. Together the two say the

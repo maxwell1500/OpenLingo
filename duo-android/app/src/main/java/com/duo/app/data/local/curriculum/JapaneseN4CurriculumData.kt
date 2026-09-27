@@ -29,17 +29,16 @@ import com.duo.app.data.local.models.ChallengeType
  * Both units are everyday, transactional and high-frequency, which is the register
  * the rest of the Japanese corpus already uses. Nothing literary is introduced.
  *
- * **Audio.** 42 of the 43 clips generated for these units are wired: 34 on the
+ * **Audio.** All 43 clips generated for these units are wired: 35 on the
  * challenge and 21 on the option that speaks the same text. A SELECT challenge and
  * its correct option share a clip; a CONJUGATE speaks the target form on the
  * challenge alone, so the option grid never plays the answer. A MATCH_PAIRS
  * challenge gets no challenge clip — its prompt is the instruction "Match the ...", not
  * a sentence — so its clips hang off the paired options instead.
  *
- * One clip is deliberately left on the shelf: `kuruma_wo_unten_suru_koto_ga_dekimasu`
- * speaks 車を運転することができます, but challenge 60025's scaffold reads
- * 車を___ことができます and takes only 運転, so the clip and the item disagree
- * lexically. Wiring it would put a grammatical sentence on an ungrammatical prompt.
+ * Challenge 60025 is the one item whose scaffold names the whole target
+ * sentence, so it carries the sentence clip rather than a form clip — the same
+ * rule a SELECT challenge follows, for the same reason.
  *
  * `LISTEN` is still absent here, as in the rest of the Japanese corpus: hearing a
  * sentence and picking it out of four near-identical sentences is a different
@@ -420,10 +419,11 @@ object JapaneseN4CurriculumData {
                 ChallengeEntity(
                     id = 60025, lessonId = 403, type = ChallengeType.FILL_BLANK,
                     question = "車を___ことができます。",
+                    audioSrc = "asset:///audio/ja/kuruma_wo_unten_suru_koto_ga_dekimasu.ogg",
                     orderIndex = 3,
                     grammaticalFocus = "ja.ability_polite",
-                    acceptedAnswers = "運転|うんてん",
-                    ruleText = "Before ことができます the ます form drops ます and becomes a noun: 運転します → 運転する → 運転.\n運転します is the polite verb, 運転する keeps the する and 運転した is the plain past — none of them heads the ことができます frame.",
+                    acceptedAnswers = "運転する|うんてんする",
+                    ruleText = "ことができます is 「〜こと が できます」: こと turns the verb in front of it into a noun, and a する-verb keeps its する in writing — 運転する ことが できます = 車を運転することができます.\n運転します keeps ます and こと cannot nominalise it, 運転した is the plain past, and 運転 on its own is a noun, not a verb — the blank wants the whole verb.",
                 ),
                 ChallengeEntity(
                     id = 60026, lessonId = 403, type = ChallengeType.SELECT,
@@ -588,9 +588,9 @@ object JapaneseN4CurriculumData {
                 ChallengeOptionEntity(id = 600103, challengeId = 60024, text = "泳ぐ", romaji = "oyogu", correct = false, errorTag = "WRONG_FORM"),
                 ChallengeOptionEntity(id = 600104, challengeId = 60024, text = "泳ぎませんでした", romaji = "oyogimasen deshita", correct = false, errorTag = "WRONG_TENSE"),
 
-                ChallengeOptionEntity(id = 600105, challengeId = 60025, text = "運転", romaji = "unten", correct = true),
+                ChallengeOptionEntity(id = 600105, challengeId = 60025, text = "運転", romaji = "unten", correct = false, errorTag = "WRONG_FORM"),
                 ChallengeOptionEntity(id = 600106, challengeId = 60025, text = "運転します", romaji = "unten shimasu", correct = false, errorTag = "WRONG_FORM"),
-                ChallengeOptionEntity(id = 600107, challengeId = 60025, text = "運転する", romaji = "unten suru", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 600107, challengeId = 60025, text = "運転する", romaji = "unten suru", correct = true),
                 ChallengeOptionEntity(id = 600108, challengeId = 60025, text = "運転した", romaji = "unten shita", correct = false, errorTag = "WRONG_TENSE"),
 
                 ChallengeOptionEntity(id = 600109, challengeId = 60026, text = "辛いものは食べられません", romaji = "karai mono wa taberaremasen", correct = true, audioSrc = "asset:///audio/ja/karai_mono_wa_taberaremasen.ogg"),
