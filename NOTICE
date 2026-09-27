@@ -26,14 +26,18 @@ What changed
 The original project was a Next.js/TypeScript web application. The OpenLingo
 Android application in `duo-android/` is a **native Kotlin and Jetpack Compose
 application, written from scratch in September 2026** for this project. It
-shares no application source code with the original: it uses a different
-language, a different UI toolkit, and a different persistence layer (Room over
-SQLite rather than a web backend).
+contains no application source code carried over from the original: it uses a
+different language, a different UI toolkit, and a different persistence layer
+(Room over SQLite rather than a web backend).
 
 The original web application source has since been removed from this
-repository. **No upstream application source code remains here.** What remains
-of the original project is its git history, its repository-level documentation
-and configuration, and the MIT licence quoted above.
+repository's current source tree. **No upstream application source code remains
+in the current source tree.** It remains retrievable from this repository's git
+history, where it is covered by the same MIT licence.
+
+What remains of the original project is its git history, its
+repository-level documentation and configuration, and the MIT licence quoted
+above.
 
 The name "OpenLingo", the capybara mascot, the app icon, the theme palette, the
 curricula, and the Android application itself are original to this project and

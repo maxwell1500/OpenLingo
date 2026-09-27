@@ -56,7 +56,8 @@ representative at an online or offline event.
 ## Enforcement
 
 Instances of abusive, harassing, or otherwise unacceptable behavior may be
-reported to the community leaders responsible for enforcement at <sanidhyyy@gmail.com>.
+reported by opening a public issue in this project's issue tracker at
+<https://github.com/maxwell1500/OpenLingo/issues>.
 All complaints will be reviewed and investigated promptly and fairly.
 
 All community leaders are obligated to respect the privacy and security of the

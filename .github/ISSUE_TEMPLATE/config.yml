@@ -1,5 +1,5 @@
 blank_issues_enabled: true
 contact_links:
   - name: Report a security vulnerability
-    url: mailto:sanidhyyy@gmail.com
-    about: Do not file security reports as public GitHub issues.
+    url: https://github.com/maxwell1500/OpenLingo/issues
+    about: There is no private reporting channel. Please open a public issue here, and say so in the title if the report would be harmful if made public before a fix exists.
