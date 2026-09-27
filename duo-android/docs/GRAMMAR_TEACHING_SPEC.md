@@ -421,6 +421,16 @@ still be completed. Held-out items live inside the existing B1 `UnitPayloads` (c
 
 - **Build/tests/release:** `./gradlew run` from
   `duo-android`; tests via `:app:test` (includes `CurriculumIntegrityTest`); release `:app:assembleRelease`.
+  **`:app:assembleRelease` now carries a signing precondition:** it is refused outright unless
+  `duo-android/keystore.properties` exists and is complete. That file is gitignored and never
+  committed, so on any clean checkout the command **fails loudly** rather than quietly producing a
+  debug-signed `app-release.apk` — the same filename and output path as a real one, so the wrong
+  signature would otherwise surface only when somebody installed it. See **CONTRIBUTING.md**,
+  [Creating a release keystore](../../CONTRIBUTING.md#creating-a-release-keystore-local-only), for the
+  `keytool` command and the four required keys. For a throwaway local artifact — **not distributable,
+  never uploaded or shared** — ask for the debug key explicitly:
+  `./gradlew :app:assembleRelease -PallowDebugSigning`, which logs a warning. `:app:assembleDebug`
+  and `:app:test` need no keystore and are unaffected.
   **Pass `--rerun-tasks` when you need the numbers rather than a green build line:** a bare `:app:test`
   legitimately reports `UP-TO-DATE` and executes nothing, and `BUILD SUCCESSFUL` in that state says
   only that the last run passed. Read totals from `app/build/test-results/testDebugUnitTest/*.xml`,
@@ -527,6 +537,11 @@ state is updated, and it is updated in the same turn the work lands.
 Note for anyone re-running: a plain `:app:test` can report `UP-TO-DATE` and execute **nothing** —
 the first run of the day did exactly that. Use `--rerun-tasks`, and read the totals from the JUnit
 XML rather than trusting the build line.
+**Re-running the release half today requires signing credentials.** The run above was made on a
+machine with a release keystore, which is why the bare command in it succeeds. As of the guard in
+`app/build.gradle.kts`, a contributor without `duo-android/keystore.properties` gets a
+`GradleException`; `-PallowDebugSigning` is the opt-in for a non-distributable local compile check.
+See §8 for the full precondition. The `:app:test` half has no such precondition and stays green.
 
 | Test class | Tests | Fail | Error | Skip |
 |---|---|---|---|---|
