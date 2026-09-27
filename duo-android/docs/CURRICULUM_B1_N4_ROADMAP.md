@@ -118,10 +118,14 @@ Status: **Units 9–12 have shipped.** Units 9–10 are in `B1CurriculumData.kt`
 • Lessons: *I Can Do That* / *I Think* / *Gifts and Favours*
 • Grammar slugs: `ja.ability_polite`, `ja.think`, `ja.giving_receiving`
 • Held out for the N4 checkpoint: 歌えます, あつい, もらった
-• Audio: recorded — 21 clips on the same rules as unit 11, minus one. `kuruma_wo_unten_suru_koto_ga_dekimasu`
-  speaks 車を運転することができます but the FILL_BLANK 60025 scaffold reads 車を___ことができます and
-  takes only 運転, so the item and the clip disagree lexically and the clip is left unwired. The seven
-  MATCH_PAIRS clips hang off their paired options: those challenges' prompts are the instruction
+• Audio: recorded — all 22 clips wired, 16 on the challenge and 12 on the option that speaks the
+  same text. `kuruma_wo_unten_suru_koto_ga_dekimasu`
+  speaks 車を運転することができます and the FILL_BLANK 60025 scaffold reads 車を___ことができます, so the
+  clip now sits on the challenge: the item keys 運転する (plus うんてんする) and composes exactly the
+  sentence the clip speaks. It was the one clip left unwired until the item was corrected — the old key
+  took 運転 alone, which composes 車を運転ことができます, a noun in a verb slot. `CurriculumIntegrityTest`
+  now fails any 「〜___ことができます。」 key that is not a verb, so that class cannot ship again. The
+  seven MATCH_PAIRS clips hang off their paired options: those challenges' prompts are the instruction
   "Match the ...", not a sentence, so there is nothing for a challenge-level clip to speak.
 
 ---
