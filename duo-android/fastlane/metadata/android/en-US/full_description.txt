@@ -1,4 +1,4 @@
-OpenLingo is a 100% free, privacy-first, open-source language learning client for Android with rich offline Spanish (CEFR A1–A2) and Japanese (JLPT N5–N4) curricula.
+OpenLingo is a 100% free, privacy-first, open-source language learning client for Android with rich offline Spanish (CEFR A1–B1) and Japanese (JLPT N5–N4) curricula.
 
 Guided by our chill Capybara mascot (🦫), learn at your own pace without stress, streaks anxiety, or ads.
 
@@ -14,7 +14,7 @@ Key Features:
 • Structure Drills: conjugation tables generated from the lessons a unit already teaches — a study surface that never touches your progress.
 • Seven Exercise Types: Multiple Choice, Word Bank sentence builder, Verb Conjugation, Fill in the Blank, Match Pairs, Listen, and Story — with a playback speed selector (0.5x / 0.75x / 1.0x) on every audio button, to catch the phonemes at your own pace.
 • Winding S-Curve Lesson Map: sequential lesson unlocking with golden crowns and a floating START chip on your next lesson.
-• Level Checkpoint Assessments: test your mastery of CEFR A1/A2 and JLPT N5/N4 levels with celebratory badges. The A2 and N4 sessions open with a small held-out pool of unseen sentences — 4 items each, about 13% and 15% of the session — so those early questions test generalisation, not recall. A1 and N5 are drawn entirely from taught items.
+• Level Checkpoint Assessments: test your mastery of CEFR A1/A2/B1 and JLPT N5/N4 levels with celebratory badges. The A2, B1 and N4 sessions open with a held-out pool of unseen sentences — 4, 8 and 10 items — so those early questions test generalisation, not recall. A1 and N5 are drawn entirely from taught items.
 • FSRS-4.5 Spaced Repetition: scientific Free Spaced Repetition Scheduler algorithm for vocabulary review with 4-rating review intervals and due card tracking.
 • Adaptive Learning: automatically tracks accuracy across challenge types and prioritizes your weakest areas first during practice drills.
 • Story Mode: interactive narrative reading challenges with dialogue, offline speech, and comprehension questions.

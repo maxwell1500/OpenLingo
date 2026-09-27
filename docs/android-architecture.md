@@ -32,9 +32,9 @@ State flows in one direction:
 | Table | Entity | Purpose |
 |-------|--------|---------|
 | `courses` | `CourseEntity` | The two language courses (id 1 = Spanish, id 2 = Japanese) |
-| `units` | `UnitEntity` | 20 units (10 per course), each with a theme and `orderIndex` |
-| `lessons` | `LessonEntity` | 44 lessons, ordered within a unit |
-| `challenges` | `ChallengeEntity` | 224 challenges (`SELECT`, `ASSIST`, `WORD_BANK`, `LISTEN`, `MATCH_PAIRS`, `STORY`, `CONJUGATE`, `FILL_BLANK`), each with an optional `audioSrc` plus optional grammar columns (`grammaticalFocus`, `ruleText`, `acceptedAnswers`) and a `heldOut` flag that keeps an item off the lesson path so only a checkpoint can reach it |
+| `units` | `UnitEntity` | 24 units (12 per course), each with a theme and `orderIndex` |
+| `lessons` | `LessonEntity` | 50 lessons, ordered within a unit |
+| `challenges` | `ChallengeEntity` | 268 challenges (`SELECT`, `ASSIST`, `WORD_BANK`, `LISTEN`, `MATCH_PAIRS`, `STORY`, `CONJUGATE`, `FILL_BLANK`), each with an optional `audioSrc` plus optional grammar columns (`grammaticalFocus`, `ruleText`, `acceptedAnswers`) and a `heldOut` flag that keeps an item off the lesson path so only a checkpoint can reach it |
 | `challenge_options` | `ChallengeOptionEntity` | Choices/word-bank fragments with `correct` flags, optional romaji and audio |
 | `user_progress` | `UserProgressEntity` | Single local guest profile (`guest_local`): points, hearts, streak, `brokenStreak`, `activeCourseId`, sound/haptics/romaji settings, `themeAccent`, `themeMode`, `dailyQuestGoal` |
 | `challenge_progress` | `ChallengeProgressEntity` | Per-challenge completion for the guest user |
@@ -63,14 +63,15 @@ Migrations preserve user data (all additive — `ADD COLUMN` / `CREATE TABLE IF 
 
 All curriculum is compiled into the app as Kotlin data — there are no bundled JSON/SQL fixtures.
 
-- `LocalProgressRepository.initializeIfNeeded()` ensures the `guest_local` user exists and seeds the **basic A1 units** (Spanish units 1–2, Japanese units 11–12) inline via `seedSpanishCourse()` / `seedJapaneseCourse()`.
+- `LocalProgressRepository.initializeIfNeeded()` ensures the `guest_local` user exists and seeds the **basic A1 units** (Spanish unit ids 10–11, Japanese unit ids 20–21) inline via `seedSpanishCourse()` / `seedJapaneseCourse()`.
 - The remaining units come from compiled `UnitPayload` lists in `data/local/curriculum/`:
   - `ExpandedCurriculumData` — Spanish units 3–5, Japanese units 3–4 (`spanishExpandedUnits`, `japaneseExpandedUnits`)
   - `AdvancedCurriculumData` — Spanish units 6–8, Japanese units 5–8 (`spanishAdvancedUnits`, `japaneseAdvancedUnits`)
   - `B1CurriculumData` — Spanish units 9–12 and Japanese units 9–10 (`spanishA2Units`, `spanishB1Units`, `japaneseN4Units`). The file name is the roadmap workstream, not the level. Spanish units 9–10 (`spanishA2Units`, unit ids 18–19) teach regular preterite and imperfecto only, which is CEFR **A2**, so the checkpoint that draws them is labelled A2. Spanish units 11–12 (`spanishB1Units`, unit ids 30–31) carry the irregular and stem-changing preterite, the past perfect, the regular and irregular conditional, the polite periphrasis and the connectives of purpose, cause, result and concession — that is the **B1** material, and it is what the B1 checkpoint draws on. The Japanese units 9–10 (te-form, potential) are genuinely JLPT N4.
-  - The B1 units ship no `audioSrc`: the bundled Kokoro clips cover the A1–A2 sentences, and `CurriculumIntegrityTest` fails any item whose clip is not on disk.
+  - `JapaneseN4CurriculumData` — Japanese units 11–12 (`japaneseN4ExtensionUnits`, unit ids 40–41, lessons 400–405, challenges 60000–60043). The three N4 points the corpus was missing outright: the past (ました / plain 断定形 / the ない-form negative), the plain-against-polite register pair, and the い/な adjective class distinction — then ability as ます → せます and ことができます, opinion as 〜と思います, and the あげる / くれる / もらう trio with から and に. Eight new `grammaticalFocus` slugs, each with an `ErrorHint.FocusProfile` and a declared set of honest `errorTag`s in `CurriculumIntegrityTest`.
+  - The B1 and Japanese N4 units ship no `audioSrc`: the bundled Kokoro clips cover the A1–A2 sentences, and `CurriculumIntegrityTest` fails any item whose clip is not on disk.
 - Each `UnitPayload` bundles a `UnitEntity` with its `lessons`, `challenges`, and `options`.
-- Totals: **22 units / 44 lessons / 224 challenges** (208 on the lesson path, 16 held out for checkpoints).
+- Totals: **24 units / 50 lessons / 268 challenges** (246 on the lesson path, 22 held out for checkpoints). Held-out pools per checkpoint level: A2 4, B1 8, N4 10.
 - Inserts use REPLACE-on-conflict, so newly added lessons/challenges roll out to existing installs without a wipe — no migration needed for content growth.
 
 ## 4. Audio
@@ -119,7 +120,7 @@ All alarms are local `AlarmManager` `RTC_WAKEUP` intents — no FCM, no network:
 
 ## 10. Tests
 
-The test suite is pure JVM — Robolectric, so no emulator — across 13 classes and 124 tests. Most classes use `Room.inMemoryDatabaseBuilder`, which builds the current schema directly and never runs a migration; `MigrationTest` instead writes real on-disk v12 and v14 database files and opens them through Room, so the migrations are exercised against a real upgrade:
+The test suite is pure JVM — Robolectric, so no emulator — across 13 classes and 131 tests. Most classes use `Room.inMemoryDatabaseBuilder`, which builds the current schema directly and never runs a migration; `MigrationTest` instead writes real on-disk v12 and v14 database files and opens them through Room, so the migrations are exercised against a real upgrade:
 
 - `CurriculumIntegrityTest` — global ID uniqueness, foreign-key resolution, contiguous `orderIndex` per unit/lesson, answerability (every challenge solvable, choice challenges have distractors), every referenced audio file exists in assets, and kana syllabaries are complete.
 - `LocalProgressRepositoryTest` — seeding, day rollover, streaks/repair, hearts, and backup export/import round-trip.

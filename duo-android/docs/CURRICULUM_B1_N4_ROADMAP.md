@@ -72,9 +72,9 @@ plans vocabulary rides along inside them.
 
 ## Japanese (JLPT N4 Elementary Intermediate)
 
-Target: Units 9–12 (8 lessons, ~28 challenges).
+Target: Units 9–12 (12 lessons, 71 challenges).
 
-Status: Units 9–10 have shipped in `B1CurriculumData.kt` (`japaneseN4Units`) — 4 lessons and 27 challenges, at the JLPT N4 level this section names. Units 11–12 are not authored yet.
+Status: **Units 9–12 have shipped.** Units 9–10 are in `B1CurriculumData.kt` (`japaneseN4Units`) — 4 lessons and 27 challenges. Units 11–12 are in `JapaneseN4CurriculumData.kt` (`japaneseN4ExtensionUnits`, unit ids 40–41, lessons 400–405, challenges 60000–60043) — 6 lessons and 44 challenges, 6 of them held out, so the N4 checkpoint now holds 10 held-out items. As with Spanish 11–12, the themes this roadmap originally sketched for units 11–12 (past experience 〜たことがある, plans 〜つもり, reasons 〜から, comparisons 〜より) were not what the grammar gap needed, and the shipped units teach different points: without a past tense there is no tense to conjugate, and every verb in units 1–10 was stuck in the present.
 
 ### Unit 9: Te-form & Requests (〜てください / 〜ています)
 • Focus: Connecting verbs, ongoing actions, polite requests
@@ -91,20 +91,32 @@ Status: Units 9–10 have shipped in `B1CurriculumData.kt` (`japaneseN4Units`) �
   - `nihongo_ga_hanasemasu.ogg` ("少し日本語が話せます")
   - `kanji_o_kaku_koto_ga_dekimasu.ogg` ("漢字を書くことができます")
 
-### Unit 11: Past Experience & Plans (〜たことがある / 〜つもり)
-• Focus: "I have been to...", future intentions
-• Dialogue: *京都旅行* (Trip to Kyoto)
-• Audio needed (jf_alpha):
-  - `kyouto_ni_itta_koto_ga_arimasu.ogg` ("京都に行ったことがあります")
-  - `ashita_iku_tsumori_desu.ogg` ("明日行くつもりです")
+### Unit 11: Past Tense & Adjectives *(shipped, `japaneseN4ExtensionUnits` unit 40)*
+• Focus: the polite past (ました) across godan and ichidan verbs, the plain past (断定形 た) against the
+  polite one, the ない-form negative in both registers, and the い/な adjective class distinction
+• Lessons: *Yesterday* / *Plain and Polite* / *How Was It?*
+• Grammar slugs: `ja.past_polite`, `ja.plain_vs_polite`, `ja.negative`, `ja.i_adjective`,
+  `ja.na_adjective`
+• Held out for the N4 checkpoint: 帰りました, 飲まない, ビール
+• Audio: none — the shipped clips cover A1–A2 only, and no `audioSrc` was invented
 
-### Unit 12: Reasons & Comparisons (〜から / 〜より〜のほうが)
-• Focus: Explaining reasons, comparative statements (電車のほうが速いです)
-• Dialogue: *レストラン選び* (Picking a restaurant)
+### Unit 12: Ability, Opinion & Giving *(shipped, `japaneseN4ExtensionUnits` unit 41)*
+• Focus: ability as ます → せます and ます + ことができます, opinion as 〜と思います (which drills the
+  plain-form endings unit 11 taught), and the あげる / くれる / もらう trio with から and に
+• Lessons: *I Can Do That* / *I Think* / *Gifts and Favours*
+• Grammar slugs: `ja.ability_polite`, `ja.think`, `ja.giving_receiving`
+• Held out for the N4 checkpoint: 歌えます, あつい, もらった
+• Audio: none, for the same reason
 
 ---
 
+### Still absent at N4
+The passive (受身) and the causative (使役) are not taught anywhere in the Japanese corpus, and neither
+are relative clauses. They are real JLPT N4 grammar and remain open work — units 13 and 14 would be the
+natural home. The audio for every unit from 9 onwards is also still unrecorded, so the `LISTEN` mechanic
+is not available on any of them.
+
 ## Technical Prerequisites for Ingest
 1. Python Kokoro pipeline, documented in `docs/kokoro-tts.md` at the repository root (ef_dora / jf_alpha @ 24kHz mono)
-2. `UnitPayload` additions in `B1CurriculumData.kt` (already exists; Spanish units 9–10 are in `spanishA2Units`, Spanish units 11–12 in `spanishB1Units`, Japanese units 9–10 in `japaneseN4Units`)
+2. `UnitPayload` additions (already exists; Spanish units 9–10 are in `spanishA2Units`, Spanish units 11–12 in `spanishB1Units`, Japanese units 9–10 in `japaneseN4Units`, Japanese units 11–12 in `japaneseN4ExtensionUnits` in the separate `JapaneseN4CurriculumData.kt`)
 3. Referential integrity tests in `CurriculumIntegrityTest.kt` ensure zero FK / audio regressions
