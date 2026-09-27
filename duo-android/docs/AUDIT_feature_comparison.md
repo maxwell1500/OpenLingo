@@ -23,7 +23,7 @@ this repository._
 | Achievements | `ui/Achievements.kt:22-40` (9 achievements), rendered in `ui/screens/ProfileTabScreen.kt:185-190` |
 | JSON backup v2 (checkpoints + FSRS) | `MainActivity.kt:313-314`; `data/models/OpenLingoBackup.kt` |
 | FSRS-4.5 flashcards | `data/fsrs/FsrsScheduler.kt`; `data/local/dao/VocabScheduleDao.kt` |
-| Checkpoint tests (A1/B1, N5/N4) | `MainActivity.kt:1806` `CheckpointScreen`; `data/local/dao/CheckpointScoreDao.kt` |
+| Checkpoint tests (A1/A2, N5/N4) | `MainActivity.kt:1806` `CheckpointScreen`; `data/local/dao/CheckpointScoreDao.kt` |
 | Placement test | `MainActivity.kt:256` `onTakePlacement`; `MainViewModel.kt` `startPlacementTest` |
 | Adaptive weakest-skill practice | `data/local/dao/ExerciseTypeStatsDao.kt`; `ui/MainViewModel.kt:206` `evaluateChallenges`; `ui/screens/PracticeTabScreen.kt` |
 | Mistakes review | `data/local/dao/MistakeDao.kt`; `ui/screens/PracticeTabScreen.kt:685-688` |

@@ -8,7 +8,7 @@ including that report's `MEMORIZE`/`USE`/`PRODUCE` tags and its `A#`/`B#` item i
 ## 1. Purpose
 
 Turn OpenLingo from a vocabulary app that *describes* grammar into one that *teaches and tests* it.
-The corpus covers 20 units / 38 lessons / 124 challenges across Spanish CEFR A1–B1 and Japanese
+The corpus covers 20 units / 38 lessons / 124 challenges across Spanish CEFR A1–A2 and Japanese
 JLPT N5–N4, but only 30.6% of it requires ordered target-language output and no rule text exists
 anywhere in the product. This spec is the contract for closing that gap: new schema, a constrained
 exercise-type system, three new mechanics, and tests that make the corpus incapable of regressing

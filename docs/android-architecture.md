@@ -41,7 +41,7 @@ State flows in one direction:
 | `character_mastery` | `CharacterMasteryEntity` | Kana tracing progress: attempts + `masteredAt` per character and script |
 | `mistakes` | `MistakeEntity` | Wrong answers awaiting review, one row per challenge |
 | `daily_activity` | `DailyActivityEntity` | XP per calendar date (`yyyy-MM-dd`), backs the daily quest |
-| `checkpoint_scores` | `CheckpointScoreEntity` | Per-level checkpoint results (`A1`/`B1`/`N5`/`N4`) as `correct`/`total` pairs |
+| `checkpoint_scores` | `CheckpointScoreEntity` | Per-level checkpoint results (`A1`/`A2`/`N5`/`N4`) as `correct`/`total` pairs |
 | `vocab_schedule` | `VocabScheduleEntity` | Free Spaced Repetition Scheduler state per dictionary item, fully offline |
 | `exercise_type_stats` | `ExerciseTypeStatsEntity` | Aggregate attempts/correct per exercise type, used to prioritise weak areas |
 
