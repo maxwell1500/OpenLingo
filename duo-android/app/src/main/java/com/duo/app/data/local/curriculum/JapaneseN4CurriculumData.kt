@@ -21,10 +21,19 @@ import com.duo.app.data.local.models.ChallengeType
  *   - **adjectives** — い-adjectives take く/い, な-adjectives take で/でした, and
  *     a learner who mixes them up is making a class error, not a tense error.
  *
- * Unit 12 then builds on all of it: ability as ます-form + ことができます (the
- * polite register carried forward from unit 11), opinion as 〜と思います (which
- * drills exactly the plain-form endings unit 11 taught), and the giving/receiving
+ * Unit 12 then builds on all of it: ability as the potential (乗れます) and as
+ * the plain verb + ことができます, opinion as 〜と思います (which drills
+ * exactly the plain-form endings unit 11 taught), and the giving/receiving
  * pair あげる/くれる/もらう with から and に.
+
+ * **One rule, two routes.** ことができます is 「〜こと が できます」 and こと
+ * is the する→す nominaliser, so the verb in front of it takes its *plain*
+ * form — 書く ことが できます, 運転する ことが できます — and a ます form can
+ * never head it, because 泳ぎますこと is not a word. The other route is the
+ * potential on its own: 乗れます, 食べられません, 歌えます. Unit 10 already
+ * drilled the こと route under `ja.potential_nominal`; lesson 403 teaches both
+ * under `ja.ability_polite`, which is why every ability rule text here names
+ * the potential as a separate way of saying 'can'.
  *
  * Both units are everyday, transactional and high-frequency, which is the register
  * the rest of the Japanese corpus already uses. Nothing literary is introduced.
@@ -399,22 +408,22 @@ object JapaneseN4CurriculumData {
                     audioSrc = "asset:///audio/ja/jitensha_ni_noremasu.ogg",
                     orderIndex = 0,
                     grammaticalFocus = "ja.ability_polite",
-                    ruleText = "A godan verb makes the polite ability by swapping す for せます: 乗る → 乗れます.\n乗ります is the plain present, 乗らない the negative, and 乗らなければ the conditional — only 乗れます says 'can'.",
+                    ruleText = "A godan verb says 'can' with the potential, る → える: 乗る → 乗れます.\n乗ります is the polite present, 乗らない the plain negative, and 乗らなければ the conditional — only 乗れます is a single word that means 'can'.",
                 ),
                 ChallengeEntity(
                     id = 60023, lessonId = 403, type = ChallengeType.WORD_BANK,
                     question = "Assemble: 'I can cook Italian food'",
                     orderIndex = 1,
                     grammaticalFocus = "ja.ability_polite",
-                    ruleText = "The ます ability swaps the final す for せます: 作ります → 作れます.\n作れる is the dictionary potential and 作ります the plain present — neither fills the polite ます ability slot.",
+                    ruleText = "An ichidan verb makes the potential the same way, by dropping る: 作る → 作れる → 作れます, so イタリア料理を作れます 'I can cook Italian food'.\n作れる is the plain potential and 作ります the polite present — this item assembles the polite one.",
                 ),
                 ChallengeEntity(
                     id = 60024, lessonId = 403, type = ChallengeType.CONJUGATE,
                     question = "Which form of 泳ぐ goes before ことができます?",
-                    audioSrc = "asset:///audio/ja/oyogimasu.ogg",
+                    audioSrc = "asset:///audio/ja/oyogu.ogg",
                     orderIndex = 2,
                     grammaticalFocus = "ja.ability_polite",
-                    ruleText = "Before ことができます the verb stays polite: 泳ぐ → 泳ぎます, so 泳ぐことができます.\n泳げます is the short potential and 泳ぐ the plain present — ことができます takes the ます form.",
+                    ruleText = "Before ことができます the verb takes its plain form, because こと is the する→す nominaliser: 泳ぐ + こと + が + できます.\n泳ぎます is the polite present and こと cannot nominalise it — 泳ぎますことができます is not a sentence — while 泳げます is the short potential, the other way to say 'can'.",
                 ),
                 ChallengeEntity(
                     id = 60025, lessonId = 403, type = ChallengeType.FILL_BLANK,
@@ -431,7 +440,7 @@ object JapaneseN4CurriculumData {
                     audioSrc = "asset:///audio/ja/karai_mono_wa_taberaremasen.ogg",
                     orderIndex = 4,
                     grammaticalFocus = "ja.ability_polite",
-                    ruleText = "Polite inability is the potential past negative, ます → られません: 食べます → 食べられません.\n食べません says 'I don't eat', 食べられない is the plain form, and 食べます is the plain positive.",
+                    ruleText = "Polite inability is the polite negative of the potential: 食べる → 食べられない → 食べられません.\n食べません says 'I don't eat' rather than 'I can't eat', 食べられない is the plain potential negative, and 食べます is the polite positive — only 食べられません says 'can't'.",
                 ),
                 ChallengeEntity(
                     id = 60027, lessonId = 403, type = ChallengeType.MATCH_PAIRS,
@@ -445,7 +454,7 @@ object JapaneseN4CurriculumData {
                     orderIndex = 6,
                     heldOut = true,
                     grammaticalFocus = "ja.ability_polite",
-                    ruleText = "Ability is the potential, ます → えます: 歌う → 歌えます.\n歌います is the plain present, 歌う the dictionary form, 歌わない the plain negative, and 歌えました the polite past.",
+                    ruleText = "Ability is the potential: 歌う → 歌える → 歌えます.\n歌います is the polite present, 歌う the dictionary form, 歌わない the plain negative, and 歌えました the polite past — only 歌えます says 'can' in one word.",
                 ),
 
                 // --- Lesson 24: I Think (〜と思います) ---------------------------
@@ -583,9 +592,9 @@ object JapaneseN4CurriculumData {
                 ChallengeOptionEntity(id = 600099, challengeId = 60023, text = "作ります", romaji = "tsukurimasu", correct = false, errorTag = "WRONG_FORM"),
                 ChallengeOptionEntity(id = 600100, challengeId = 60023, text = "作れる", romaji = "tsukureru", correct = false, errorTag = "WRONG_FORM"),
 
-                ChallengeOptionEntity(id = 600101, challengeId = 60024, text = "泳ぎます", romaji = "oyogimasu", correct = true),
+                ChallengeOptionEntity(id = 600101, challengeId = 60024, text = "泳ぎます", romaji = "oyogimasu", correct = false, errorTag = "WRONG_FORM"),
                 ChallengeOptionEntity(id = 600102, challengeId = 60024, text = "泳げます", romaji = "oyogemasu", correct = false, errorTag = "WRONG_FORM"),
-                ChallengeOptionEntity(id = 600103, challengeId = 60024, text = "泳ぐ", romaji = "oyogu", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 600103, challengeId = 60024, text = "泳ぐ", romaji = "oyogu", correct = true),
                 ChallengeOptionEntity(id = 600104, challengeId = 60024, text = "泳ぎませんでした", romaji = "oyogimasen deshita", correct = false, errorTag = "WRONG_TENSE"),
 
                 ChallengeOptionEntity(id = 600105, challengeId = 60025, text = "運転", romaji = "unten", correct = false, errorTag = "WRONG_FORM"),

@@ -177,7 +177,7 @@ object ErrorHint {
         ),
         "ja.ability_polite" to FocusProfile(
             "the Japanese ability frame",
-            "Ability is ます → せます (乗れます) or the ます form + ことができます (運転することができます).",
+            "Ability is the potential (乗れます) or the plain verb + ことができます (運転することができます): こと is the する→す nominaliser, so the verb keeps its plain form.",
         ),
         // 意見 and giving/receiving: the two everyday frames that carry unit 12.
         "ja.think" to FocusProfile(

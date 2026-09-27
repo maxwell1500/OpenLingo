@@ -443,43 +443,62 @@ class CurriculumIntegrityTest {
     }
 
     /**
-     * `ことができます` is 「〜こと が できます」: `こと` nominalises whatever
-     * sits in front of it, so the blank in a 「〜___ことができます。」 scaffold
-     * holds a whole verb. Every Japanese verb ends in a kana — an ichidan verb
-     * in る, a godan verb in the u-row of its ます stem — and a する-verb keeps
-     * its する in writing, because こと is itself the する→す nominaliser.
+     * `ことができます` is 「〜こと が できます」 and `こと` is the する→す
+     * nominaliser, so whatever fills the slot in front of it has to be a verb
+     * in its **plain** form. Two things follow, and the corpus broke both:
      *
-     * Challenge 60025 asked 「車を___ことができます。」 and keyed 運転, so the
-     * learner composed 車を運転ことができます: a noun in a verb slot, and not
-     * the sentence the item's own clip speaks. Nothing else here could see it —
-     * the grader matches strings, so a key that composes into nothing is a key
-     * that passes every other assertion in this file.
+     * 1. The slot needs a whole verb. Every Japanese verb ends in a kana — an
+     *    ichidan verb in る, a godan verb in the u-row of its ます stem — and a
+     *    する-verb keeps its する in writing, because こと is the nominaliser.
+     *    Challenge 60025 asked 「車を___ことができます。」 and keyed 運転, so the
+     *    learner composed 車を運転ことができます: a noun in a verb slot, and not
+     *    the sentence the item's own clip speaks.
+     * 2. The slot must not take a ます form. こと cannot nominalise a polite
+     *    verb — 泳ぎますこと is not a word — so 泳ぎますことができます is not a
+     *    sentence. Challenge 60024 keyed exactly that, while its own rule text
+     *    derived 泳ぐことができます and called 泳ぐ a `WRONG_FORM`.
      *
-     * The test is "ends in a kana that can end a verb" rather than "ends in
+     * Nothing else here could see either: the grader matches strings, so a key
+     * or an answer that composes into nothing is one that passes every other
+     * assertion in this file.
+     *
+     * Rule 1 is "ends in a kana that can end a verb" rather than "ends in
      * する", because a godan ます stem (書く, keyed by 30029) and an ichidan る
      * form (読める, keyed by 31013) fill the same slot and have to stay legal.
-     * The bare する-verb stem is the one form that cannot end a verb, and it is
-     * the whole defect, so the assertion stops there.
+     * The bare する-verb stem is the one form that cannot end a verb. Both the
+     * typed key and the correct option are checked, because a `FILL_BLANK`
+     * grades against the key while a `CONJUGATE` is picked from the grid, and
+     * 60025's two halves had to be moved together.
      */
     @Test
-    fun `a fill blank before ことができます keys a verb, not a bare suru stem`() {
+    fun `a ことができます slot is filled with a verb こと can nominalise`() {
         val verbFinalKana = "うくぐすつぬぶむる"
+        val politeEndings = listOf("ます", "ません", "ましょう", "たい", "そう")
 
+        val optionsByChallenge = allPayloads.flatMap { it.options }.groupBy { it.challengeId }
         val malformed = mutableListOf<String>()
         allPayloads.flatMap { it.challenges }
-            .filter { it.type == ChallengeType.FILL_BLANK }
+            .filter { it.type == ChallengeType.FILL_BLANK || it.type == ChallengeType.CONJUGATE }
             .filter { it.question.contains("ことができます") }
             .forEach { challenge ->
-                AnswerGrader.acceptedVariants(challenge.acceptedAnswers).forEach { accepted ->
+                val answers = AnswerGrader.acceptedVariants(challenge.acceptedAnswers) +
+                    optionsByChallenge[challenge.id].orEmpty()
+                        .filter { it.correct }
+                        .map { it.text }
+                answers.forEach { accepted ->
+                    val where = "challenge ${challenge.id} ('${challenge.question}') takes '$accepted'"
                     if (accepted.isNotEmpty() && accepted.takeLast(1) !in verbFinalKana) {
-                        malformed += "challenge ${challenge.id} ('${challenge.question}') accepts " +
-                            "'$accepted', which does not end in a verb: こと can only nominalise a " +
-                            "verb, and a する-verb keeps its する"
+                        malformed += "$where, which does not end in a verb: こと can only " +
+                            "nominalise a verb, and a する-verb keeps its する"
+                    }
+                    if (politeEndings.any { accepted.endsWith(it) }) {
+                        malformed += "$where, which is a polite form: こと cannot nominalise a " +
+                            "ます form, so $accepted こと is not a word"
                     }
                 }
             }
         assertEquals(
-            "fill blanks keying a form that cannot stand as a verb before ことができます: $malformed",
+            "forms keyed into a ことができます slot that do not compose into a sentence: $malformed",
             emptyList<String>(),
             malformed,
         )
