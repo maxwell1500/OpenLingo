@@ -21,7 +21,7 @@ label for the Spanish course is now **A2 → B1**, not B1 throughout.
 
 ## Spanish (CEFR B1 Threshold)
 
-Target: Units 9–12. Shipped: 10 lessons and 66 challenges.
+Target: Units 9–12. Shipped: 10 lessons and 97 challenges.
 
 Status: Units 9–10 have shipped in `B1CurriculumData.kt` (`spanishA2Units`, unit ids
 18–19) — 4 lessons and 31 challenges, and they are **A2-level content, not B1**
@@ -72,7 +72,7 @@ plans vocabulary rides along inside them.
 
 ## Japanese (JLPT N4 Elementary Intermediate)
 
-Target: Units 9–12 (12 lessons, 71 challenges).
+Target: Units 9–12 (10 lessons, 71 challenges).
 
 Status: **Units 9–12 have shipped.** Units 9–10 are in `B1CurriculumData.kt` (`japaneseN4Units`) — 4 lessons and 27 challenges. Units 11–12 are in `JapaneseN4CurriculumData.kt` (`japaneseN4ExtensionUnits`, unit ids 40–41, lessons 400–405, challenges 60000–60043) — 6 lessons and 44 challenges, 6 of them held out, so the N4 checkpoint now holds 10 held-out items. As with Spanish 11–12, the themes this roadmap originally sketched for units 11–12 (past experience 〜たことがある, plans 〜つもり, reasons 〜から, comparisons 〜より) were not what the grammar gap needed, and the shipped units teach different points: without a past tense there is no tense to conjugate, and every verb in units 1–10 was stuck in the present.
 
