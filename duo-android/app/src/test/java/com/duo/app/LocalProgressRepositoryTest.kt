@@ -75,7 +75,7 @@ class LocalProgressRepositoryTest {
                 }
             }
         }
-        assertEquals(246, challenges)
+        assertEquals(267, challenges)
 
         // Re-running the seed must not duplicate or drop rows.
         repository.initializeIfNeeded()
