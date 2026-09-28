@@ -1,10 +1,10 @@
-OpenLingo is a 100% free, privacy-first, open-source language learning client for Android with rich offline Spanish (CEFR A1–B1) and Japanese (JLPT N5–N4) curricula.
+OpenLingo is a 100% free, privacy-first, open-source language learning client for Android with offline Spanish (CEFR A1–B1) and Japanese (JLPT N5–N4) curricula.
 
 Guided by our chill Capybara mascot (🦫), learn at your own pace without stress, streaks anxiety, or ads.
 
 Key Features:
 • 100% Free & Open-Source: zero ads, zero tracking, no subscriptions, no in-app purchases.
-• Full Offline Mode: every unit, lesson and word plays from your device — including bundled Kokoro-82M text-to-speech — with no internet connection and no INTERNET permission.
+• Full Offline Mode: every unit, lesson and word plays from your device, including pre-rendered Kokoro-82M audio — no internet connection, no INTERNET permission.
 • Grammar Rule Cards: a grammar challenge can carry a short rule, shown alongside it and repeated in the wrong-answer feedback.
 • Error-Specific Hints: the app knows which grammar error the option you picked encodes, names it, then gives the rule and the form that fits.
 • Typed Production: Verb Conjugation asks for the right form from a paradigm rather than a translation, and Fill in the Blank has you type the missing word. Grading forgives a missing Spanish accent and a full-width Japanese character, but not the wrong word order.
@@ -15,6 +15,7 @@ Key Features:
 • Seven Exercise Types per lesson: Multiple Choice, Word Bank sentence builder, Verb Conjugation, Fill in the Blank, Match Pairs, Listen, and Story — with a 0.5x / 0.75x / 1.0x playback speed selector on every audio button. An eighth type, Vocabulary Assist, is wired in, but its two questions carry no blank to fill yet, so it plays as Multiple Choice.
 • Winding S-Curve Lesson Map: sequential lesson unlocking with golden crowns.
 • Level Checkpoint Assessments: test your mastery of CEFR A1/A2/B1 and JLPT N5/N4 with celebratory badges. A2, B1 and N4 sessions open with a held-out pool of unseen sentences — 4, 8 and 10 items — so early questions test generalisation, not recall. A1 and N5 are drawn entirely from taught items.
+• Coverage is partial: Spanish B1 stops at the irregular preterite, the past perfect, the conditional and the subjunctive; subjunctive perfect, reported speech and por/para contrast are not taught.
 • FSRS-4.5 Spaced Repetition: the Free Spaced Repetition Scheduler algorithm for vocabulary review, with 4-rating intervals and due card tracking.
 • Adaptive Learning: tracks accuracy across challenge types and prioritizes your weakest areas first in practice drills.
 • Story Mode: interactive narrative reading challenges with dialogue, offline speech, and comprehension questions.
