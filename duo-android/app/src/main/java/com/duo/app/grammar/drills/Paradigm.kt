@@ -85,8 +85,18 @@ data class Paradigm(
     val focus: String,
     val entries: List<ParadigmEntry>,
 ) {
-    /** Human label for the focus header, e.g. `es.preterito.regular` -> "PRETERITO REGULAR". */
+    /** Human name for the focus, e.g. `es.preterito.regular` -> "Regular preterite". */
     val label: String? get() = GrammarFocus.label(focus)
+
+    /**
+     * The heading to print, which is never the slug.
+     *
+     * A focus this build has no name for is a heading this build cannot write,
+     * and the drill already prints the rule text underneath — a card reading
+     * "Grammar point" is honest where one reading `TE_FORM_2` is not. Every focus
+     * the corpus ships is named, and `GrammarFocusTest` fails when one is not.
+     */
+    val heading: String get() = label ?: "Grammar point"
 
     /** The distinct lemmas the prompt named, in first-seen order; empty when none did. */
     val lemmas: List<String>

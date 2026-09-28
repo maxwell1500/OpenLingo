@@ -9,6 +9,7 @@ import com.duo.app.data.local.curriculum.UnitPayload
 import com.duo.app.data.local.entities.ChallengeEntity
 import com.duo.app.data.local.models.ChallengeType
 import com.duo.app.grammar.AnswerGrader
+import com.duo.app.grammar.GrammarFocus
 import java.io.File
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -802,6 +803,26 @@ class CurriculumIntegrityTest {
                 "back to taught ones: $empty",
             emptySet<String>(),
             empty,
+        )
+    }
+
+    /**
+     * Every grammar point the corpus teaches has to have a name the learner can be
+     * shown, in the same way every challenge has to declare the errorTags its
+     * distractors may carry. Without this the fallback is not an error state: a new
+     * focus simply renders with no heading, and the rule card reads `RULE` over a
+     * paragraph the learner cannot place.
+     */
+    @Test
+    fun `every grammar point the corpus teaches has a name the learner can be shown`() {
+        val unnamed = allPayloads.flatMap { it.challenges }
+            .mapNotNull { it.grammaticalFocus }
+            .distinct()
+            .filter { GrammarFocus.label(it) == null }
+        assertEquals(
+            "grammar points with no display name, so the learner would see no heading at all: $unnamed",
+            emptyList<String>(),
+            unnamed,
         )
     }
 }

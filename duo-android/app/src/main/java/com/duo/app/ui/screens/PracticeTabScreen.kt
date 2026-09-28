@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -187,29 +188,27 @@ fun PracticeTabScreen(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
+                        // `fill = false` and `weight` is the whole fix for the badge.
+                        // A Row measures its *unweighted* children first, so the badge
+                        // below is measured against this Row's full max width and takes
+                        // the width its text needs; only what is left over reaches this
+                        // title, which then wraps. With the title unweighted it claimed
+                        // the whole row first, the badge was measured with a max width of
+                        // zero, and its text laid out one character per line down a
+                        // zero-width pill: a count nobody could read.
                         Text(
                             text = "FSRS Spaced Repetition",
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
                             color = Color(0xFF1899D6),
+                            modifier = Modifier.weight(1f, fill = false),
                         )
                         if (dueVocabCount > 0) {
-                            Box(
-                                modifier = Modifier
-                                    .background(Color(0xFFFF9600), RoundedCornerShape(8.dp))
-                                    .padding(horizontal = 6.dp, vertical = 2.dp),
-                            ) {
-                                Text(
-                                    text = "$dueVocabCount DUE",
-                                    color = Color.White,
-                                    fontSize = 10.sp,
-                                    fontWeight = FontWeight.Bold,
-                                )
-                            }
+                            DueBadge(dueVocabCount)
                         }
                     }
                     Text(
-                        text = if (dueVocabCount > 0) "$dueVocabCount cards due for optimal memory retention" else "All cards caught up! Practice ahead anytime.",
+                        text = fsrsBannerSummary(vocabList.size, dueVocabCount),
                         style = MaterialTheme.typography.bodySmall,
                         color = Color(0xFF4B4B4B),
                     )
@@ -304,6 +303,55 @@ fun PracticeTabScreen(
     }
 }
 
+/**
+ * The due count as a badge: a pill with the number and the word DUE on one line.
+ *
+ * `wrapContentWidth(unbounded = true)` is the second half of the fix, and it
+ * holds whatever the row around it does: the badge is measured against an
+ * unbounded width, so its `Text` is laid out on a single line at its intrinsic
+ * width instead of wrapping to one character per line. A badge is the one thing
+ * in this card that must never be the thing that gives way, so it takes its own
+ * width and the title wraps around it rather than the other way round.
+ */
+@Composable
+private fun DueBadge(dueVocabCount: Int) {
+    Box(
+        modifier = Modifier
+            .wrapContentWidth(unbounded = true)
+            .background(Color(0xFFFF9600), RoundedCornerShape(8.dp))
+            .padding(horizontal = 6.dp, vertical = 2.dp),
+    ) {
+        Text(
+            text = dueBadgeLabel(dueVocabCount),
+            color = Color.White,
+            fontSize = 10.sp,
+            fontWeight = FontWeight.Bold,
+        )
+    }
+}
+
+/**
+ * The line under the FSRS banner's title.
+ *
+ * Three states, and the empty one is the one the screen used to get wrong: with
+ * no words met there are no cards, which is not the same as cards that are all
+ * caught up, and the learner is told which one they are looking at. The counts
+ * arrive as arguments, so the sentence and the badge beside it cannot come from
+ * two different places.
+ */
+internal fun fsrsBannerSummary(vocabCount: Int, dueCount: Int): String = when {
+    vocabCount == 0 -> "No cards yet — every word you meet in a lesson becomes one."
+    dueCount > 0 -> "$dueCount cards due for optimal memory retention"
+    else -> "All cards caught up! Practice ahead anytime."
+}
+
+/**
+ * The badge's own text. Kept beside [fsrsBannerSummary] for the same reason: one
+ * count, one place that turns it into words, so the pill and the sentence can
+ * never print different numbers.
+ */
+internal fun dueBadgeLabel(dueCount: Int): String = "$dueCount DUE"
+
 @Composable
 private fun VocabFlashcardsDialog(
     vocabList: List<com.duo.app.data.local.entities.VocabScheduleEntity>,
@@ -338,7 +386,11 @@ private fun VocabFlashcardsDialog(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
-                        text = "🃏 Flashcards (${currentIndex + 1}/${vocabList.size})",
+                        text = if (vocabList.isEmpty()) {
+                            "🃏 Flashcards"
+                        } else {
+                            "🃏 Flashcards (${currentIndex + 1}/${vocabList.size})"
+                        },
                         fontWeight = FontWeight.Bold,
                         fontSize = 15.sp,
                     )
@@ -500,6 +552,29 @@ private fun VocabFlashcardsDialog(
                                 Text(text = "Easy ✨", color = Color(0xFF0284C7), fontWeight = FontWeight.Bold, fontSize = 13.sp)
                             }
                         }
+                    }
+                } else {
+                    // No cards yet. A learner who has met no words gets this, not
+                    // "1/0" over an empty panel: the deck is empty because there
+                    // is nothing in it for them yet, and that is the honest
+                    // reason to print here.
+                    Column(
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 24.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        Text(
+                            text = "No cards yet",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 15.sp,
+                            color = Color(0xFF4B4B4B),
+                        )
+                        Text(
+                            text = "Every word you answer correctly in a lesson becomes a " +
+                                "review card, so this fills up as you learn.",
+                            fontSize = 13.sp,
+                            color = Color(0xFF888888),
+                        )
                     }
                 }
             }

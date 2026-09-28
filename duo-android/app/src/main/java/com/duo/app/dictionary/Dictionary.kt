@@ -36,6 +36,19 @@ data class DictionaryEntry(
 )
 
 /**
+ * What the definition sheet says when the app has no English for a word.
+ *
+ * The sheet is presented as authoritative, so this line has to be true in every
+ * place it can appear. It used to add that the word is "one you assemble rather
+ * than translate", which is invented rationale: on a match-pairs board both sides
+ * of every pair are `correct = true` — the board is built by pairing all-correct
+ * options — so every one of the fourteen boards was told a falsehood about its
+ * own tiles. The only reason there is no gloss is the one the data gives, which
+ * is that the corpus pairs this word with no English, so that is all it says.
+ */
+const val NO_GLOSS_NOTICE = "No English gloss for this word in the app yet."
+
+/**
  * A successful tap: which entry was found, and the exact character range of
  * the text that produced it. The range is what lets the caller underline the
  * word it resolved to rather than the whole line.
@@ -368,7 +381,21 @@ object DictionaryIndex {
 
     private fun betweenQuotes(text: String, quoteStart: Int): String? {
         if (quoteStart >= text.length || text[quoteStart] != '\'') return null
-        val close = text.indexOf('\'', quoteStart + 1)
+        // An English gloss can contain an apostrophe of its own — `You're welcome`,
+        // `don't`, `Let's` — and stopping at the first quote after the anchor cut
+        // every one of them at the contraction, so `De nada` opened a sheet that
+        // read `You`. The closing quote is the *last* apostrophe in the remainder
+        // that is not an elision inside a word, and an apostrophe inside a word is
+        // the one followed by a letter. Every prompt the corpus writes quotes
+        // exactly one span, so the true end of that span is unambiguous, and a
+        // gloss with no apostrophe in it lands on the very same quote as before.
+        var close = -1
+        for (index in text.length - 1 downTo quoteStart + 1) {
+            if (text[index] != '\'') continue
+            if (index + 1 < text.length && text[index + 1].isLetter()) continue
+            close = index
+            break
+        }
         if (close < 0) return null
         return text.substring(quoteStart + 1, close).trim().takeIf { it.isNotEmpty() }
     }

@@ -4,13 +4,15 @@ import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import com.duo.app.data.local.DuoDatabase
 import com.duo.app.data.local.models.ChallengeType
-import com.duo.app.dictionary.DictionaryIndex
 import com.duo.app.data.repository.LocalProgressRepository
+import com.duo.app.dictionary.DictionaryIndex
+import com.duo.app.dictionary.NO_GLOSS_NOTICE
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.After
-import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -213,5 +215,104 @@ class DictionaryRepositoryTest {
         val terms = repository.loadDictionary().entries.map { it.term }
         assertTrue("spanish words missing", terms.any { term -> term.any { it in 'a'..'z' } })
         assertTrue("japanese words missing", terms.any { term -> term.any { it.code in 0x4E00..0x9FFF } })
+    }
+
+    /**
+     * The defect as a learner met it, on the database the app actually builds the
+     * index from. `De nada` is the correct answer of Unit 1's challenge 1008, whose
+     * prompt is `What is 'You're welcome'?`; the apostrophe in `You're` was read as
+     * the closing quote and the sheet said `You`.
+     */
+    @Test
+    fun `a seeded gloss containing an apostrophe is read whole`() = runTest {
+        repository.initializeIfNeeded()
+        val deNada = repository.loadDictionary().lookup("De nada")
+        assertNotNull("De nada is the correct answer of challenge 1008", deNada)
+        assertEquals("You're welcome", deNada!!.gloss)
+    }
+
+    /**
+     * The other half of the same contract, on real data: a word the corpus pairs
+     * with no English still opens with no gloss, and the line the sheet prints in
+     * its place says only that.
+     */
+    @Test
+    fun `a word with no gloss is not given one, and the sheet says why`() = runTest {
+        repository.initializeIfNeeded()
+        val unglossed = repository.loadDictionary().entries.firstOrNull { it.gloss == null }
+        assertNotNull("the corpus states a gloss for every word, so nothing is left to check", unglossed)
+        assertNull(unglossed!!.gloss)
+
+        // What the learner reads instead, and the only claim it makes.
+        assertEquals(
+            "No English gloss for this word in the app yet.",
+            NO_GLOSS_NOTICE,
+        )
+        // The old line added that the word is "one you assemble rather than
+        // translate", which is a claim about how the exercise was built and is
+        // false for a match-pairs tile: both sides of every pair are correct.
+        assertFalse(
+            "the notice still explains the absence by how the word is exercised",
+            NO_GLOSS_NOTICE.contains("assemble", ignoreCase = true),
+        )
+        assertTrue(NO_GLOSS_NOTICE.contains("no English gloss", ignoreCase = true))
+    }
+
+    /**
+     * The defect itself. Long-pressing a tile on any match-pairs board showed:
+     * "This word has no English gloss in the app yet — it is one you assemble
+     * rather than translate."
+     *
+     * A match-pairs board is built by pairing all-correct options, so every tile
+     * on it is a word the unit teaches — the opposite of "one you assemble". The
+     * board itself states no English either: `Match the café words` quotes
+     * nothing, so it contributes no gloss to any tile, and the only true reason
+     * for a tile having none is the one the copy now gives.
+     *
+     * A tile can still be glossed, by a *different* challenge that pairs the same
+     * word with English (`ホテル` is answered by `What is 'Hotel' in Katakana?`).
+     * That gloss is real, and it is the case where the learner never reads the
+     * notice at all — so what has to hold is that plenty of tiles have no gloss
+     * anywhere, and that the line printed in its place claims nothing else.
+     */
+    @Test
+    fun `a match-pairs board states no English, and an unglossed tile says only that`() = runTest {
+        repository.initializeIfNeeded()
+        val boards = db.lessonDao().getAllChallenges().filter { it.type == ChallengeType.MATCH_PAIRS }
+        assertTrue("corpus changed: no match-pairs boards to test", boards.size >= 14)
+        boards.forEach { board ->
+            assertFalse(
+                "board ${board.id} quotes English: \"${board.question}\"",
+                board.question.contains('\''),
+            )
+        }
+
+        val options = db.lessonDao().getAllOptions()
+        val dictionary = repository.loadDictionary()
+        var unglossedTiles = 0
+        var boardsWithAnUnglossedTile = 0
+
+        boards.forEach { board ->
+            val tiles = options.filter { it.challengeId == board.id && it.correct }
+            assertTrue("board ${board.id} has no correct tiles", tiles.size >= 2)
+            val unglossedHere = tiles.count { tile ->
+                val entry = dictionary.lookup(tile.text)
+                assertNotNull("${tile.text} is a correct tile of ${board.id}", entry)
+                entry!!.gloss == null
+            }
+            unglossedTiles += unglossedHere
+            if (unglossedHere > 0) boardsWithAnUnglossedTile++
+        }
+
+        // The control that keeps this from passing vacuously: the learner really
+        // does meet an unglossed tile, on a board, and the sheet prints the notice
+        // in its place.
+        assertTrue("every match-pairs tile turned out to be glossed", unglossedTiles > 0)
+        assertEquals(
+            "only $boardsWithAnUnglossedTile of ${boards.size} boards have an unglossed tile, " +
+                "so the untrue copy reached only some of them",
+            boards.size,
+            boardsWithAnUnglossedTile,
+        )
     }
 }

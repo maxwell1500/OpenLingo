@@ -113,7 +113,7 @@ fun StructureDrillScreen(
             LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 items(paradigms, key = { it.focus }) { paradigm ->
                     DrillChip(
-                        text = paradigm.label ?: paradigm.focus,
+                        text = paradigm.heading,
                         isSelected = paradigm.focus == paradigms[selectedFocus.coerceIn(paradigms.indices)].focus,
                         onClick = { selectedFocus = paradigms.indexOf(paradigm) },
                     )
@@ -184,7 +184,7 @@ private fun ParadigmTable(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = paradigm.label ?: paradigm.focus,
+                        text = paradigm.heading,
                         fontSize = 15.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color(0xFF4B4B4B),
@@ -306,7 +306,7 @@ private fun ParadigmQuiz(
         Spacer(modifier = Modifier.width(4.dp))
         Column(modifier = Modifier.weight(1f)) {
             Text(
-                text = paradigm.label ?: paradigm.focus,
+                text = paradigm.heading,
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 color = Color(0xFF4B4B4B),

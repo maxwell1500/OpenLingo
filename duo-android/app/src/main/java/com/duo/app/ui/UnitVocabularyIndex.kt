@@ -146,6 +146,47 @@ object LearnerVocabulary {
 }
 
 /**
+ * The FSRS cards a learner can actually be quizzed on.
+ *
+ * `vocab_schedule` is a hand-written table of fourteen review cards that ships
+ * with the app, so every new install has rows in it before the learner has
+ * answered anything. Counting those rows as *due* made the Practice tab claim
+ * six Spanish cards for a learner who had not met a single Spanish word, two
+ * inches above "0 words unlocked" — two numbers about the same learner that
+ * cannot both be true.
+ *
+ * The scheduler is not the thing at fault and is not changed here: it still
+ * computes stability, reps, lapses and due dates exactly as before, and the
+ * rows are still the corpus's own authored glosses. What changed is which of
+ * them the review surface offers. A card is offered once the learner has met
+ * its word — the same derivation as [LearnerVocabulary.wordsMet], compared on
+ * the same [UnitVocabularyIndex.key] — so the due count can never exceed the
+ * unlocked count, and a learner who has answered nothing is owed nothing.
+ *
+ * The seed stays out of what a unit *lists*: [UnitVocabularyIndex] is derived
+ * from the corpus and reads none of this, so this coupling cannot creep back
+ * into vocabulary breadth.
+ */
+object LearnerReview {
+
+    /**
+     * The cards in [cards] whose word the learner has met, order untouched.
+     *
+     * Membership is decided on [UnitVocabularyIndex.key], the key the unit
+     * vocabulary list files a term under, so `Buenos días` in the schedule and
+     * `Buenos días` unlocked by a completed challenge are the same word.
+     */
+    fun cardsMet(
+        cards: List<com.duo.app.data.local.entities.VocabScheduleEntity>,
+        met: List<UnitWord>,
+    ): List<com.duo.app.data.local.entities.VocabScheduleEntity> {
+        if (cards.isEmpty() || met.isEmpty()) return emptyList()
+        val metKeys = met.mapTo(HashSet(met.size)) { UnitVocabularyIndex.key(it.term) }
+        return cards.filter { UnitVocabularyIndex.key(it.foreign) in metKeys }
+    }
+}
+
+/**
  * Groups the correct answers of [challenges] by the unit that owns the lesson they sit
  * in, one entry per distinct term, in the order the challenges arrive.
  *

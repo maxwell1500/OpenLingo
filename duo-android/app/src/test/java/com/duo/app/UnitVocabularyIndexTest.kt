@@ -5,6 +5,8 @@ import androidx.test.core.app.ApplicationProvider
 import com.duo.app.data.local.DuoDatabase
 import com.duo.app.data.local.entities.UnitWithLessons
 import com.duo.app.data.repository.LocalProgressRepository
+import com.duo.app.dictionary.DictionaryIndex
+import com.duo.app.ui.LearnerReview
 import com.duo.app.ui.LearnerVocabulary
 import com.duo.app.ui.UnitVocabularyIndex
 import com.duo.app.ui.UnitWord
@@ -284,5 +286,84 @@ class UnitVocabularyIndexTest {
             .mapTo(mutableSetOf()) { UnitVocabularyIndex.key(it.term) }
 
         assertEquals(taught, met)
+    }
+
+    // --- the FSRS deck, which has to agree with the unlocked count -----------
+
+    /**
+     * The defect. A fresh install ships fourteen authored review cards, six of them
+     * Spanish, and every one of them sits due — so the Practice tab read "6 cards
+     * due for optimal memory retention" a few lines above "0 words unlocked", and
+     * both numbers were being computed for the same learner.
+     *
+     * The scheduler is not the defect and is not changed: the rows are still there,
+     * still carry the corpus's own glosses, and still owe a review. What the review
+     * surface offers is now narrowed to the words this learner has met, so a learner
+     * who has answered nothing is owed nothing.
+     */
+    @Test
+    fun `a learner who has done nothing is owed no review cards`() = runTest {
+        repository.initializeIfNeeded()
+        val due = repository.getDueVocab("es").first()
+        assertTrue("the seeded schedule owes Spanish cards before the fix", due.isNotEmpty())
+
+        val met = LearnerVocabulary.wordsMet(repository, unitsOf(1), completedChallengeIds = emptySet())
+        assertEquals(
+            emptyList<com.duo.app.data.local.entities.VocabScheduleEntity>(),
+            LearnerReview.cardsMet(due, met),
+        )
+    }
+
+    /**
+     * The invariant the screen depends on, checked at several points in a course
+     * rather than only at zero: the due count is a subset of the unlocked words, so
+     * the two numbers can never describe a learner who has met nothing as owing
+     * something.
+     */
+    @Test
+    fun `the cards due can never outnumber the words unlocked`() = runTest {
+        repository.initializeIfNeeded()
+        val units = unitsOf(1)
+        val onPath = repository.getChallengesForUnits(units.map { it.unit.id })
+        val due = repository.getDueVocab("es").first()
+        assertTrue("nothing is due, so the check proved nothing", due.isNotEmpty())
+
+        for (taken in listOf(0, 1, onPath.size / 2, onPath.size)) {
+            val completed = onPath.take(taken).map { it.challenge.id }.toSet()
+            val met = LearnerVocabulary.wordsMet(repository, units, completed)
+            val offered = LearnerReview.cardsMet(due, met)
+            assertTrue(
+                "after $taken challenges: ${offered.size} cards due against ${met.size} words unlocked",
+                offered.size <= met.size,
+            )
+        }
+    }
+
+    /**
+     * The other half: the deck is not emptied, it is earned. A card appears the
+     * moment the learner has met its word, and the scheduler is untouched.
+     */
+    @Test
+    fun `a card becomes reviewable once the learner has met its word`() = runTest {
+        repository.initializeIfNeeded()
+        val units = unitsOf(1)
+        val scheduled = repository.getAllVocab("es").first()
+            .associateBy { UnitVocabularyIndex.key(it.foreign) }
+        val onPath = repository.getChallengesForUnits(units.map { it.unit.id })
+
+        val teaching = onPath.firstOrNull { withOptions ->
+            withOptions.options.any { it.correct && UnitVocabularyIndex.key(it.text) in scheduled }
+        }
+        assertNotNull("no lesson in the course teaches a scheduled review word", teaching)
+        val word = teaching!!.options
+            .first { it.correct && UnitVocabularyIndex.key(it.text) in scheduled }
+        complete(teaching.challenge.id)
+
+        val met = LearnerVocabulary.wordsMet(repository, units, setOf(teaching.challenge.id))
+        val offered = LearnerReview.cardsMet(repository.getDueVocab("es").first(), met)
+        assertTrue(
+            "${word.text} was met but its card is not reviewable",
+            offered.any { DictionaryIndex.key(it.foreign) == UnitVocabularyIndex.key(word.text) },
+        )
     }
 }

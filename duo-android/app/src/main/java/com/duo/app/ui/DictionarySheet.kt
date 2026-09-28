@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.duo.app.dictionary.Dictionary
 import com.duo.app.dictionary.DictionaryEntry
+import com.duo.app.dictionary.NO_GLOSS_NOTICE
 
 /**
  * WI-11: the offline definition sheet.
@@ -101,9 +102,7 @@ fun DictionarySheet(
             }
 
             Text(
-                text = entry.gloss
-                    ?: "This word has no English gloss in the app yet — it is one you " +
-                    "assemble rather than translate.",
+                text = entry.gloss ?: NO_GLOSS_NOTICE,
                 style = MaterialTheme.typography.titleMedium,
                 color = if (entry.gloss != null) Color(0xFF4B4B4B) else Color(0xFF8A8A8A),
             )

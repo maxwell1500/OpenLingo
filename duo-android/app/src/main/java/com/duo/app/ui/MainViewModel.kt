@@ -187,26 +187,20 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         repository.getExerciseTypeStats()
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    val dueVocab: StateFlow<List<com.duo.app.data.local.entities.VocabScheduleEntity>> = userProgress
-        .flatMapLatest { progress ->
-            val lang = if (progress?.activeCourseId == 2) "ja" else "es"
-            repository.getDueVocab(lang)
-        }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    private val courseLanguage: StateFlow<String> = userProgress
+        .map { progress -> if (progress?.activeCourseId == 2) "ja" else "es" }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "es")
 
-    val allVocab: StateFlow<List<com.duo.app.data.local.entities.VocabScheduleEntity>> = userProgress
-        .flatMapLatest { progress ->
-            val lang = if (progress?.activeCourseId == 2) "ja" else "es"
-            repository.getAllVocab(lang)
-        }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    private val dueCards: StateFlow<List<com.duo.app.data.local.entities.VocabScheduleEntity>> =
+        courseLanguage
+            .flatMapLatest { language -> repository.getDueVocab(language) }
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    val dueVocabCount: StateFlow<Int> = userProgress
-        .flatMapLatest { progress ->
-            val lang = if (progress?.activeCourseId == 2) "ja" else "es"
-            repository.getDueVocabCount(lang)
-        }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
+    private val allCards: StateFlow<List<com.duo.app.data.local.entities.VocabScheduleEntity>> =
+        courseLanguage
+            .flatMapLatest { language -> repository.getAllVocab(language) }
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
 
     /**
      * WI-11: the offline dictionary, built once from the tables already on the
@@ -280,6 +274,35 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         combine(unitsWithLessons, completedChallengeIds) { units, completed ->
             LearnerVocabulary.wordsMet(repository, units, completed.toSet())
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    /**
+     * The FSRS cards this learner has met, and the ones among them that are due.
+     *
+     * The schedule table ships fourteen authored cards with the app, so an
+     * untouched install had six Spanish rows sitting due. Counting them made the
+     * Practice tab read "6 cards due" directly above "0 words unlocked", and both
+     * were being computed for the same learner. Narrowing the deck to the words
+     * [unlockedWords] says the learner has met is what makes the two agree by
+     * construction: the due count is a subset of the unlocked words, so a
+     * learner who has answered nothing is owed nothing.
+     *
+     * The scheduler itself is untouched — the rows still carry their stability,
+     * reps, lapses and due dates, and a met card is still scheduled exactly as
+     * before. Nor does this touch what a unit lists: that is
+     * [UnitVocabularyIndex], derived from the corpus and reading none of this.
+     */
+    val dueVocab: StateFlow<List<com.duo.app.data.local.entities.VocabScheduleEntity>> =
+        combine(dueCards, unlockedWords) { cards, met -> LearnerReview.cardsMet(cards, met) }
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    val dueVocabCount: StateFlow<Int> = dueVocab
+        .map { it.size }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
+
+    /** The whole review deck for this learner, not the whole schedule table. */
+    val allVocab: StateFlow<List<com.duo.app.data.local.entities.VocabScheduleEntity>> =
+        combine(allCards, unlockedWords) { cards, met -> LearnerReview.cardsMet(cards, met) }
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     /**
      * Drillable forms per unit, for the unit header chip. Derived the same way the drill

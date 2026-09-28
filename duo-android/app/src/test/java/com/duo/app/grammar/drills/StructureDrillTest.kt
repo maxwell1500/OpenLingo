@@ -14,6 +14,7 @@ import com.duo.app.grammar.ErrorHint
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
+import org.junit.Assert.assertNull
 import org.junit.Test
 
 /**
@@ -109,7 +110,7 @@ class StructureDrillTest {
         )
 
         val preterite = paradigm("es.preterito.regular")
-        assertEquals("PRETERITO REGULAR", preterite.label)
+        assertEquals("Regular preterite", preterite.label)
         assertEquals(listOf("hablar", "llegar"), preterite.lemmas)
         assertEquals(listOf("hablamos", "hablaron"), preterite.entriesFor("hablar").map { it.form })
 
@@ -128,7 +129,7 @@ class StructureDrillTest {
         assertEquals(listOf("viví", "vivimos", "viven", "vivo"), vivia.distractors.map { it.form })
 
         val ser = paradigm("es.ser_present")
-        assertEquals("SER PRESENT", ser.label)
+        assertEquals("Present of ser", ser.label)
         val soy = ser.entries.single()
         assertEquals("soy", soy.form)
         assertEquals("ser", soy.lemma)
@@ -193,7 +194,11 @@ class StructureDrillTest {
         assertEquals(listOf("es.futuro.regular"), generated.map { it.focus })
 
         val futuro = generated.single()
-        assertEquals("FUTURO REGULAR", futuro.label)
+        assertEquals(
+            "an unnamed focus must not be shown as its slug",
+            "Grammar point",
+            futuro.heading,
+        )
         assertEquals(listOf("hablaré", "hablaremos", "iré"), futuro.entries.map { it.form })
         assertEquals(listOf("hablar"), futuro.lemmas)
         assertEquals("yo", futuro.entries.first { it.form == "hablaré" }.slot)
@@ -221,7 +226,8 @@ class StructureDrillTest {
         val neverAuthored = StructureDrill.paradigm(corpus, "es.subjuntivo")
         assertTrue(neverAuthored.isEmpty)
         assertTrue(neverAuthored.entries.isEmpty())
-        assertEquals("SUBJUNTIVO", neverAuthored.label)
+        assertNull("a focus nobody has named has no label", neverAuthored.label)
+        assertEquals("a heading is never the slug", "Grammar point", neverAuthored.heading)
         assertTrue(neverAuthored.lemmas.isEmpty())
         assertTrue(neverAuthored.entriesFor("hablar").isEmpty())
         assertTrue(paradigms().none { it.focus == "es.subjuntivo" })

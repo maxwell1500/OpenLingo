@@ -196,6 +196,92 @@ class DictionaryIndexTest {
     }
 
     /**
+     * Found on device: long-pressing `De nada` in a unit's vocabulary list opened a
+     * sheet reading `De nada` / `You`. The prompt is `What is 'You're welcome'?`
+     * and the apostrophe in `You're` was being taken for the closing quote, so a
+     * learner was shown the wrong meaning for a word rather than no meaning.
+     *
+     * The other two shapes matter as much as the failing one. A gloss with no
+     * apostrophe in it must come back exactly as before, and a prompt that quotes
+     * something other than a meaning must still be read as nothing at all — a
+     * wider quote is no reason to start inventing glosses.
+     */
+    @Test
+    fun `an apostrophe inside a gloss is not the end of the gloss`() {
+        val index = DictionaryIndex.build(
+            listOf(
+                challenge(1, ChallengeType.SELECT, "What is 'You're welcome'?"),
+                challenge(2, ChallengeType.SELECT, "How do you say 'I don't understand'?"),
+                challenge(3, ChallengeType.SELECT, "Which one means 'Station'?"),
+                challenge(4, ChallengeType.SELECT, "Which present form of hablar goes with 'yo'?"),
+            ),
+            listOf(
+                option(10, 1, "De nada", correct = true),
+                option(11, 2, "わかりません", correct = true),
+                option(12, 3, "Estación", correct = true),
+                option(13, 4, "hablo", correct = true),
+            ),
+            emptyList(),
+        )
+
+        assertEquals("You're welcome", index.lookup("De nada")!!.gloss)
+        assertEquals("I don't understand", index.lookup("わかりません")!!.gloss)
+        assertEquals("Station", index.lookup("Estación")!!.gloss)
+        assertNull("'yo' is a slot, not a meaning", index.lookup("hablo")!!.gloss)
+    }
+
+    /**
+     * The whole corpus, both languages, every challenge that states a meaning: the
+     * English the prompt quotes is read as far as the quote that closes it, and not
+     * one character short of it. The span is computed here from the first and last
+     * apostrophe of the prompt rather than from the rule under test, so this is an
+     * independent reading of the same data and not a restatement of the parser.
+     *
+     * Twenty-three prompts in the corpus carry an apostrophe inside the English —
+     * `You're welcome`, `I don't understand`, `Let's go to the park` — and every one
+     * of them was cut at the contraction.
+     */
+    @Test
+    fun `no gloss in the corpus is cut short at an apostrophe`() {
+        val optionsByChallenge = options.groupBy { it.challengeId }
+        val cut = mutableListOf<String>()
+        var checked = 0
+
+        for (challenge in challenges) {
+            val question = challenge.question
+            val open = question.indexOf('\'')
+            val close = question.lastIndexOf('\'')
+            if (open < 0 || close <= open) continue
+            val span = question.substring(open + 1, close).trim()
+            if (span.isEmpty()) continue
+            val own = optionsByChallenge[challenge.id].orEmpty()
+            if (own.none { it.correct }) continue
+
+            // One challenge at a time, so a word taught twice cannot borrow the
+            // gloss of its neighbour and hide a truncation here.
+            val entry = DictionaryIndex.build(listOf(challenge), own, emptyList())
+            if (challenge.type == ChallengeType.WORD_BANK) {
+                // A word bank translates the sentence its tiles spell out, and that
+                // translation is the sentence's, shown under IN A SENTENCE.
+                own.filter { it.correct }.forEach { tile ->
+                    val translation = entry.lookup(tile.text)?.exampleTranslation ?: return@forEach
+                    checked++
+                    if (translation != span) cut += "${challenge.id} / ${tile.text}: '$translation'"
+                }
+            } else {
+                val correct = own.filter { it.correct }
+                if (correct.size != 1) continue
+                val gloss = entry.lookup(correct.single().text)?.gloss ?: continue
+                checked++
+                if (gloss != span) cut += "${challenge.id}: '$gloss' of \"$question\""
+            }
+        }
+
+        assertTrue("no prompt quoted any English, so the check proved nothing", checked > 100)
+        assertEquals("glosses cut short at an apostrophe: $cut", emptyList<String>(), cut)
+    }
+
+    /**
      * A prompt that quotes a *slot* rather than a meaning must not be read as
      * one. `Which present form of hablar goes with 'yo'?` quotes `yo`, and
      * turning that into a definition of `hablo` would be a confident lie.
