@@ -3,13 +3,13 @@
 This document outlines the pedagogical scope, unit structure, and audio
 production requirements for expanding Duo into intermediate levels.
 
-**Status summary.** Units 9–14 of the Spanish course and 9–14 of the Japanese course
+**Status summary.** Units 9–16 of the Spanish course and 9–16 of the Japanese course
 have shipped. The Japanese units are genuinely at the level this roadmap names
 (JLPT N4: te-form, polite requests and potential forms, then the past, plain-vs-polite
 register, the い/な adjective classes, ability, opinion and the giving/receiving trio,
-then the passive, the causative and the relative clause). The Spanish course spans two
+then the passive, the causative and the relative clause, then the three conditionals, the polite volitional, keigo and the three readings of られる). The Spanish course spans two
 labelled levels: **units 9–10 are CEFR A2** — the regular preterite and the imperfecto
-only, no irregular stem anywhere — and **units 11–14 are the B1 material**:
+only, no irregular stem anywhere — and **units 11–16 are the B1 material**:
 the irregular and stem-changing preterite (`tuve`, `pude`, `hice`, `dije`, `estuve`,
 `quise`, `vino`, `dormí`, `pidió`), the past perfect frame (`había salido`,
 `había hecho`, `había dicho`), the regular and irregular conditional (`hablaría`,
@@ -19,12 +19,11 @@ cause, result and concession (`para`, `porque`, `así que`, `entonces`, `aunque`
 `pero`) in units 11–12; then the subjunctive (`quiero que vengas`, `no creo que sea`,
 `para que`, `a menos que`), the imperative in all three shapes (affirmative `tú`,
 affirmative `usted`, negative), the direct and indirect object pronouns, `gustar` and
-the reflexive verbs including impersonal `se` in units 13–14. The A2 checkpoint draws
-units 18–19 and the **B1** checkpoint draws units 30–33.
+the reflexive verbs including impersonal `se` in units 13–14, the subjunctive perfect, the unreal past, reported speech and `por`/`para` in units 15–16. The A2 checkpoint draws
+units 18–19 and the **B1** checkpoint draws units 30–35.
 
-**Vocabulary coverage.** The corpus teaches **245 distinct Spanish and 234 distinct
-Japanese headwords**, of which units 1–8 contribute 76 / 62 and units 9–14 add 169 /
-172 that appear nowhere earlier. A "headword" here is exactly what the app treats as
+**Vocabulary coverage.** The corpus teaches **305 distinct Spanish and 281 distinct
+Japanese headwords**; units 1–8 contributed 76 / 62 of them and units 9–16 add the rest. A "headword" here is exactly what the app treats as
 one: a target-language string that at least one challenge marks as a **correct
 answer**, keyed `trim().lowercase()` — the same key `DictionaryIndex` indexes and
 `UnitVocabularyIndex` compares. Wrong answers are excluded, so a distractor never
@@ -32,25 +31,64 @@ counts, and 9 Spanish / 10 Japanese headwords appear only in the held-out checkp
 pool, which tests rather than teaches. This is **not** a row count: the FSRS
 `vocab_schedule` table is a hand-seeded set of 14 review cards (6 `es`, 8 `ja`) that
 does not grow with the corpus, and it decides what is *due for review*, not what a unit
-may *list*. The per-unit vocabulary list therefore reads the corpus directly — 236
-Spanish and 224 Japanese headwords are on a lesson path and are all browsable — and
+may *list*. The per-unit vocabulary list therefore reads the corpus directly — 296
+Spanish and 271 Japanese headwords are on a lesson path and are all browsable — and
 excludes the held-out-only ones, because printing a checkpoint's unseen answer in a
 study list would hand over what the checkpoint exists to test.
 `docs/android-architecture.md` §2.1 tabulates all three surfaces.
 
-**Still not authored in Spanish.** The subjunctive *perfect* (`hubiera`/`hubiese` +
-participle) appears nowhere in the corpus; only the indicative past perfect
-(`había comido`) is taught. Reported speech is likewise absent as a system — no
-`dijo que` frame, no tense or person backshift, and no `es.subjunctive`-focused
-indirect-speech lesson. `por` versus `para` is never taught as a system either: the
-corpus teaches `para` as a purpose connective in unit 12 and `para que` in unit 13,
-while `por` appears only inside fixed phrases (`por favor`, `por la tarde`) and in no
-contrastive item. The honest label for the Spanish course is **A2 → B1**; that label
-describes what ships, and B1 in this corpus stops at the four grammar areas above.
+**Still not authored in Spanish.** Units 15–16 closed the three gaps this section used to
+name: the subjunctive *perfect* (`hubiera`/`hubiese` + participle) is taught across
+`ojalá`, `como si` and `si`, reported speech has its own `dijo que` frame with and
+without tense backshift, and `por` is now taught against `para` by cause, exchange,
+result, purpose, direction and recipient rather than appearing only inside fixed phrases.
+The honest label for the Spanish course is still **A2 → B1**, and what remains missing
+is **breadth, not grammar** — verified against the corpus:
+
+- **Reporting is modelled on a single verb.** `dijo que` is the whole frame; there is no
+  `cuenta que`, `explica que` or `asegura que`, and so no lesson that makes the learner
+  notice the backshift does not depend on the reporting verb at all.
+- **No indirect command, and no second backshift.** The corpus reports speech that was
+  present, future or preterite, but never reports a command (`dijo que viniera`) and
+  never reports a form that had already moved back once.
+- **The future and the imperfect subjunctive are untaught.** The subjunctive appears
+  only where the corpus needs it; there is no `sea`, `tenga` or `vaya` paradigm, so the
+  irregular subjunctive is entirely absent.
+- **Vocabulary.** 305 distinct Spanish headwords is a starter set, not a working
+  vocabulary, and the travel, work and health themes the roadmap originally sketched
+  for units 11–12 still exist only as the incidental nouns of the grammar items.
+
+**Still absent at N4.** Units 15–16 closed the four points this section used to name:
+the three conditionals (`〜たら`, `〜なら`, `〜ば`) are taught as three, the polite
+volitional (`〜ましょう`) is a form with its own focus, 尊敬語 and 謙譲語 are introduced
+with their everyday substitutions, and the られる disambiguation is now a rule with its
+own focus rather than four confrontations. What is still missing is **breadth**, and the
+following was checked by searching the corpus rather than assumed:
+
+- **〜なければなりません** ("must") appears zero times. It is a core N4 point and the
+  corpus has no obligation frame beyond `なければ`.
+- **〜てもいいです** appears zero times. The corpus teaches 〜なくていい (`来なくていいです`)
+  and nothing else of the permission family.
+- **〜たことがあります** ("have done") appears zero times — no experience frame at all,
+  so there is no past state the learner has ever *had*.
+- **〜ようにする / 〜ことにする** appear zero times, so the corpus never contrasts
+  intention with decision.
+- **〜ましょうか** appears zero times, so the polite invitation with rising intonation
+  is absent while the plain proposal is taught.
+- **Keigo is an introduction, not a system.** 尊敬語 here is 召し上がる / なさる /
+  いらっしゃる / おっしゃる / 申し上げる, and 謙譲語 is 伺う / 拝見する / いたす — the
+  everyday substitutions, drilled and nothing more. There is no お〜になる pattern beyond
+  a single item, no double honourific, and none of the 謙譲語I / 謙譲語II split a business
+  course would need.
+
+The `LISTEN` mechanic is no longer a gap: the corpus files carry 49 `LISTEN` challenges
+(78 counting the ones seeded with the A1 and N5 units), sitting in Japanese units 9–16
+(1, 1, 5, 4, 3, 4, 3 and 3) and Spanish units 11–16 (6, 6, 3, 4, 3 and 3), not only in the
+A1 and A2 units.
 
 ## Spanish (CEFR B1 Threshold)
 
-Target: Units 9–14. Shipped: 17 lessons and 154 challenges.
+Target: Units 9–16. Shipped: 23 lessons and 195 challenges.
 
 Status: Units 9–10 have shipped in `B1CurriculumData.kt` (`spanishA2Units`, unit ids
 18–19) — 4 lessons and 31 challenges, and they are **A2-level content, not B1**
@@ -138,13 +176,42 @@ same held true for 13–14, which the roadmap had left as the open B1 gap.
 • Audio: the 42 clips counted under unit 13 cover this unit too — the two units share one
   clip set, so nothing here adds a clip of its own.
 
+### Unit 15: El Pluscuamperfecto *(shipped, `spanishB1Units` unit 34)*
+• Focus: the subjunctive perfect (hubiera / hubiese + participle) in the three frames
+  that need it — `ojalá` for a wish about a past that did not happen, `como si` for a
+  comparison held to be untrue, and `si` for the unreal past condition, which answers
+  with the conditional on the open side (si hubiera sabido, habría venido)
+• It teaches the contrast the frame turns on: the same past is indicative where it
+  really happened (no vinieron porque ya **habían** salido) and subjunctive where it did
+  not (no vinieron porque ya **hubieran** salido)
+• Lessons: *If I Had Known* / *As If It Were So* / *Two Had Clauses*
+• Grammar slugs: `es.subjunctive.past_perfect`, `es.unreal_past`,
+  `es.conditional.unreal_past`
+• Held out for the B1 checkpoint: nothing — the B1 pool stays fixed at 8, drawn from
+  units 30–31
+• Audio: recorded — 19 clips in this unit, every one wired and referenced
+
+### Unit 16: Reported Speech and por / para *(shipped, `spanishB1Units` unit 35)*
+• Focus: the `dijo que` frame with and without backshift. The verb steps back one step
+  (present → imperfect, future → conditional), and the unit says plainly that Spanish
+  also accepts the unshifted form, so a learner is not told a correct sentence is wrong.
+  A verb already in the past keeps its past form, and a reported question takes `si`
+  rather than `que`
+• It closes with `por` against `para` by relation, not by dictionary gloss: `por` for a
+  cause, an exchange and a result, `para` for a purpose, a direction and a recipient
+• Lessons: *What He Told Me* / *When the Tense Stays Put* / *por and para*
+• Grammar slugs: `es.reported_speech.backshift`, `es.reported_speech.no_backshift`,
+  `es.por_para`
+• Held out for the B1 checkpoint: nothing
+• Audio: recorded — 19 clips in this unit, every one wired and referenced
+
 ---
 
 ## Japanese (JLPT N4 Elementary Intermediate)
 
-Target: Units 9–14. Shipped: 17 lessons and 123 challenges.
+Target: Units 9–16. Shipped: 23 lessons and 156 challenges.
 
-Status: **Units 9–14 have shipped.** Units 9–10 are in `B1CurriculumData.kt` (`japaneseN4Units`) — 4 lessons and 27 challenges. Units 11–12 are in `JapaneseN4CurriculumData.kt` (`japaneseN4ExtensionUnits`, unit ids 40–41, lessons 400–405, challenges `60000`-`60043` plus the `LISTEN` block `61000`-`61008`) — 6 lessons and 53 challenges, 6 of them held out. Units 13–14 follow in the same list (unit ids 42–43, lessons 406–412, challenges `62000`-`62040` plus the `LISTEN` block `61100`-`61106`, options from `6300001`) — 7 lessons and 43 challenges and nothing held out, so the N4 checkpoint still holds 10 held-out items, all in units 28–29 and 40–41. As with Spanish 11–12, the themes this roadmap originally sketched for units 11–12 (past experience 〜たことがある, plans 〜つもり, reasons 〜から, comparisons 〜より) were not what the grammar gap needed, and the shipped units teach different points: without a past tense there is no tense to conjugate, and every verb in units 1–10 was stuck in the present.
+Status: **Units 9–16 have shipped.** Units 9–10 are in `B1CurriculumData.kt` (`japaneseN4Units`) — 4 lessons and 27 challenges. Units 11–12 are in `JapaneseN4CurriculumData.kt` (`japaneseN4ExtensionUnits`, unit ids 40–41, lessons 400–405, challenges `60000`-`60043` plus the `LISTEN` block `61000`-`61008`) — 6 lessons and 53 challenges, 6 of them held out. Units 13–14 follow in the same list (unit ids 42–43, lessons 406–412, challenges `62000`-`62040` plus the `LISTEN` block `61100`-`61106`, options from `6300001`) — 7 lessons and 43 challenges and nothing held out, so the N4 checkpoint still holds 10 held-out items, all in units 28–29 and 40–41. As with Spanish 11–12, the themes this roadmap originally sketched for units 11–12 (past experience 〜たことがある, plans 〜つもり, reasons 〜から, comparisons 〜より) were not what the grammar gap needed, and the shipped units teach different points: without a past tense there is no tense to conjugate, and every verb in units 1–10 was stuck in the present.
 
 ### Unit 9: Te-form & Requests (〜てください / 〜ています)
 • Focus: Connecting verbs, ongoing actions, polite requests
@@ -241,34 +308,38 @@ Status: **Units 9–14 have shipped.** Units 9–10 are in `B1CurriculumData.kt`
   both). Every `LISTEN` challenge carries a clip, none of its options does, and no
   `WRONG_*` distractor in either unit carries one.
 
----
+### Unit 15: Conditionals & Proposals *(shipped, `japaneseN4ExtensionUnits` unit 44)*
+• Focus: the three conditionals as three shapes rather than one idea — 〜たら on the
+  plain past (降った → 降ったら), 〜なら on the 辞書形 (行くなら) with no tense of its
+  own, and 〜ば on the e-row (買えば) and the い-adjective stem (忙しい → 忙しければ).
+  〜ば is stated as the written and formal register and paired with ない / ありません,
+  and the rule text says outright that in speech 忙しかったら is what people actually
+  use: 〜と states a general outcome and never takes a 依頼, where 〜たら is free to
+  carry one.
+• Then the polite volitional as a form: the ます-stem plus ましょう (行きましょう), a
+  proposal the other person is free to refuse, kept apart from the plain 意向形
+  (行こう) and from 〜でしょう, which is the speaker's guess rather than a proposal
+• Lessons: *If It Happens* / *If That's The Case* / *Let's*
+• Grammar slugs: `ja.conditional_tara`, `ja.conditional_nara`, `ja.conditional_ba`,
+  `ja.volition_polite`
+• Held out for the N4 checkpoint: nothing — the N4 pool stays fixed at 10
+• Audio: recorded — 20 clips in this unit, every one wired and referenced
 
-### Still absent at N4
-Units 13–14 closed the three grammar areas this section used to name as open — the passive
-(受身), the causative (使役) and the relative clause (修飾節) are all taught now. Four
-real N4 points are still not taught anywhere in the corpus, and none of them is claimed
-anywhere in the app:
-
-- **Conditionals.** There is no conditional focus at all. 〜たら and 〜なら appear zero
-  times in the corpus, and the single 〜れば form (乗らなければ) exists only as a
-  `WRONG_FORM` distractor on an ability item, so a learner is never asked to build one.
-- **Volition (意向形 / 〜ましょう).** Never taught as a form; 〜ましょう does not appear in
-  any challenge or rule text.
-- **Keigo.** Nothing above the basic ます register: no 尊敬語 and no 謙譲語, and no
-  ascript such as お〜になる or いたす. The corpus is 丁寧 throughout, which it says it is.
-- **The られる disambiguation as a system.** Units 13–14 make the collision explicit in
-  four items (62000, 62001, 62006, 62025) and the `ErrorHint.FocusProfile` for
-  `ja.passive_formation` says outright that られる by itself never says which of the passive
-  or the potential it is — but that is four confrontations, not a rule with its own focus,
-  and the third reading (得る, 'can get') is mentioned in a file header only.
-
-The `LISTEN` mechanic is no longer a gap: the corpus files carry 58 `LISTEN` challenges
-(66 counting the eight seeded with the A1 and N5 units), sitting in Japanese units 9–14
-(1, 1, 5, 4, 3 and 4) and Spanish units 11–14 (6, 6, 3 and 4), not only in the A1 and A2
-units.
-
+### Unit 16: Keigo & Three られる *(shipped, `japaneseN4ExtensionUnits` unit 45)*
+• Focus: 尊敬語 and 謙譲語 as a minimal introduction — 尊敬語 lifts the other
+  person (召し上がる, なさる, いらっしゃる, おっしゃる, 申し上げる) and 謙譲語 lowers the
+  speaker's own action (伺う, 拝見する, いたす). The unit says plainly that this is an
+  introduction and not a system
+• Then the three readings of られる — the potential, the plain 受身, and 得る ('can get',
+  a small closed set: 得る, 求める, 採る) — with the rule text repeating what unit 13
+  already said: られる by itself never says which reading it is, and what settles it is
+  who stands in the subject slot
+• Lessons: *Lifting the Other Person* / *Lowering Yourself* / *られる, Three Times Over*
+• Grammar slugs: `ja.keigo_honorific`, `ja.keigo_humble`, `ja.rareru_readings`
+• Held out for the N4 checkpoint: nothing
+• Audio: recorded — 23 clips in this unit, every one wired and referenced
 
 ## Technical Prerequisites for Ingest
 1. Python Kokoro pipeline, documented in `docs/kokoro-tts.md` at the repository root (ef_dora / jf_alpha @ 24kHz mono)
-2. `UnitPayload` additions (already exists; Spanish units 9–10 are in `spanishA2Units`, Spanish units 11–14 in `spanishB1Units`, Japanese units 9–10 in `japaneseN4Units`, Japanese units 11–14 in `japaneseN4ExtensionUnits` in the separate `JapaneseN4CurriculumData.kt`)
+2. `UnitPayload` additions (already exists; Spanish units 9–10 are in `spanishA2Units`, Spanish units 11–16 in `spanishB1Units`, Japanese units 9–10 in `japaneseN4Units`, Japanese units 11–16 in `japaneseN4ExtensionUnits` in the separate `JapaneseN4CurriculumData.kt`)
 3. Referential integrity tests in `CurriculumIntegrityTest.kt` ensure zero FK / audio regressions
