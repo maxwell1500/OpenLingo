@@ -56,7 +56,7 @@ plans vocabulary rides along inside them.
   participle hecho, dicho, puesto, ido, visto)
 • Lessons: *I Had It* / *How the Day Went* / *Before All That*
 • Held out for the B1 checkpoint: siguió, volvió, comprado, abrí
-• Audio: recorded — 26 clips, one per challenge, wired after each was checked against the text it
+• Audio: recorded — 32 clips, one per challenge, wired after each was checked against the text it
   attaches to. SELECT speaks its correct option (and the correct option carries the same clip),
   CONJUGATE speaks the target form on the challenge only, FILL_BLANK and WORD_BANK speak the full
   target sentence, STORY speaks the story body. Terminal full stops were added where the option
@@ -71,7 +71,7 @@ plans vocabulary rides along inside them.
   aunque, pero)
 • Lessons: *What Would You Do?* / *I Would Like, Please* / *Why, So, Although*
 • Held out for the B1 checkpoint: harías, comería, diría, pero
-• Audio: recorded — 30 clips on the same rules as unit 11. `estudio_espanol_para_viajar_a_espana`
+• Audio: recorded — 36 clips on the same rules as unit 11. `estudio_espanol_para_viajar_a_espana`
   hangs off the SELECT item 50226 rather than the FILL_BLANK 50223, because the clip speaks the
   whole sentence and 50223's blank takes only the connective `para`; `tendria` hangs off the
   direct conjugation item 50203, not the nuance item 50214.
@@ -80,9 +80,9 @@ plans vocabulary rides along inside them.
 
 ## Japanese (JLPT N4 Elementary Intermediate)
 
-Target: Units 9–12 (10 lessons, 71 challenges).
+Target: Units 9–12 (10 lessons, 80 challenges).
 
-Status: **Units 9–12 have shipped.** Units 9–10 are in `B1CurriculumData.kt` (`japaneseN4Units`) — 4 lessons and 27 challenges. Units 11–12 are in `JapaneseN4CurriculumData.kt` (`japaneseN4ExtensionUnits`, unit ids 40–41, lessons 400–405, challenges 60000–60043) — 6 lessons and 44 challenges, 6 of them held out, so the N4 checkpoint now holds 10 held-out items. As with Spanish 11–12, the themes this roadmap originally sketched for units 11–12 (past experience 〜たことがある, plans 〜つもり, reasons 〜から, comparisons 〜より) were not what the grammar gap needed, and the shipped units teach different points: without a past tense there is no tense to conjugate, and every verb in units 1–10 was stuck in the present.
+Status: **Units 9–12 have shipped.** Units 9–10 are in `B1CurriculumData.kt` (`japaneseN4Units`) — 4 lessons and 27 challenges. Units 11–12 are in `JapaneseN4CurriculumData.kt` (`japaneseN4ExtensionUnits`, unit ids 40–41, lessons 400–405, challenges 60000–60043) — 6 lessons and 53 challenges, 6 of them held out, so the N4 checkpoint now holds 10 held-out items. As with Spanish 11–12, the themes this roadmap originally sketched for units 11–12 (past experience 〜たことがある, plans 〜つもり, reasons 〜から, comparisons 〜より) were not what the grammar gap needed, and the shipped units teach different points: without a past tense there is no tense to conjugate, and every verb in units 1–10 was stuck in the present.
 
 ### Unit 9: Te-form & Requests (〜てください / 〜ています)
 • Focus: Connecting verbs, ongoing actions, polite requests
@@ -106,7 +106,7 @@ Status: **Units 9–12 have shipped.** Units 9–10 are in `B1CurriculumData.kt`
 • Grammar slugs: `ja.past_polite`, `ja.plain_vs_polite`, `ja.negative`, `ja.i_adjective`,
   `ja.na_adjective`
 • Held out for the N4 checkpoint: 帰りました, 飲まない, ビール
-• Audio: recorded — 21 clips. SELECT speaks its correct option (and the correct option carries the
+• Audio: recorded — 24 clips. SELECT speaks its correct option (and the correct option carries the
   same clip), CONJUGATE speaks the target form on the challenge only, FILL_BLANK speaks the whole
   scaffold with the blank filled. One exception: `atsui` speaks the bare word, not the sentence the
   held-out FILL_BLANK 60036 assembles, so it is wired to that item's correct option instead of the
@@ -125,7 +125,7 @@ Status: **Units 9–12 have shipped.** Units 9–10 are in `B1CurriculumData.kt`
 • Lessons: *I Can Do That* / *I Think* / *Gifts and Favours*
 • Grammar slugs: `ja.ability_polite`, `ja.think`, `ja.giving_receiving`
 • Held out for the N4 checkpoint: 歌えます, あつい, もらった
-• Audio: recorded — all 22 clips wired, 16 on the challenge and 12 on the option that speaks the
+• Audio: recorded — all 22 clips wired, 18 on the challenge and 12 on the option that speaks the
   same text. Two of those wirings were corrected with the grammar they speak:
   - `kuruma_wo_unten_suru_koto_ga_dekimasu` speaks 車を運転することができます and the FILL_BLANK 60025
     scaffold reads 車を___ことができます, so the clip sits on the challenge: the item keys 運転する
@@ -146,9 +146,10 @@ Status: **Units 9–12 have shipped.** Units 9–10 are in `B1CurriculumData.kt`
 ### Still absent at N4
 The passive (受身) and the causative (使役) are not taught anywhere in the Japanese corpus, and neither
 are relative clauses. They are real JLPT N4 grammar and remain open work — units 13 and 14 would be the
-natural home. Japanese units 9–12 all carry audio now. The `LISTEN` mechanic is a separate matter and
-is still absent from all four: the corpus has 23 `LISTEN` challenges in total and none of them sits in
-a unit 9 or later item — they are all in the A1 and A2 units.
+natural home. Japanese units 9–12 all carry audio now, and the `LISTEN` mechanic is no longer a
+gap either — the corpus has 44 `LISTEN` challenges in the curriculum files (52 counting the eight
+seeded with the A1 and N5 units), and they now sit in Japanese units 9–12 (1, 1, 5 and 4) and in
+Spanish units 11–12 (6 each), not only in the A1 and A2 units.
 
 ## Technical Prerequisites for Ingest
 1. Python Kokoro pipeline, documented in `docs/kokoro-tts.md` at the repository root (ef_dora / jf_alpha @ 24kHz mono)
