@@ -220,6 +220,7 @@ object JapaneseN4CurriculumData {
                     audioSrc = "asset:///audio/ja/ashita_ame_ga_furimasen.ogg",
                     orderIndex = 5,
                     grammaticalFocus = "ja.negative",
+                    acceptedAnswers = "降りません|ふりません",
                     ruleText = "降ります is an ichidan verb: drop る and the polite negative is 降りません.\n降らない is the plain negative, 降ります the polite present, and 降って the て-form.",
                 ),
                 ChallengeEntity(

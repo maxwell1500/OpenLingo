@@ -6,6 +6,7 @@ import com.duo.app.data.local.curriculum.B1CurriculumData
 import com.duo.app.data.local.curriculum.ExpandedCurriculumData
 import com.duo.app.data.local.curriculum.JapaneseN4CurriculumData
 import com.duo.app.data.local.curriculum.UnitPayload
+import com.duo.app.data.local.entities.ChallengeEntity
 import com.duo.app.data.local.models.ChallengeType
 import com.duo.app.grammar.AnswerGrader
 import java.io.File
@@ -584,6 +585,25 @@ class CurriculumIntegrityTest {
     }
 
     /**
+     * Why one `FILL_BLANK`'s key is ungradeable, or null when it is complete.
+     * The rule is the same for every typed item whatever pool it is seeded into,
+     * so the two tests below differ only in which challenges they hand it.
+     */
+    private fun ungradeableKeyReason(challenge: ChallengeEntity): String? {
+        val raw = challenge.acceptedAnswers
+        val entries = raw?.split('|').orEmpty()
+        return when {
+            raw.isNullOrBlank() ->
+                "challenge ${challenge.id} is a FILL_BLANK with no acceptedAnswers; " +
+                    "nothing it can be graded against"
+            entries.any { it.isBlank() } ->
+                "challenge ${challenge.id} has a blank entry in '$raw'; AnswerGrader " +
+                    "drops it, so the authored key and the graded key disagree"
+            else -> null
+        }
+    }
+
+    /**
      * A typed held-out item is ungradeable without a key: `AnswerGrader` matches
      * only against `acceptedAnswers`, so a missing or partly blank one leaves
      * the learner with no correct string to type. The blank-segment case matters
@@ -594,21 +614,37 @@ class CurriculumIntegrityTest {
     fun `every held-out fill blank carries a complete answer key`() {
         val malformed = allPayloads.flatMap { it.challenges }
             .filter { it.heldOut && it.type == ChallengeType.FILL_BLANK }
-            .mapNotNull { challenge ->
-                val raw = challenge.acceptedAnswers
-                val entries = raw?.split('|').orEmpty()
-                when {
-                    raw.isNullOrBlank() ->
-                        "challenge ${challenge.id} is a held-out FILL_BLANK with no " +
-                            "acceptedAnswers; nothing it can be graded against"
-                    entries.any { it.isBlank() } ->
-                        "challenge ${challenge.id} has a blank entry in '$raw'; AnswerGrader " +
-                            "drops it, so the authored key and the graded key disagree"
-                    else -> null
-                }
-            }
+            .mapNotNull { ungradeableKeyReason(it) }
         assertEquals(
             "held-out fill blanks with a missing or partly blank answer key: $malformed",
+            emptyList<String>(),
+            malformed,
+        )
+    }
+
+    /**
+     * The lesson path is graded the same way, and the held-out test above only
+     * reaches the checkpoint pool, so a key dropped from a taught item ships
+     * uncaught. This is not hypothetical: challenge 60012 (`ja.negative`, lesson
+     * 401) lost `acceptedAnswers` and its accepted set collapsed to the correct
+     * option's text alone, so a learner who typed `ふりません` — the kana spelling
+     * the bundled clip `ashita_ame_ga_furimasen.ogg` actually speaks — was marked
+     * wrong, while every sibling FILL_BLANK accepts both scripts.
+     *
+     * The authored answer and the graded answer are separate things: the grader
+     * unions `acceptedVariants(acceptedAnswers)` with the correct option's text,
+     * so a null key does not make the item unsolvable, it silently narrows what
+     * counts as correct. That is why this is a contract on the key rather than on
+     * the options.
+     */
+    @Test
+    fun `every fill blank on the lesson path carries a complete answer key`() {
+        val malformed = allPayloads.flatMap { it.challenges }
+            .filterNot { it.heldOut }
+            .filter { it.type == ChallengeType.FILL_BLANK }
+            .mapNotNull { ungradeableKeyReason(it) }
+        assertEquals(
+            "lesson-path fill blanks with a missing or partly blank answer key: $malformed",
             emptyList<String>(),
             malformed,
         )
