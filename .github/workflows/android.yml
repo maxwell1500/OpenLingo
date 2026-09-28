@@ -21,7 +21,18 @@ jobs:
           distribution: 'temurin'
 
       - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
+        uses: android-actions/setup-android@v4
+        with:
+          # `packages` is pinned rather than left at the action default.
+          # v3 shipped `tools platform-tools` by default, and the legacy
+          # `tools` package was withdrawn from Google's SDK repository, so
+          # sdkmanager began exiting 1 with "Failed to find package 'tools'"
+          # and the job died before Gradle was ever invoked — 22 consecutive
+          # red runs that never touched the code. v4 defaults to
+          # `platform-tools`; stating it here means the contract no longer
+          # depends on an upstream default that broke this pipeline silently
+          # for eleven days.
+          packages: platform-tools
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
