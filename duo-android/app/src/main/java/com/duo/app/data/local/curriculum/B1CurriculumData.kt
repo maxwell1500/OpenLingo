@@ -16,16 +16,23 @@ import com.duo.app.data.local.models.ChallengeType
  *   Spanish: Units 11-12 (unit ids 30-31) — the irregular and stem-changing
  *     preterite, the past perfect frame, the regular and irregular conditional,
  *     the polite periphrasis and the connectives of purpose, cause, result and
- *     concession (`spanishB1Units`). This is the B1 material the roadmap asked
- *     for, so those two units are what a B1 checkpoint draws on.
+ *     concession (`spanishB1Units`).
+ *   Spanish: Units 13-14 (unit ids 32-33) — the subjunctive after querer and
+ *     after emotion/doubt/negation and after para que / a menos que, the
+ *     imperative in its affirmative tú, affirmative usted and negative shapes, the
+ *     direct and indirect object pronouns, gustar, the reflexive pronouns and
+ *     impersonal se. These four units are the B1 material the roadmap asked for,
+ *     so the whole of 30-33 is what a B1 checkpoint draws on.
  *   Japanese: Units 9-10 (unit ids 28-29) — Te-form & Requests, Potential & Ability.
  *     These are genuinely JLPT N4 grammar points, so N4 is the honest label.
  *
- * All audio assets are bundled Kokoro-82M Ogg files. The Spanish B1 units carry one
- * clip per challenge: 56 of them, one per item, covering SELECT, CONJUGATE,
- * FILL_BLANK, WORD_BANK and STORY alike. A SELECT challenge and its correct option
- * share the same clip; a CONJUGATE carries the target form on the challenge alone, so
- * the option grid never plays the answer for the learner.
+ * All audio assets are bundled Kokoro-82M Ogg files. `spanishB1Units` carries
+ * 110 distinct clips over its 123 challenges, covering SELECT, CONJUGATE,
+ * FILL_BLANK, WORD_BANK, LISTEN and STORY alike. A SELECT challenge and its
+ * correct option share the same clip; a CONJUGATE carries the target form on the
+ * challenge alone, so the option grid never plays the answer for the learner. No
+ * `WRONG_*` distractor anywhere in units 32-33 carries a clip: audio that speaks a
+ * form the item calls an error teaches the wrong thing out loud.
  *
  * Id layout inside this file:
  *   - `1xxxx` / `2xxxx`  the originally authored taught items
@@ -37,6 +44,12 @@ import com.duo.app.data.local.models.ChallengeType
  *   - `50xxx`           the challenges of units 30-31; `5014x` / `5024x` are their
  *                       held-out checkpoint pools
  *   - `5xxxxx`          the options of units 30-31, at 500000 + (challengeId - 50100) * 10
+ *   - `60xxx`           units 32-33 and lessons 600-606 (Spanish units 13-14)
+ *   - `70xxx`           the challenges of units 32-33, `70000`-`70066`. Nothing
+ *                       here is held out: the B1 pool stays fixed at 8, drawn
+ *                       from units 30-31, so a held-out item in unit 32 would be
+ *                       reachable by nothing.
+ *   - `70xxxx`          the options of units 32-33, from `700000` up
  */
 object B1CurriculumData {
 
@@ -1607,6 +1620,658 @@ object B1CurriculumData {
                 ChallengeOptionEntity(id = 503111, challengeId = 50311, text = "Llegué tarde, porque no pude entrar", correct = false, errorTag = "WRONG_FORM"),
                 ChallengeOptionEntity(id = 503112, challengeId = 50311, text = "Llegué tarde, aunque no pude entrar", correct = false, errorTag = "WRONG_FORM"),
                 ChallengeOptionEntity(id = 503113, challengeId = 50311, text = "Llegué tarde, para no pude entrar", correct = false, errorTag = "WRONG_FORM"),
+            ),
+        ),
+
+        // ---------------------------------------------------------------------
+        // Unit 13: El Subjuntivo
+        //
+        // The subjunctive is a MOOD, not a tense, so every distractor below that
+        // puts an indicative in the slot is tagged WRONG_FORM: what the learner
+        // got wrong is the mood they chose, not when the action happens. There is
+        // no tag for mood in the fixed vocabulary, and inventing one is worse
+        // than naming the form.
+        // ---------------------------------------------------------------------
+        UnitPayload(
+            unit = UnitEntity(
+                id = 32,
+                courseId = 1,
+                title = "Unit 13: The Subjunctive",
+                description = "quiero que vengas — no creo que sea, para que, a menos que",
+                orderIndex = 12,
+            ),
+            lessons = listOf(
+                LessonEntity(id = 600, unitId = 32, title = "Lesson 26: What I Want You To Do", orderIndex = 0),
+                LessonEntity(id = 601, unitId = 32, title = "Lesson 27: Feelings, Doubts, Denials", orderIndex = 1),
+                LessonEntity(id = 602, unitId = 32, title = "Lesson 28: So That, Unless", orderIndex = 2),
+            ),
+            challenges = listOf(
+                ChallengeEntity(
+                    id = 70000, lessonId = 600, type = ChallengeType.CONJUGATE,
+                    question = "Which form of venir goes with 'tú' in 'Quiero que ___ a mi casa'?",
+                    audioSrc = "asset:///audio/es/vengas.ogg",
+                    orderIndex = 0,
+                    grammaticalFocus = "es.subjunctive.wants",
+                    ruleText = "Querer, esperar, necesitar and buscar + que put the second verb in the subjunctive, and against tú that is vengas.\nvienes is the present indicative, which states a fact instead of naming a want, and venir is the infinitive, which cannot follow que at all; venga is the subjunctive but the wrong person, because it is él/ella/usted.",
+                ),
+                ChallengeEntity(
+                    id = 70001, lessonId = 600, type = ChallengeType.FILL_BLANK,
+                    question = "Quiero que ___ el informe antes de las cinco.",
+                    audioSrc = "asset:///audio/es/quiero_que_envies_el_informe_antes_de_las_cinco.ogg",
+                    orderIndex = 1,
+                    grammaticalFocus = "es.subjunctive.wants",
+                    acceptedAnswers = "envíes|envies",
+                    ruleText = "The verb after querer que is the one being asked for, so it goes in the subjunctive: quiero que envíes el informe.\nenvías is the present indicative, which reports what you do rather than what you are asking for, and enviar is the infinitive; envíe is the subjunctive but the wrong person, because the report is addressed to tú.",
+                ),
+                ChallengeEntity(
+                    id = 70002, lessonId = 600, type = ChallengeType.SELECT,
+                    question = "Which one means 'I need you to sign this' (said to one person)?",
+                    audioSrc = "asset:///audio/es/necesito_que_firmes_este_formulario.ogg",
+                    orderIndex = 2,
+                    grammaticalFocus = "es.subjunctive.wants",
+                    ruleText = "Necesitar que also takes the subjunctive, and the form for tú is firmes.\nfirma is the present indicative, which says what he does instead of what you need him to do, and firmar is the infinitive; firmen is the subjunctive but the wrong person, because the request is aimed at one person.",
+                ),
+                ChallengeEntity(
+                    id = 70003, lessonId = 600, type = ChallengeType.CONJUGATE,
+                    question = "Which form of hacer goes with 'tú' in 'Espero que ___ la cena' (said to one person)?",
+                    audioSrc = "asset:///audio/es/hagas.ogg",
+                    orderIndex = 3,
+                    grammaticalFocus = "es.subjunctive.wants",
+                    ruleText = "The subjunctive tú of hacer drops the c and adds -as, so hagas.\nhaces is the present indicative, which states the habit instead of the expectation, and hacer is the infinitive; haga is the subjunctive but the wrong person, because he is the one being asked, not the one being spoken to.",
+                ),
+                ChallengeEntity(
+                    id = 70004, lessonId = 600, type = ChallengeType.WORD_BANK,
+                    question = "Assemble: 'I want you to come tomorrow'",
+                    audioSrc = "asset:///audio/es/quiero_que_vengas_manana.ogg",
+                    orderIndex = 4,
+                    grammaticalFocus = "es.subjunctive.wants",
+                    ruleText = "Querer que is one of the frames that obliges the subjunctive, so the tiles assemble into quiero que vengas mañana.\nvienes is the present indicative, which states a habit instead of a want, and venir is the infinitive, which cannot fill the slot; quiera is the subjunctive but the wrong person, because the sentence is addressed to tú.",
+                ),
+                ChallengeEntity(
+                    id = 70005, lessonId = 600, type = ChallengeType.MATCH_PAIRS,
+                    question = "Match each trigger to the frame it opens",
+                    orderIndex = 5,
+                ),
+
+                ChallengeEntity(
+                    id = 70010, lessonId = 601, type = ChallengeType.LISTEN,
+                    question = "Tap what you hear",
+                    audioSrc = "asset:///audio/es/no_creo_que_sea_la_verdad.ogg",
+                    orderIndex = 0,
+                    grammaticalFocus = "es.subjunctive.emotion_doubt",
+                    ruleText = "No creo que is a negation of belief, and anything doubted takes the subjunctive: no creo que sea la verdad.\nes is the present indicative, which would assert the opposite of what the speaker means to doubt, and ser is the infinitive; sean is the subjunctive but the wrong person, because the speaker is talking about one thing, not many.",
+                ),
+                ChallengeEntity(
+                    id = 70011, lessonId = 601, type = ChallengeType.CONJUGATE,
+                    question = "Which form of ser goes with 'tú' in 'No creo que ___ un buen médico' (said to one person)?",
+                    audioSrc = "asset:///audio/es/seas.ogg",
+                    orderIndex = 1,
+                    grammaticalFocus = "es.subjunctive.emotion_doubt",
+                    ruleText = "The subjunctive tú of ser is seas, and that is the form no creo que asks for.\neres is the present indicative, which believes the opposite of what the speaker doubts, and ser is the infinitive; sea is the subjunctive but the wrong person, because the doctor is third person.",
+                ),
+                ChallengeEntity(
+                    id = 70012, lessonId = 601, type = ChallengeType.FILL_BLANK,
+                    question = "Dudo que ___ llegar a tiempo.",
+                    audioSrc = "asset:///audio/es/dudo_que_pueda_llegar_a_tiempo.ogg",
+                    orderIndex = 2,
+                    grammaticalFocus = "es.subjunctive.emotion_doubt",
+                    acceptedAnswers = "pueda",
+                    ruleText = "Dudar que, like no creer que and no saber que, puts the second verb in the subjunctive: dudo que pueda llegar a tiempo.\npuedo is the present indicative, which is a claim rather than a doubt, and poder is the infinitive; puedan is the subjunctive but the wrong person, because the speaker is talking about himself.",
+                ),
+                ChallengeEntity(
+                    id = 70013, lessonId = 601, type = ChallengeType.SELECT,
+                    question = "Which one means 'It's a shame he didn't come' (said about one man)?",
+                    audioSrc = "asset:///audio/es/es_una_pena_que_no_haya_venido.ogg",
+                    orderIndex = 3,
+                    grammaticalFocus = "es.subjunctive.emotion_doubt",
+                    ruleText = "Es una pena que states a feeling, and a feeling is not a fact, so the second verb is the subjunctive: es una pena que no haya venido.\nha is the present indicative, which would put the coming back inside the present, and haber is the infinitive; venga is the subjunctive but the wrong person, because the sentence is about him, not about tú.",
+                ),
+                ChallengeEntity(
+                    id = 70014, lessonId = 601, type = ChallengeType.LISTEN,
+                    question = "Tap what you hear",
+                    audioSrc = "asset:///audio/es/me_alegro_de_que_esten_listos.ogg",
+                    orderIndex = 4,
+                    grammaticalFocus = "es.subjunctive.emotion_doubt",
+                    ruleText = "Alegrarse de que is a feeling, so the second verb is the subjunctive: me alegro de que estén listos.\nestán is the present indicative, which would be a statement of fact rather than a reaction to one, and estar is the infinitive; esté is the subjunctive but the wrong person, because the people are plural.",
+                ),
+                ChallengeEntity(
+                    id = 70015, lessonId = 601, type = ChallengeType.CONJUGATE,
+                    question = "Which form of estar goes with 'vosotros' in 'Espero que ___ bien' (said to two or more people)?",
+                    audioSrc = "asset:///audio/es/esteis.ogg",
+                    orderIndex = 5,
+                    grammaticalFocus = "es.subjunctive.emotion_doubt",
+                    ruleText = "The subjunctive vosotros of estar is estéis: the -éis ending takes é where the present estáis takes í.\nestáis is the present indicative, which is a fact rather than a hope, and estar is the infinitive; esté is the subjunctive but the wrong person, because that form is for él/ella/usted.",
+                ),
+
+                ChallengeEntity(
+                    id = 70020, lessonId = 602, type = ChallengeType.FILL_BLANK,
+                    question = "A menos que ___ el tren, no llego.",
+                    audioSrc = "asset:///audio/es/a_menos_que_salga_el_tren_no_llego.ogg",
+                    orderIndex = 0,
+                    grammaticalFocus = "es.subjunctive.purpose_concession",
+                    acceptedAnswers = "salga",
+                    ruleText = "A menos que states the one thing that would undo the plan, so its verb is the subjunctive: a menos que salga el tren, no llego.\nsale is the present indicative, which would name a fact instead of a condition, and salir is the infinitive; salgan is the subjunctive but the wrong person, because the train is one thing.",
+                ),
+                ChallengeEntity(
+                    id = 70021, lessonId = 602, type = ChallengeType.SELECT,
+                    question = "Which one means 'I am telling you so that you know' (said to one person)?",
+                    audioSrc = "asset:///audio/es/te_lo_digo_para_que_lo_sepas.ogg",
+                    orderIndex = 1,
+                    grammaticalFocus = "es.subjunctive.purpose_concession",
+                    ruleText = "Para que states a purpose, and a purpose is something still wanted, so the second verb is the subjunctive: te lo digo para que lo sepas.\nsabes is the present indicative, which would assume the knowing rather than arrange for it, and saber is the infinitive; sepa is the subjunctive but the wrong person, because the person who has to know is tú.",
+                ),
+                ChallengeEntity(
+                    id = 70022, lessonId = 602, type = ChallengeType.CONJUGATE,
+                    question = "Which form of poder goes with 'nosotros' in 'Vamos para que ___ verlo' (said about two or more people)?",
+                    audioSrc = "asset:///audio/es/podamos.ogg",
+                    orderIndex = 2,
+                    grammaticalFocus = "es.subjunctive.purpose_concession",
+                    ruleText = "The subjunctive nosotros of poder drops the d, so podamos, and that is what para que asks for.\npodemos is the present indicative, which states a current ability rather than arranging for one, and poder is the infinitive; pueda is the subjunctive but the wrong person, because it is for él/ella/usted.",
+                ),
+                ChallengeEntity(
+                    id = 70023, lessonId = 602, type = ChallengeType.LISTEN,
+                    question = "Tap what you hear",
+                    audioSrc = "asset:///audio/es/te_lo_compro_para_que_puedas_usarlo_manana.ogg",
+                    orderIndex = 3,
+                    grammaticalFocus = "es.subjunctive.purpose_concession",
+                    ruleText = "Para que states a purpose, so the second verb is the subjunctive: te lo compro para que puedas usarlo mañana.\npuedes is the present indicative, which would leave the ability to chance, and poder is the infinitive; pueda is the subjunctive but the wrong person, because it is tú who has to be able to use it.",
+                ),
+                ChallengeEntity(
+                    id = 70024, lessonId = 602, type = ChallengeType.FILL_BLANK,
+                    question = "Con tal de que ___ bien, te vas a casa.",
+                    audioSrc = "asset:///audio/es/con_tal_de_que_termines_bien.ogg",
+                    orderIndex = 4,
+                    grammaticalFocus = "es.subjunctive.purpose_concession",
+                    acceptedAnswers = "termines",
+                    ruleText = "Con tal de que is a purpose clause, so the second verb is the subjunctive: con tal de que termines bien, te vas a casa.\ntermina is the present indicative, which states a habit instead of a condition, and terminar is the infinitive; terminen is the subjunctive but the wrong person, because the condition is about tú.",
+                ),
+                ChallengeEntity(
+                    id = 70025, lessonId = 602, type = ChallengeType.STORY,
+                    question = "El plan del domingo\n\nQuiero que vengas a la piscina.\nDicen que lloverá por la tarde.\nA menos que llueva, nos vemos a las cuatro.\n\n❓ Under what condition will they meet?",
+                    audioSrc = "asset:///audio/es/el_plan_del_domingo.ogg",
+                    orderIndex = 5,
+                ),
+            ),
+            options = listOf(
+                ChallengeOptionEntity(id = 700000, challengeId = 70000, text = "vengas", correct = true),
+                ChallengeOptionEntity(id = 700001, challengeId = 70000, text = "vienes", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 700002, challengeId = 70000, text = "venga", correct = false, errorTag = "WRONG_PERSON"),
+                ChallengeOptionEntity(id = 700003, challengeId = 70000, text = "venir", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 700010, challengeId = 70001, text = "envíes", correct = true),
+                ChallengeOptionEntity(id = 700011, challengeId = 70001, text = "envías", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 700012, challengeId = 70001, text = "envíe", correct = false, errorTag = "WRONG_PERSON"),
+                ChallengeOptionEntity(id = 700013, challengeId = 70001, text = "enviar", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 700020, challengeId = 70002, text = "Necesito que firmes este formulario", correct = true, audioSrc = "asset:///audio/es/necesito_que_firmes_este_formulario.ogg"),
+                ChallengeOptionEntity(id = 700021, challengeId = 70002, text = "Necesito que firma este formulario", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 700022, challengeId = 70002, text = "Necesito que firmen este formulario", correct = false, errorTag = "WRONG_PERSON"),
+                ChallengeOptionEntity(id = 700023, challengeId = 70002, text = "Necesito que firmar este formulario", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 700030, challengeId = 70003, text = "hagas", correct = true),
+                ChallengeOptionEntity(id = 700031, challengeId = 70003, text = "haces", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 700032, challengeId = 70003, text = "haga", correct = false, errorTag = "WRONG_PERSON"),
+                ChallengeOptionEntity(id = 700033, challengeId = 70003, text = "hacer", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 700040, challengeId = 70004, text = "Quiero", correct = true),
+                ChallengeOptionEntity(id = 700041, challengeId = 70004, text = "que", correct = true),
+                ChallengeOptionEntity(id = 700042, challengeId = 70004, text = "vengas", correct = true),
+                ChallengeOptionEntity(id = 700043, challengeId = 70004, text = "mañana", correct = true),
+                ChallengeOptionEntity(id = 700044, challengeId = 70004, text = "vienes", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 700045, challengeId = 70004, text = "venir", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 700046, challengeId = 70004, text = "quiera", correct = false, errorTag = "WRONG_PERSON"),
+
+                ChallengeOptionEntity(id = 700050, challengeId = 70005, text = "Quiero que", correct = true),
+                ChallengeOptionEntity(id = 700051, challengeId = 70005, text = "I want / I hope", correct = true),
+                ChallengeOptionEntity(id = 700052, challengeId = 70005, text = "No creo que", correct = true),
+                ChallengeOptionEntity(id = 700053, challengeId = 70005, text = "I don't think", correct = true),
+                ChallengeOptionEntity(id = 700054, challengeId = 70005, text = "Para que", correct = true),
+                ChallengeOptionEntity(id = 700055, challengeId = 70005, text = "So that", correct = true),
+
+                ChallengeOptionEntity(id = 700100, challengeId = 70010, text = "No creo que sea la verdad", correct = true),
+                ChallengeOptionEntity(id = 700101, challengeId = 70010, text = "No creo que es la verdad", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 700102, challengeId = 70010, text = "No creo que sean la verdad", correct = false, errorTag = "WRONG_PERSON"),
+                ChallengeOptionEntity(id = 700103, challengeId = 70010, text = "No creo que ser la verdad", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 700110, challengeId = 70011, text = "seas", correct = true),
+                ChallengeOptionEntity(id = 700111, challengeId = 70011, text = "eres", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 700112, challengeId = 70011, text = "sea", correct = false, errorTag = "WRONG_PERSON"),
+                ChallengeOptionEntity(id = 700113, challengeId = 70011, text = "ser", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 700120, challengeId = 70012, text = "pueda", correct = true),
+                ChallengeOptionEntity(id = 700121, challengeId = 70012, text = "puedo", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 700122, challengeId = 70012, text = "puedan", correct = false, errorTag = "WRONG_PERSON"),
+                ChallengeOptionEntity(id = 700123, challengeId = 70012, text = "poder", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 700130, challengeId = 70013, text = "Es una pena que no haya venido", correct = true, audioSrc = "asset:///audio/es/es_una_pena_que_no_haya_venido.ogg"),
+                ChallengeOptionEntity(id = 700131, challengeId = 70013, text = "Es una pena que no ha venido", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 700132, challengeId = 70013, text = "Es una pena que no venga", correct = false, errorTag = "WRONG_PERSON"),
+                ChallengeOptionEntity(id = 700133, challengeId = 70013, text = "Es una pena que no haber venido", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 700140, challengeId = 70014, text = "Me alegro de que estén listos", correct = true),
+                ChallengeOptionEntity(id = 700141, challengeId = 70014, text = "Me alegro de que están listos", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 700142, challengeId = 70014, text = "Me alegro de que esté listos", correct = false, errorTag = "WRONG_PERSON"),
+                ChallengeOptionEntity(id = 700143, challengeId = 70014, text = "Me alegro de que estar listos", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 700150, challengeId = 70015, text = "estéis", correct = true),
+                ChallengeOptionEntity(id = 700151, challengeId = 70015, text = "estáis", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 700152, challengeId = 70015, text = "esté", correct = false, errorTag = "WRONG_PERSON"),
+                ChallengeOptionEntity(id = 700153, challengeId = 70015, text = "estar", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 700200, challengeId = 70020, text = "salga", correct = true),
+                ChallengeOptionEntity(id = 700201, challengeId = 70020, text = "sale", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 700202, challengeId = 70020, text = "salgan", correct = false, errorTag = "WRONG_PERSON"),
+                ChallengeOptionEntity(id = 700203, challengeId = 70020, text = "salir", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 700210, challengeId = 70021, text = "Te lo digo para que lo sepas", correct = true, audioSrc = "asset:///audio/es/te_lo_digo_para_que_lo_sepas.ogg"),
+                ChallengeOptionEntity(id = 700211, challengeId = 70021, text = "Te lo digo para que lo sabes", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 700212, challengeId = 70021, text = "Te lo digo para que lo sepa", correct = false, errorTag = "WRONG_PERSON"),
+                ChallengeOptionEntity(id = 700213, challengeId = 70021, text = "Te lo digo para lo saber", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 700220, challengeId = 70022, text = "podamos", correct = true),
+                ChallengeOptionEntity(id = 700221, challengeId = 70022, text = "podemos", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 700222, challengeId = 70022, text = "pueda", correct = false, errorTag = "WRONG_PERSON"),
+                ChallengeOptionEntity(id = 700223, challengeId = 70022, text = "poder", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 700230, challengeId = 70023, text = "Te lo compro para que puedas usarlo mañana", correct = true),
+                ChallengeOptionEntity(id = 700231, challengeId = 70023, text = "Te lo compro para que puedes usarlo mañana", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 700232, challengeId = 70023, text = "Te lo compro para que pueda usarlo mañana", correct = false, errorTag = "WRONG_PERSON"),
+                ChallengeOptionEntity(id = 700233, challengeId = 70023, text = "Te lo compro para poder usarlo mañana", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 700240, challengeId = 70024, text = "termines", correct = true),
+                ChallengeOptionEntity(id = 700241, challengeId = 70024, text = "termina", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 700242, challengeId = 70024, text = "terminen", correct = false, errorTag = "WRONG_PERSON"),
+                ChallengeOptionEntity(id = 700243, challengeId = 70024, text = "terminar", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 700250, challengeId = 70025, text = "Unless it rains", correct = true),
+                ChallengeOptionEntity(id = 700251, challengeId = 70025, text = "If the weather is good", correct = false),
+                ChallengeOptionEntity(id = 700252, challengeId = 70025, text = "As soon as the news arrives", correct = false),
+                ChallengeOptionEntity(id = 700253, challengeId = 70025, text = "Because they like the water", correct = false),
+            ),
+        ),
+
+        // ---------------------------------------------------------------------
+        // Unit 14: Pronombres y Reflejos
+        //
+        // Direct object pronouns (lo/la/los/las), the indirect object trio
+        // (me/te/nos + le/les) with gustar, reflexive verbs with their own
+        // pronouns, impersonal se, and the imperative for tú and usted.
+        // ---------------------------------------------------------------------
+        UnitPayload(
+            unit = UnitEntity(
+                id = 33,
+                courseId = 1,
+                title = "Unit 14: Object Pronouns & Reflexive Verbs",
+                description = "lo veo, me gusta, me levanto — habla, no hables",
+                orderIndex = 13,
+            ),
+            lessons = listOf(
+                LessonEntity(id = 603, unitId = 33, title = "Lesson 29: Him, Her, It", orderIndex = 0),
+                LessonEntity(id = 604, unitId = 33, title = "Lesson 30: To Me, To You", orderIndex = 1),
+                LessonEntity(id = 605, unitId = 33, title = "Lesson 31: Doing It Yourself", orderIndex = 2),
+                LessonEntity(id = 606, unitId = 33, title = "Lesson 32: Give Orders", orderIndex = 3),
+            ),
+            challenges = listOf(
+                ChallengeEntity(
+                    id = 70030, lessonId = 603, type = ChallengeType.CONJUGATE,
+                    question = "Which pronoun replaces 'el coche' in 'Ayer vi el coche'?",
+                    audioSrc = "asset:///audio/es/lo.ogg",
+                    orderIndex = 0,
+                    grammaticalFocus = "es.object_pronoun.direct",
+                    ruleText = "A direct object takes lo, la, los or las, agreeing with the thing in gender and number: vi el coche → lo vi.\nla is the feminine, which the car is not; me is the reflexive pronoun, which can never point at a third thing; el is the noun itself, which the pronoun exists to replace.",
+                ),
+                ChallengeEntity(
+                    id = 70031, lessonId = 603, type = ChallengeType.FILL_BLANK,
+                    question = "No ___ veo nunca.",
+                    audioSrc = "asset:///audio/es/no_lo_veo_nunca.ogg",
+                    orderIndex = 1,
+                    grammaticalFocus = "es.object_pronoun.direct",
+                    acceptedAnswers = "lo",
+                    ruleText = "The direct object pronoun stands in for the thing and agrees with it: no lo veo nunca.\nla is the feminine and los the plural, so neither can stand for a masculine singular thing; ver is the infinitive, which fills no slot at all.",
+                ),
+                ChallengeEntity(
+                    id = 70032, lessonId = 603, type = ChallengeType.SELECT,
+                    question = "Which one means 'I see her at the door' (one woman)?",
+                    audioSrc = "asset:///audio/es/la_veo_en_la_puerta.ogg",
+                    orderIndex = 2,
+                    grammaticalFocus = "es.object_pronoun.direct",
+                    ruleText = "A direct object pronoun agrees with the noun it replaces, and a woman is feminine singular: la veo en la puerta.\nlo is the masculine, which would name a different person or thing; las veo is the plural, and the sentence is about one woman; la ver en la puerta is an infinitive with the pronoun attached, which is not a sentence.",
+                ),
+                ChallengeEntity(
+                    id = 70033, lessonId = 603, type = ChallengeType.LISTEN,
+                    question = "Tap what you hear",
+                    audioSrc = "asset:///audio/es/los_veo_en_el_parque.ogg",
+                    orderIndex = 3,
+                    grammaticalFocus = "es.object_pronoun.direct",
+                    ruleText = "The direct object pronoun keeps the number of the noun: los veo en el parque.\nveo los en el parque puts the pronoun behind the verb, which Spanish only allows with an infinitive or a gerund; la veo en el parque is singular, and there is a group of people; nos vemos en el parque turns the object into a reflexive, which would mean the speaker is looking at himself.",
+                ),
+                ChallengeEntity(
+                    id = 70034, lessonId = 603, type = ChallengeType.WORD_BANK,
+                    question = "Assemble: 'I buy the tickets'",
+                    audioSrc = "asset:///audio/es/compro_los_boletos.ogg",
+                    orderIndex = 4,
+                    grammaticalFocus = "es.object_pronoun.direct",
+                    ruleText = "The pronoun has to agree with the noun it stands in for, and los boletos is masculine plural, so the tiles assemble into compro los boletos.\nla is the feminine, so it cannot stand in for a masculine noun; lo is the singular, so it cannot stand in for a plural one; veo is the first person present, and the sentence is about the speaker buying rather than about the speaker seeing.",
+                ),
+                ChallengeEntity(
+                    id = 70035, lessonId = 603, type = ChallengeType.MATCH_PAIRS,
+                    question = "Match each pronoun to the noun it can stand for",
+                    orderIndex = 5,
+                ),
+
+                ChallengeEntity(
+                    id = 70040, lessonId = 604, type = ChallengeType.CONJUGATE,
+                    question = "Which pronoun replaces 'a mi hermana' in 'Doy el libro a mi hermana'?",
+                    audioSrc = "asset:///audio/es/le.ogg",
+                    orderIndex = 0,
+                    grammaticalFocus = "es.object_pronoun.indirect",
+                    ruleText = "A recipient takes the indirect object pronoun le, and for one person that is le: doy el libro a mi hermana → le doy el libro.\nlo is the direct object pronoun, which would make the book the receiver; la agrees with the book in gender but is still direct, so it cannot be the person; les is the plural receiver, and the sentence names one sister.",
+                ),
+                ChallengeEntity(
+                    id = 70041, lessonId = 604, type = ChallengeType.FILL_BLANK,
+                    question = "___ doy el libro a mi hermana.",
+                    audioSrc = "asset:///audio/es/le_doy_el_libro_a_mi_hermana.ogg",
+                    orderIndex = 1,
+                    grammaticalFocus = "es.object_pronoun.indirect",
+                    acceptedAnswers = "le",
+                    ruleText = "The indirect object pronoun names the receiver and comes before the verb: le doy el libro a mi hermana.\nlos doy el libro a mi hermana would make the books the receiver; lo doy el libro a mi hermana would use the direct pronoun for a person; me doy el libro a mi hermana would make the speaker give the book to himself.",
+                ),
+                ChallengeEntity(
+                    id = 70042, lessonId = 604, type = ChallengeType.LISTEN,
+                    question = "Tap what you hear",
+                    audioSrc = "asset:///audio/es/a_marta_le_gusta_el_cafe.ogg",
+                    orderIndex = 2,
+                    grammaticalFocus = "es.object_pronoun.indirect",
+                    ruleText = "Gustar works backwards: the thing liked is the subject and the person who likes it is the indirect object, so a Marta le gusta el café.\na Marta gusta el café leaves the person out entirely, which no Spanish gustar sentence can do; a Marta le gustan el café puts a plural verb on a singular thing; a Marta le gusta los cafés puts a singular verb on a plural thing, and the café is one thing.",
+                ),
+                ChallengeEntity(
+                    id = 70043, lessonId = 604, type = ChallengeType.CONJUGATE,
+                    question = "Which form of gustar goes with 'A mis hermanas ___ las fresas'?",
+                    audioSrc = "asset:///audio/es/gustan.ogg",
+                    orderIndex = 3,
+                    grammaticalFocus = "es.gustar",
+                    ruleText = "With gustar the verb agrees with the thing that is liked, and las fresas is plural, so gustan.\ngusta is singular, which only fits one thing; gusto is the first person, which would make the sisters the ones doing the liking; gustar is the infinitive, which nothing here can put in front of a name.",
+                ),
+                ChallengeEntity(
+                    id = 70044, lessonId = 604, type = ChallengeType.FILL_BLANK,
+                    question = "Me ___ mucho tus dibujos.",
+                    audioSrc = "asset:///audio/es/me_gustan_mucho_tus_dibujos.ogg",
+                    orderIndex = 4,
+                    grammaticalFocus = "es.gustar",
+                    acceptedAnswers = "gustan",
+                    ruleText = "The verb agrees with the thing liked, and tus dibujos is plural, so gustan: me gustan mucho tus dibujos.\ngusta is singular and only fits one drawing; gustar is the infinitive, which me cannot put in front of; gusto is the first person, which would say the drawings like the speaker.",
+                ),
+                ChallengeEntity(
+                    id = 70045, lessonId = 604, type = ChallengeType.SELECT,
+                    question = "Which one means 'We like the sea' (said to friends)?",
+                    audioSrc = "asset:///audio/es/nos_gusta_el_mar.ogg",
+                    orderIndex = 5,
+                    grammaticalFocus = "es.gustar",
+                    ruleText = "Nosotros liking something is nos gusta, singular, because el mar is one thing.\nnos gustan is the plural verb, which would only fit a plural thing; nos gustamos cannot exist, because gustar never conjugates for the person doing the liking; nos gustar el mar leaves the verb as an infinitive.",
+                ),
+                ChallengeEntity(
+                    id = 70046, lessonId = 604, type = ChallengeType.MATCH_PAIRS,
+                    question = "Match each sentence to what it means",
+                    orderIndex = 6,
+                ),
+
+                ChallengeEntity(
+                    id = 70050, lessonId = 605, type = ChallengeType.LISTEN,
+                    question = "Tap what you hear",
+                    audioSrc = "asset:///audio/es/me_levanto_todos_los_dias.ogg",
+                    orderIndex = 0,
+                    grammaticalFocus = "es.reflexive.pronoun",
+                    ruleText = "A reflexive verb sends the action back at the subject, so it needs the reflexive pronoun: me levanto todos los días.\nte levanto would mean the speaker gets you up, not himself; me levanta is third person, so the me has nothing to agree with; me levantar is the infinitive, which fills no slot at all.",
+                ),
+                ChallengeEntity(
+                    id = 70051, lessonId = 605, type = ChallengeType.CONJUGATE,
+                    question = "Which reflexive pronoun goes with 'ducharse' when the subject is 'yo'?",
+                    audioSrc = "asset:///audio/es/me.ogg",
+                    orderIndex = 1,
+                    grammaticalFocus = "es.reflexive.pronoun",
+                    ruleText = "Each subject has its own reflexive pronoun, and against yo that is me: yo me ducho.\nte is tú, so te ducho would say the speaker washes you; se is él/ella/usted; nos is nosotros, so nos ducho would put a plural speaker in a first person sentence.",
+                ),
+                ChallengeEntity(
+                    id = 70052, lessonId = 605, type = ChallengeType.FILL_BLANK,
+                    question = "Mi hermana ___ peina todas las mañanas.",
+                    audioSrc = "asset:///audio/es/mi_hermana_se_peina_todas_las_mananas.ogg",
+                    orderIndex = 2,
+                    grammaticalFocus = "es.reflexive.pronoun",
+                    acceptedAnswers = "se",
+                    ruleText = "When the subject and the object are the same person, the object is a reflexive pronoun, and a third person subject takes se: mi hermana se peina.\nme would make the speaker do the combing; le would make somebody else the object; peina without a pronoun leaves the action with no object at all.",
+                ),
+                ChallengeEntity(
+                    id = 70053, lessonId = 605, type = ChallengeType.SELECT,
+                    question = "Which one means 'She dressed herself' (one woman)?",
+                    audioSrc = "asset:///audio/es/ella_se_vistio.ogg",
+                    orderIndex = 3,
+                    grammaticalFocus = "es.reflexive.pronoun",
+                    ruleText = "Vestirse is reflexive, so with a third person subject the pronoun is se: ella se vistió.\nla vistió would make the dress the object of a different verb; ella vistió has no reflexive pronoun, so the action has no object; ella se vistieron is plural, and the sentence is about one woman.",
+                ),
+                ChallengeEntity(
+                    id = 70054, lessonId = 605, type = ChallengeType.CONJUGATE,
+                    question = "Which form goes in 'Se ___ español en todo el mundo' (impersonal se)?",
+                    audioSrc = "asset:///audio/es/habla.ogg",
+                    orderIndex = 4,
+                    grammaticalFocus = "es.reflexive.impersonal_se",
+                    ruleText = "Impersonal se stands for 'la gente' in the third person singular, so the verb is habla and never carries a subject of its own.\nhablan is the plural, and impersonal se is singular unless the object it names is plural; hablo is the first person, which would put a speaker inside an impersonal sentence; hablar is the infinitive, which nothing here governs.",
+                ),
+                ChallengeEntity(
+                    id = 70055, lessonId = 605, type = ChallengeType.FILL_BLANK,
+                    question = "En este país se ___ muchos idiomas.",
+                    audioSrc = "asset:///audio/es/en_este_pais_se_hablan_muchos_idiomas.ogg",
+                    orderIndex = 5,
+                    grammaticalFocus = "es.reflexive.impersonal_se",
+                    acceptedAnswers = "hablan",
+                    ruleText = "When impersonal se carries a plural object, the verb agrees with that object rather than with se: en este país se hablan muchos idiomas.\nhabla is singular, which only fits a single language; hablamos is the first person plural, and impersonal sentences have no speaker; hablar is the infinitive, which se cannot govern.",
+                ),
+                ChallengeEntity(
+                    id = 70056, lessonId = 605, type = ChallengeType.STORY,
+                    question = "La mañana de Marta\n\nMarta se levanta a las siete.\nSe ducha enseguida y se viste deprisa.\nSale de casa a las ocho menos cuarto.\n\n❓ What does Marta do first?",
+                    audioSrc = "asset:///audio/es/la_manana_de_marta.ogg",
+                    orderIndex = 6,
+                ),
+
+                ChallengeEntity(
+                    id = 70060, lessonId = 606, type = ChallengeType.CONJUGATE,
+                    question = "Which form of escuchar do you use to tell one person 'Listen' (affirmative, tú)?",
+                    audioSrc = "asset:///audio/es/escucha.ogg",
+                    orderIndex = 0,
+                    grammaticalFocus = "es.imperative.affirmative",
+                    ruleText = "The affirmative tú imperative is the present form with the final -s dropped, so escuchar → escucha.\nescuchas is the present indicative, which states a habit rather than giving an order; escuchar is the infinitive, which commands nobody; escuchad is the vosotros command, and the sentence is addressed to one person.",
+                ),
+                ChallengeEntity(
+                    id = 70061, lessonId = 606, type = ChallengeType.CONJUGATE,
+                    question = "Which form do you use to tell one person 'Come here' (affirmative, tú)?",
+                    audioSrc = "asset:///audio/es/ven.ogg",
+                    orderIndex = 1,
+                    grammaticalFocus = "es.imperative.irregular",
+                    ruleText = "Irregular affirmative tú imperatives are ven, pon, sal, ten, haz, di and ve: venir loses its -ir and keeps ven.\nvienes is the present indicative, which reports a habit instead of ordering; venir is the infinitive, which commands nobody; venid is the vosotros command, and the sentence is addressed to one person.",
+                ),
+                ChallengeEntity(
+                    id = 70062, lessonId = 606, type = ChallengeType.FILL_BLANK,
+                    question = "No ___ con prisa.",
+                    audioSrc = "asset:///audio/es/no_corras_con_prisa.ogg",
+                    orderIndex = 2,
+                    grammaticalFocus = "es.imperative.negative",
+                    acceptedAnswers = "corras",
+                    ruleText = "The negative tú imperative is no + the subjunctive, so no corras con prisa.\ncorres is the present indicative, which denies a fact instead of forbidding an action; correr is the infinitive, which no cannot govern; corráis is the subjunctive of vosotros, and the sentence is addressed to one person.",
+                ),
+                ChallengeEntity(
+                    id = 70063, lessonId = 606, type = ChallengeType.SELECT,
+                    question = "Which one means 'Sit down, please' (to a person you address as usted)?",
+                    audioSrc = "asset:///audio/es/sientese_por_favor.ogg",
+                    orderIndex = 3,
+                    grammaticalFocus = "es.imperative.affirmative",
+                    ruleText = "The usted command is the third person present with the -s dropped, and a reflexive pronoun turns into -se: siéntese, por favor.\nsiéntate is the tú form, which is grammatically a command but at the wrong level of politeness for a person addressed as usted; siéntense is the ustedes form, and there is one person; sentarse is the infinitive, which commands nobody.",
+                ),
+                ChallengeEntity(
+                    id = 70064, lessonId = 606, type = ChallengeType.FILL_BLANK,
+                    question = "Por favor, ___ aquí.",
+                    audioSrc = "asset:///audio/es/por_favor_sientate_aqui.ogg",
+                    orderIndex = 4,
+                    grammaticalFocus = "es.imperative.affirmative",
+                    acceptedAnswers = "siéntate",
+                    ruleText = "Sentarse is reflexive, and the affirmative tú command attaches the reflexive pronoun to the verb as -ate, so the whole word is siéntate: por favor, siéntate aquí.\nsiéntese is the usted form, which is grammatically a command but at the wrong level of politeness for a friend; siéntense is the ustedes form, and there is one person; sentarse is the infinitive, which commands nobody.",
+                ),
+                ChallengeEntity(
+                    id = 70065, lessonId = 606, type = ChallengeType.CONJUGATE,
+                    question = "Which form of dormir do you use to tell one person 'Sleep well' (affirmative, tú)?",
+                    audioSrc = "asset:///audio/es/duerme.ogg",
+                    orderIndex = 5,
+                    grammaticalFocus = "es.imperative.affirmative",
+                    ruleText = "The affirmative tú imperative of dormir is the present form without the -s: duerme.\nduermes is the present indicative, which states a habit instead of giving an order; dormir is the infinitive, which commands nobody; duerman is the ustedes command, and the sentence is addressed to one person.",
+                ),
+                ChallengeEntity(
+                    id = 70066, lessonId = 606, type = ChallengeType.LISTEN,
+                    question = "Tap what you hear",
+                    audioSrc = "asset:///audio/es/no_digas_eso_por_favor.ogg",
+                    orderIndex = 6,
+                    grammaticalFocus = "es.imperative.negative",
+                    ruleText = "The negative tú imperative is no + the subjunctive, and the tú form of decir is digas: no digas eso, por favor.\nno dices is the present indicative, which denies a fact instead of forbidding the action; decir is the infinitive, which no cannot govern; no digo is the first person, which forbids the speaker from speaking to himself.",
+                ),
+            ),
+            options = listOf(
+                ChallengeOptionEntity(id = 700300, challengeId = 70030, text = "lo", correct = true),
+                ChallengeOptionEntity(id = 700301, challengeId = 70030, text = "la", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 700302, challengeId = 70030, text = "me", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 700303, challengeId = 70030, text = "el", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 700310, challengeId = 70031, text = "Lo", correct = true),
+                ChallengeOptionEntity(id = 700311, challengeId = 70031, text = "La", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 700312, challengeId = 70031, text = "Los", correct = false, errorTag = "WRONG_PERSON"),
+                ChallengeOptionEntity(id = 700313, challengeId = 70031, text = "Ver", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 700320, challengeId = 70032, text = "La veo en la puerta", correct = true, audioSrc = "asset:///audio/es/la_veo_en_la_puerta.ogg"),
+                ChallengeOptionEntity(id = 700321, challengeId = 70032, text = "Lo veo en la puerta", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 700322, challengeId = 70032, text = "Las veo en la puerta", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 700323, challengeId = 70032, text = "La ver en la puerta", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 700330, challengeId = 70033, text = "Los veo en el parque", correct = true),
+                ChallengeOptionEntity(id = 700331, challengeId = 70033, text = "Veo los en el parque", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 700332, challengeId = 70033, text = "La veo en el parque", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 700333, challengeId = 70033, text = "Nos vemos en el parque", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 700340, challengeId = 70034, text = "Compro", correct = true),
+                ChallengeOptionEntity(id = 700341, challengeId = 70034, text = "los", correct = true),
+                ChallengeOptionEntity(id = 700342, challengeId = 70034, text = "boletos", correct = true),
+                ChallengeOptionEntity(id = 700343, challengeId = 70034, text = "la", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 700344, challengeId = 70034, text = "lo", correct = false, errorTag = "WRONG_PERSON"),
+                ChallengeOptionEntity(id = 700345, challengeId = 70034, text = "veo", correct = false, errorTag = "WRONG_PERSON"),
+
+                ChallengeOptionEntity(id = 700350, challengeId = 70035, text = "lo", correct = true),
+                ChallengeOptionEntity(id = 700351, challengeId = 70035, text = "el libro", correct = true),
+                ChallengeOptionEntity(id = 700352, challengeId = 70035, text = "la", correct = true),
+                ChallengeOptionEntity(id = 700353, challengeId = 70035, text = "la casa", correct = true),
+                ChallengeOptionEntity(id = 700354, challengeId = 70035, text = "los", correct = true),
+                ChallengeOptionEntity(id = 700355, challengeId = 70035, text = "los zapatos", correct = true),
+
+                ChallengeOptionEntity(id = 700400, challengeId = 70040, text = "le", correct = true),
+                ChallengeOptionEntity(id = 700401, challengeId = 70040, text = "lo", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 700402, challengeId = 70040, text = "la", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 700403, challengeId = 70040, text = "les", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 700410, challengeId = 70041, text = "Le", correct = true),
+                ChallengeOptionEntity(id = 700411, challengeId = 70041, text = "Los", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 700412, challengeId = 70041, text = "Lo", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 700413, challengeId = 70041, text = "Me", correct = false, errorTag = "WRONG_PERSON"),
+
+                ChallengeOptionEntity(id = 700420, challengeId = 70042, text = "A Marta le gusta el café", correct = true),
+                ChallengeOptionEntity(id = 700421, challengeId = 70042, text = "A Marta gusta el café", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 700422, challengeId = 70042, text = "A Marta le gustan el café", correct = false, errorTag = "WRONG_PERSON"),
+                ChallengeOptionEntity(id = 700423, challengeId = 70042, text = "A Marta le gusta los cafés", correct = false, errorTag = "WRONG_PERSON"),
+
+                ChallengeOptionEntity(id = 700430, challengeId = 70043, text = "gustan", correct = true),
+                ChallengeOptionEntity(id = 700431, challengeId = 70043, text = "gusta", correct = false, errorTag = "WRONG_PERSON"),
+                ChallengeOptionEntity(id = 700432, challengeId = 70043, text = "gusto", correct = false, errorTag = "WRONG_PERSON"),
+                ChallengeOptionEntity(id = 700433, challengeId = 70043, text = "gustar", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 700440, challengeId = 70044, text = "gustan", correct = true),
+                ChallengeOptionEntity(id = 700441, challengeId = 70044, text = "gusta", correct = false, errorTag = "WRONG_PERSON"),
+                ChallengeOptionEntity(id = 700442, challengeId = 70044, text = "gustar", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 700443, challengeId = 70044, text = "gusto", correct = false, errorTag = "WRONG_PERSON"),
+
+                ChallengeOptionEntity(id = 700450, challengeId = 70045, text = "Nos gusta el mar", correct = true, audioSrc = "asset:///audio/es/nos_gusta_el_mar.ogg"),
+                ChallengeOptionEntity(id = 700451, challengeId = 70045, text = "Nos gustan el mar", correct = false, errorTag = "WRONG_PERSON"),
+                ChallengeOptionEntity(id = 700452, challengeId = 70045, text = "Nos gustamos el mar", correct = false, errorTag = "WRONG_PERSON"),
+                ChallengeOptionEntity(id = 700453, challengeId = 70045, text = "Nos gustar el mar", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 700460, challengeId = 70046, text = "A Marta le gusta el café", correct = true),
+                ChallengeOptionEntity(id = 700461, challengeId = 70046, text = "Marta likes coffee", correct = true),
+                ChallengeOptionEntity(id = 700462, challengeId = 70046, text = "Nos gusta el mar", correct = true),
+                ChallengeOptionEntity(id = 700463, challengeId = 70046, text = "We like the sea", correct = true),
+                ChallengeOptionEntity(id = 700464, challengeId = 70046, text = "Me levanto todos los días", correct = true),
+                ChallengeOptionEntity(id = 700465, challengeId = 70046, text = "I get up every day", correct = true),
+
+                ChallengeOptionEntity(id = 700500, challengeId = 70050, text = "Me levanto todos los días", correct = true),
+                ChallengeOptionEntity(id = 700501, challengeId = 70050, text = "Te levanto todos los días", correct = false, errorTag = "WRONG_PERSON"),
+                ChallengeOptionEntity(id = 700502, challengeId = 70050, text = "Me levanta todos los días", correct = false, errorTag = "WRONG_PERSON"),
+                ChallengeOptionEntity(id = 700503, challengeId = 70050, text = "Me levantar todos los días", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 700510, challengeId = 70051, text = "me", correct = true),
+                ChallengeOptionEntity(id = 700511, challengeId = 70051, text = "te", correct = false, errorTag = "WRONG_PERSON"),
+                ChallengeOptionEntity(id = 700512, challengeId = 70051, text = "se", correct = false, errorTag = "WRONG_PERSON"),
+                ChallengeOptionEntity(id = 700513, challengeId = 70051, text = "nos", correct = false, errorTag = "WRONG_PERSON"),
+
+                ChallengeOptionEntity(id = 700520, challengeId = 70052, text = "se", correct = true),
+                ChallengeOptionEntity(id = 700521, challengeId = 70052, text = "me", correct = false, errorTag = "WRONG_PERSON"),
+                ChallengeOptionEntity(id = 700522, challengeId = 70052, text = "le", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 700523, challengeId = 70052, text = "Peina", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 700530, challengeId = 70053, text = "Ella se vistió", correct = true, audioSrc = "asset:///audio/es/ella_se_vistio.ogg"),
+                ChallengeOptionEntity(id = 700531, challengeId = 70053, text = "La vistió", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 700532, challengeId = 70053, text = "Ella vistió", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 700533, challengeId = 70053, text = "Ella se vistieron", correct = false, errorTag = "WRONG_PERSON"),
+
+                ChallengeOptionEntity(id = 700540, challengeId = 70054, text = "habla", correct = true),
+                ChallengeOptionEntity(id = 700541, challengeId = 70054, text = "hablan", correct = false, errorTag = "WRONG_PERSON"),
+                ChallengeOptionEntity(id = 700542, challengeId = 70054, text = "hablo", correct = false, errorTag = "WRONG_PERSON"),
+                ChallengeOptionEntity(id = 700543, challengeId = 70054, text = "hablar", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 700550, challengeId = 70055, text = "hablan", correct = true),
+                ChallengeOptionEntity(id = 700551, challengeId = 70055, text = "habla", correct = false, errorTag = "WRONG_PERSON"),
+                ChallengeOptionEntity(id = 700552, challengeId = 70055, text = "hablamos", correct = false, errorTag = "WRONG_PERSON"),
+                ChallengeOptionEntity(id = 700553, challengeId = 70055, text = "hablar", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 700560, challengeId = 70056, text = "She gets up", correct = true),
+                ChallengeOptionEntity(id = 700561, challengeId = 70056, text = "She takes the bus", correct = false),
+                ChallengeOptionEntity(id = 700562, challengeId = 70056, text = "She has breakfast", correct = false),
+                ChallengeOptionEntity(id = 700563, challengeId = 70056, text = "She goes to bed early", correct = false),
+
+                ChallengeOptionEntity(id = 700600, challengeId = 70060, text = "escucha", correct = true),
+                ChallengeOptionEntity(id = 700601, challengeId = 70060, text = "escuchas", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 700602, challengeId = 70060, text = "escuchad", correct = false, errorTag = "WRONG_PERSON"),
+                ChallengeOptionEntity(id = 700603, challengeId = 70060, text = "escuchar", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 700610, challengeId = 70061, text = "ven", correct = true),
+                ChallengeOptionEntity(id = 700611, challengeId = 70061, text = "vienes", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 700612, challengeId = 70061, text = "venid", correct = false, errorTag = "WRONG_PERSON"),
+                ChallengeOptionEntity(id = 700613, challengeId = 70061, text = "venir", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 700620, challengeId = 70062, text = "corras", correct = true),
+                ChallengeOptionEntity(id = 700621, challengeId = 70062, text = "corres", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 700622, challengeId = 70062, text = "correr", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 700623, challengeId = 70062, text = "corráis", correct = false, errorTag = "WRONG_PERSON"),
+
+                ChallengeOptionEntity(id = 700630, challengeId = 70063, text = "Siéntese, por favor", correct = true, audioSrc = "asset:///audio/es/sientese_por_favor.ogg"),
+                ChallengeOptionEntity(id = 700631, challengeId = 70063, text = "Siéntate, por favor", correct = false, errorTag = "WRONG_REGISTER"),
+                ChallengeOptionEntity(id = 700632, challengeId = 70063, text = "Siéntense, por favor", correct = false, errorTag = "WRONG_PERSON"),
+                ChallengeOptionEntity(id = 700633, challengeId = 70063, text = "Sentarse, por favor", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 700640, challengeId = 70064, text = "siéntate", correct = true),
+                ChallengeOptionEntity(id = 700641, challengeId = 70064, text = "siéntese", correct = false, errorTag = "WRONG_REGISTER"),
+                ChallengeOptionEntity(id = 700642, challengeId = 70064, text = "siéntense", correct = false, errorTag = "WRONG_PERSON"),
+                ChallengeOptionEntity(id = 700643, challengeId = 70064, text = "sentarse", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 700650, challengeId = 70065, text = "duerme", correct = true),
+                ChallengeOptionEntity(id = 700651, challengeId = 70065, text = "duermes", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 700652, challengeId = 70065, text = "dormir", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 700653, challengeId = 70065, text = "duerman", correct = false, errorTag = "WRONG_PERSON"),
+
+                ChallengeOptionEntity(id = 700660, challengeId = 70066, text = "No digas eso, por favor", correct = true),
+                ChallengeOptionEntity(id = 700661, challengeId = 70066, text = "No dices eso, por favor", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 700662, challengeId = 70066, text = "No decir eso, por favor", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 700663, challengeId = 70066, text = "No digo eso, por favor", correct = false, errorTag = "WRONG_PERSON"),
             ),
         ),
     )

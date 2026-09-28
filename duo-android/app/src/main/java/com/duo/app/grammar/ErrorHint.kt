@@ -119,6 +119,53 @@ object ErrorHint {
             "ser in the present tense",
             "ser states identity and lasting description, and it agrees with the subject like any other verb.",
         ),
+        // The subjunctive: a second verb in a clause that is not the main one.
+        "es.subjunctive.wants" to FocusProfile(
+            "the Spanish subjunctive after querer",
+            "After querer, esperar, necesitar or buscar plus que the second verb is subjunctive: quiero que vengas, not quiero que viene.",
+        ),
+        "es.subjunctive.emotion_doubt" to FocusProfile(
+            "emotion, doubt and negation in Spanish",
+            "Emotion, doubt and negation all take the subjunctive: no creo que sea, me alegro de que estén listos.",
+        ),
+        "es.subjunctive.purpose_concession" to FocusProfile(
+            "Spanish purpose and concession",
+            "Para que and a menos que point at a wanted or an unwanted outcome, so the verb they take is subjunctive: te lo digo para que lo sepas.",
+        ),
+        // Object pronouns: two different gaps, filled by two different pronouns.
+        "es.object_pronoun.direct" to FocusProfile(
+            "the Spanish direct object pronoun",
+            "The direct object pronoun agrees with the thing in gender and number — lo, la, los, las — and stands in front of the verb.",
+        ),
+        "es.object_pronoun.indirect" to FocusProfile(
+            "the Spanish indirect object pronoun",
+            "le and les name the receiver of the action, where the direct pronoun would name the thing being handed over instead.",
+        ),
+        "es.gustar" to FocusProfile(
+            "the Spanish verb gustar",
+            "With gustar the verb agrees with the thing liked, not with the person who likes it: nos gusta el mar, but me gustan tus dibujos.",
+        ),
+        "es.reflexive.pronoun" to FocusProfile(
+            "a Spanish reflexive pronoun",
+            "A reflexive verb needs the pronoun that agrees with its subject: me levanto, se peina, nos alegramos.",
+        ),
+        "es.reflexive.impersonal_se" to FocusProfile(
+            "impersonal se in Spanish",
+            "Impersonal se has no subject of its own, so it is third person and the verb agrees with the thing instead: se habla español, but se hablan muchos idiomas.",
+        ),
+        // The imperative: affirmative is the present, negative is the subjunctive.
+        "es.imperative.affirmative" to FocusProfile(
+            "the Spanish affirmative imperative",
+            "The affirmative command is the present form: with tú the final -s is dropped and with usted the third person is kept — habla, hable.",
+        ),
+        "es.imperative.irregular" to FocusProfile(
+            "the irregular Spanish affirmative imperative",
+            "These affirmative tú commands are the irregular ones — ven, pon, sal, ten, haz, di, ve — and have to be learned as they stand.",
+        ),
+        "es.imperative.negative" to FocusProfile(
+            "the Spanish negative imperative",
+            "A negative command is no plus the subjunctive, never the indicative: no corras, no digas eso.",
+        ),
         // Japanese verbs change by form, not by tense.
         "ja.potential" to FocusProfile(
             "the Japanese potential form",
@@ -187,6 +234,31 @@ object ErrorHint {
         "ja.giving_receiving" to FocusProfile(
             "the Japanese giving and receiving verbs",
             "あげる is I give to someone, くれる is someone gives to me, and もらう is I receive; から names the source.",
+        ),
+        // 受身, 使役 and 修飾節: the three areas units 13-14 added.
+        "ja.passive_formation" to FocusProfile(
+            "the Japanese passive (受身)",
+            "The plain passive puts れる on the stem — 読む → 読まれる, 書く → 書かれる — and only a 他動詞 can take one; 読める is the potential, and られる by itself never says which of the two it is.",
+        ),
+        "ja.passive_particles" to FocusProfile(
+            "the Japanese passive particles",
+            "In the passive the を-object becomes the topic and the one doing it takes に: 母に叱られました, 車は工場で作られます.",
+        ),
+        "ja.passive_teiru" to FocusProfile(
+            "受け身 + ている",
+            "受け身 + ている says the state is on-going right now: the passive stem plus ている or ています — 使われている, 汚染されています.",
+        ),
+        "ja.causative_formation" to FocusProfile(
+            "the Japanese causative (使役)",
+            "The causative adds せ to the stem — 食べる → 食べさせる, する → させる — and that added せ is what separates it from the passive's れ: 読まれる, 食べられる.",
+        ),
+        "ja.causative_teiru" to FocusProfile(
+            "a Japanese causative in progress",
+            "A causative carries ている and ます just like any other verb: 食べさせている, 走らせています, 野菜を食べさせました.",
+        ),
+        "ja.relative_clause" to FocusProfile(
+            "a Japanese relative clause (修飾節)",
+            "A clause in front of the noun it describes is bound to it with の and keeps its plain form — 日本語を話せる人, 漢字を読めない人, 読みやすい日本語の本 — and は cannot head it.",
         ),
         // Counters: the numeral is right in every distractor.
         "ja.counter_people" to FocusProfile(

@@ -528,19 +528,24 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     /**
      * Maps a CEFR/JLPT level name to the unit IDs that belong to it.
      *
-     * Spanish units are 10-19 and 30-31, Japanese units are 20-29 and 40-41, and the
+     * Spanish units are 10-19 and 30-33, Japanese units are 20-29 and 40-43, and the
      * courses never share a unit id, so the level->unit map has to branch on the
-     * course. B1 is the irregular preterite, the past perfect and the conditional
-     * with its connectives (units 30-31); A2 stays where it was, on the regular
-     * preterite and imperfecto of units 18-19.
+     * course. B1 is everything from the irregular preterite onward (units 30-33):
+     * the past perfect, the conditional and its connectives in 30-31, then the
+     * subjunctive, the imperative, the object and reflexive pronouns and gustar in
+     * 32-33. A2 stays where it was, on the regular preterite and imperfecto of
+     * units 18-19. N4 is likewise the whole intermediate block: te-form, requests
+     * and potential in 28-29, the past, the plain-vs-polite register, the adjective
+     * classes, ability, opinion and the giving trio in 40-41, and the passive,
+     * the causative and the relative clause in 42-43.
      */
     private fun getUnitIdsForLevel(courseId: Int, level: String): List<Int> {
         return when (level) {
             "A1" -> if (courseId == 1) listOf(10, 11, 12, 13, 14, 15, 16, 17) else emptyList()
             "A2" -> if (courseId == 1) listOf(18, 19) else emptyList()
-            "B1" -> if (courseId == 1) listOf(30, 31) else emptyList()
+            "B1" -> if (courseId == 1) listOf(30, 31, 32, 33) else emptyList()
             "N5" -> if (courseId == 2) listOf(20, 21, 22, 23, 24, 25, 26, 27) else emptyList()
-            "N4" -> if (courseId == 2) listOf(28, 29, 40, 41) else emptyList()
+            "N4" -> if (courseId == 2) listOf(28, 29, 40, 41, 42, 43) else emptyList()
             else -> emptyList()
         }
     }
@@ -555,8 +560,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
         viewModelScope.launch {
             val courseId = checkpointCourseId
-            val allUnitIds = if (courseId == 1) listOf(10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 30, 31)
-                            else listOf(20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 40, 41)
+            val allUnitIds = if (courseId == 1) listOf(10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 30, 31, 32, 33)
+                            else listOf(20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 40, 41, 42, 43)
             val sample = repository.getChallengesForUnits(allUnitIds).shuffled().take(25)
             if (sample.isNotEmpty()) {
                 currentLessonChallenges = sample

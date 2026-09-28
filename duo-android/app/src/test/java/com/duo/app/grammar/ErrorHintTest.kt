@@ -247,6 +247,132 @@ class ErrorHintTest {
         )
     }
 
+    // --- Spanish units 13-14 ------------------------------------------------
+
+    @Test
+    fun `a subjunctive mistake names the trigger that puts the second verb there`() {
+        val wants = ErrorHint.forChoice("quiero que viene", "quiero que venga", "WRONG_FORM", "es.subjunctive.wants")
+        require(wants != null)
+        assertTrue("does not name the form the sentence needs: $wants", wants.contains("quiero que venga"))
+        assertTrue("does not say what triggers the subjunctive: $wants", wants.contains("After querer, esperar, necesitar or buscar"))
+        assertTrue("does not name the grammar point: $wants", wants.contains("subjunctive after querer"))
+
+        val emotion = ErrorHint.forChoice("creo que es verdad", "no creo que sea verdad", "WRONG_FORM", "es.subjunctive.emotion_doubt")
+        require(emotion != null)
+        assertTrue("does not name the feeling that takes the subjunctive: $emotion", emotion.contains("Emotion, doubt and negation"))
+        assertTrue("does not name the form: $emotion", emotion.contains("no creo que sea"))
+
+        val purpose = ErrorHint.forChoice("te lo digo para que lo sabe", "te lo digo para que lo sepa", "WRONG_FORM", "es.subjunctive.purpose_concession")
+        require(purpose != null)
+        assertTrue("does not name the connective that takes it: $purpose", purpose.contains("Para que"))
+        assertTrue("does not name the form: $purpose", purpose.contains("para que lo sepa"))
+    }
+
+    @Test
+    fun `an object pronoun mistake names the pronoun the sentence needs`() {
+        val direct = ErrorHint.forChoice("Los veo en el parque", "Los veo en la parque", "WRONG_PERSON", "es.object_pronoun.direct")
+        require(direct != null)
+        assertTrue("does not name the form: $direct", direct.contains("Los veo en la parque"))
+        assertTrue("does not say what the pronoun agrees with: $direct", direct.contains("gender and number"))
+
+        val indirect = ErrorHint.forChoice("Lo doy a mi hermana", "Le doy el libro a mi hermana", "WRONG_FORM", "es.object_pronoun.indirect")
+        require(indirect != null)
+        assertTrue("does not name the form: $indirect", indirect.contains("Le doy el libro a mi hermana"))
+        assertTrue("does not separate the receiver from the thing: $indirect", indirect.contains("le and les name the receiver"))
+    }
+
+    @Test
+    fun `gustar is explained as agreement with the thing, not with the person`() {
+        val hint = ErrorHint.forChoice("Me gusta el mar", "Nos gusta el mar", "WRONG_PERSON", "es.gustar")
+        require(hint != null)
+        assertTrue("does not name the form: $hint", hint.contains("Nos gusta el mar"))
+        assertTrue(
+            "blames the person rather than the agreement: $hint",
+            hint.contains("agrees with the thing liked, not with the person"),
+        )
+    }
+
+    @Test
+    fun `a reflexive mistake names the pronoun the subject has to agree with`() {
+        val pronoun = ErrorHint.forChoice("Se levanta todos los días", "Me levanto todos los días", "WRONG_PERSON", "es.reflexive.pronoun")
+        require(pronoun != null)
+        assertTrue("does not name the form: $pronoun", pronoun.contains("Me levanto todos los días"))
+        assertTrue("does not say what the pronoun agrees with: $pronoun", pronoun.contains("agrees with its subject"))
+
+        val impersonal = ErrorHint.forChoice("En este país hablan muchos idiomas", "En este país se hablan muchos idiomas", "WRONG_FORM", "es.reflexive.impersonal_se")
+        require(impersonal != null)
+        assertTrue("does not name the form: $impersonal", impersonal.contains("En este país se hablan muchos idiomas"))
+        assertTrue("does not say what impersonal se stands for: $impersonal", impersonal.contains("no subject of its own"))
+    }
+
+    @Test
+    fun `the imperative hints separate the affirmative command from the negative one`() {
+        val affirmative = ErrorHint.forChoice("habla", "hable", "WRONG_REGISTER", "es.imperative.affirmative")
+        require(affirmative != null)
+        assertTrue("conceals that the tú form is right: $affirmative", affirmative.contains("grammatical"))
+        assertTrue("does not name the form: $affirmative", affirmative.contains("hable"))
+        assertTrue("does not say how tú differs from usted: $affirmative", affirmative.contains("tú"))
+
+        val irregular = ErrorHint.forChoice("Vienes", "Ven", "WRONG_FORM", "es.imperative.irregular")
+        require(irregular != null)
+        assertTrue("does not name the form: $irregular", irregular.contains("Ven"))
+        assertTrue("does not list the irregulars: $irregular", irregular.contains("ven, pon, sal, ten, haz, di, ve"))
+
+        val negative = ErrorHint.forChoice("no corres", "no corras", "WRONG_FORM", "es.imperative.negative")
+        require(negative != null)
+        assertTrue("does not name the form: $negative", negative.contains("no corras"))
+        assertTrue("does not rule out the indicative: $negative", negative.contains("no plus the subjunctive, never the indicative"))
+    }
+
+    // --- Japanese units 13-14 ----------------------------------------------
+
+    @Test
+    fun `the passive hint does not hide that られる is also the potential`() {
+        val hint = ErrorHint.forChoice("読める", "読まれる", "WRONG_FORM", "ja.passive_formation")
+        require(hint != null)
+        assertTrue("does not name the form: $hint", hint.contains("読まれる"))
+        assertTrue("does not name the potential it collides with: $hint", hint.contains("読める"))
+        assertTrue(
+            "papers over the ambiguity instead of naming it: $hint",
+            hint.contains("られる by itself never says which"),
+        )
+    }
+
+    @Test
+    fun `the passive hints say where the object and the agent go`() {
+        val particles = ErrorHint.forChoice("母を叱られました", "母に叱られました", "WRONG_FORM", "ja.passive_particles")
+        require(particles != null)
+        assertTrue("does not name the form: $particles", particles.contains("母に叱られました"))
+        assertTrue("does not say which particle the agent takes: $particles", particles.contains("takes に"))
+
+        val teiru = ErrorHint.forChoice("この川は汚染しています", "この川は汚染されています", "WRONG_FORM", "ja.passive_teiru")
+        require(teiru != null)
+        assertTrue("does not name the form: $teiru", teiru.contains("汚染されています"))
+        assertTrue("does not say what 受け身 + ている adds: $teiru", teiru.contains("on-going right now"))
+    }
+
+    @Test
+    fun `the causative hint is told apart from the passive by the added せ`() {
+        val formation = ErrorHint.forChoice("読まれる", "読ませる", "WRONG_FORM", "ja.causative_formation")
+        require(formation != null)
+        assertTrue("does not name the form: $formation", formation.contains("読ませる"))
+        assertTrue("does not say what tells it from the passive: $formation", formation.contains("passive's れ"))
+
+        val teiru = ErrorHint.forChoice("食べさせられました", "食べさせました", "WRONG_TENSE", "ja.causative_teiru")
+        require(teiru != null)
+        assertTrue("does not name the form: $teiru", teiru.contains("食べさせました"))
+        assertTrue("does not state the rule: $teiru", teiru.contains("食べさせている"))
+    }
+
+    @Test
+    fun `a relative clause hint says the clause binds with の and cannot take は`() {
+        val hint = ErrorHint.forChoice("読みやすいのは日本語の本", "読みやすい日本語の本", "WRONG_FORM", "ja.relative_clause")
+        require(hint != null)
+        assertTrue("does not name the form: $hint", hint.contains("読みやすい日本語の本"))
+        assertTrue("does not say what binds the clause to the noun: $hint", hint.contains("bound to it with の"))
+        assertTrue("does not rule out は in the clause: $hint", hint.contains("は cannot head it"))
+    }
+
     // --- FILL_BLANK ---------------------------------------------------------
 
     @Test

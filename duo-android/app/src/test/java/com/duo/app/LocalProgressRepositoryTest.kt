@@ -59,10 +59,10 @@ class LocalProgressRepositoryTest {
 
         val spanishUnits = db.courseDao().getUnitsForCourseDirect(1)
         val japaneseUnits = db.courseDao().getUnitsForCourseDirect(2)
-        assertEquals(12, spanishUnits.size)
-        assertEquals(12, japaneseUnits.size)
-        assertEquals((0 until 12).toList(), spanishUnits.map { it.orderIndex })
-        assertEquals((0 until 12).toList(), japaneseUnits.map { it.orderIndex })
+        assertEquals(14, spanishUnits.size)
+        assertEquals(14, japaneseUnits.size)
+        assertEquals((0 until 14).toList(), spanishUnits.map { it.orderIndex })
+        assertEquals((0 until 14).toList(), japaneseUnits.map { it.orderIndex })
 
         var lessons = 0
         var challenges = 0
@@ -75,12 +75,12 @@ class LocalProgressRepositoryTest {
                 }
             }
         }
-        assertEquals(267, challenges)
+        assertEquals(355, challenges)
 
         // Re-running the seed must not duplicate or drop rows.
         repository.initializeIfNeeded()
-        assertEquals(12, db.courseDao().getUnitsForCourseDirect(1).size)
-        assertEquals(12, db.courseDao().getUnitsForCourseDirect(2).size)
+        assertEquals(14, db.courseDao().getUnitsForCourseDirect(1).size)
+        assertEquals(14, db.courseDao().getUnitsForCourseDirect(2).size)
     }
 
     @Test
@@ -231,7 +231,7 @@ class LocalProgressRepositoryTest {
             assertFalse(quest.isComplete)
         }
         // Curriculum seeds survive the wipe.
-        assertEquals(12, db.courseDao().getUnitsForCourseDirect(1).size)
+        assertEquals(14, db.courseDao().getUnitsForCourseDirect(1).size)
     }
     @Test
     fun `lesson count starts at zero and completes a full lesson`() = runTest {

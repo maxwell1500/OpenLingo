@@ -85,6 +85,22 @@ class CurriculumIntegrityTest {
         // ser vs estar: a usage choice, plus agreement for the distractors that get that right.
         "es.ser_estar" to setOf("WRONG_COPULA", "WRONG_PERSON"),
         "es.ser_present" to setOf("WRONG_COPULA", "WRONG_PERSON"),
+        // Spanish units 13-14. A verb slot under the subjunctive or the
+        // imperative can miss on the ending (WRONG_FORM), on the person
+        // (WRONG_PERSON) or, for the two tú/usted commands, on the level of
+        // formality - a tú command answered with the usted form is
+        // grammatically right and the wrong register to hand a friend.
+        "es.subjunctive.wants" to setOf("WRONG_FORM", "WRONG_PERSON"),
+        "es.subjunctive.emotion_doubt" to setOf("WRONG_FORM", "WRONG_PERSON"),
+        "es.subjunctive.purpose_concession" to setOf("WRONG_FORM", "WRONG_PERSON"),
+        "es.object_pronoun.direct" to setOf("WRONG_FORM", "WRONG_PERSON"),
+        "es.object_pronoun.indirect" to setOf("WRONG_FORM", "WRONG_PERSON"),
+        "es.gustar" to setOf("WRONG_FORM", "WRONG_PERSON"),
+        "es.reflexive.pronoun" to setOf("WRONG_FORM", "WRONG_PERSON"),
+        "es.reflexive.impersonal_se" to setOf("WRONG_FORM", "WRONG_PERSON"),
+        "es.imperative.affirmative" to setOf("WRONG_FORM", "WRONG_PERSON", "WRONG_REGISTER"),
+        "es.imperative.irregular" to setOf("WRONG_FORM", "WRONG_PERSON"),
+        "es.imperative.negative" to setOf("WRONG_FORM", "WRONG_PERSON"),
         // Japanese counters: the numeral is right in every distractor.
         "ja.counter_classifier" to setOf("WRONG_CLASSIFIER"),
         "ja.counter_people" to setOf("WRONG_CLASSIFIER"),
@@ -113,6 +129,16 @@ class CurriculumIntegrityTest {
         "ja.ability_polite" to setOf("WRONG_FORM", "WRONG_REGISTER", "WRONG_TENSE"),
         "ja.think" to setOf("WRONG_FORM", "WRONG_REGISTER", "WRONG_TENSE"),
         "ja.giving_receiving" to setOf("WRONG_FORM", "WRONG_TENSE", "WRONG_REGISTER"),
+        // Japanese units 13-14. As everywhere else in Japanese the error is a
+        // wrong form, not a wrong tense; only ます/ました and です/でした carry a
+        // tense at all. The causative adds a register to that, because the
+        // plain 読ませます against the polite 読ませました is a register choice.
+        "ja.passive_formation" to setOf("WRONG_FORM", "WRONG_TENSE"),
+        "ja.passive_particles" to setOf("WRONG_FORM", "WRONG_TENSE"),
+        "ja.passive_teiru" to setOf("WRONG_FORM", "WRONG_TENSE"),
+        "ja.causative_formation" to setOf("WRONG_FORM", "WRONG_TENSE", "WRONG_REGISTER"),
+        "ja.causative_teiru" to setOf("WRONG_FORM", "WRONG_TENSE"),
+        "ja.relative_clause" to setOf("WRONG_FORM", "WRONG_TENSE"),
     )
 
     @Test
@@ -688,7 +714,7 @@ class CurriculumIntegrityTest {
      */
     @Test
     fun `held-out items are reachable by a checkpoint and leave their lesson intact`() {
-        val checkpointUnits = (10..31).toSet() + setOf(40, 41)
+        val checkpointUnits = (10..33).toSet() + setOf(40, 41, 42, 43)
         val unitOfLesson = allPayloads
             .flatMap { payload -> payload.lessons.map { it.id to payload.unit.id } }
             .toMap()
@@ -722,7 +748,7 @@ class CurriculumIntegrityTest {
      * empty held-out pool does not fail loudly — it silently serves taught
      * items and the checkpoint stops testing anything unseen. The UI offers
      * A1/A2/B1 for Spanish and N5/N4 for Japanese, and those levels map to
-     * units 10-17, 18/19, 30/31 and 20-27, 28/29/40/41, so every one of those pools
+     * units 10-17, 18/19, 30-33 and 20-27, 28/29/40-43, so every one of those pools
      * has to be populated.
      */
     @Test

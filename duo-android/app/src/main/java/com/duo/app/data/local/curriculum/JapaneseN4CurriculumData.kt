@@ -7,11 +7,11 @@ import com.duo.app.data.local.entities.UnitEntity
 import com.duo.app.data.local.models.ChallengeType
 
 /**
- * Units 11-12 of the Japanese course, the N4 grammar the roadmap names and
+ * Units 11-14 of the Japanese course, the N4 grammar the roadmap names and
  * `B1CurriculumData.japaneseN4Units` (units 28-29) never reached.
  *
- * Where the shipped Japanese corpus stops at N5-complete plus N4-entry, these two
- * units add the three N4 core points that were missing outright:
+ * Where the shipped Japanese corpus stops at N5-complete plus N4-entry, these four
+ * units add the N4 core points that were missing outright:
  *
  *   - **the past** — the た-form and the ました ending, across godan and ichidan
  *     verbs, plus the ない-form negative. Without a past there is no tense to
@@ -38,9 +38,10 @@ import com.duo.app.data.local.models.ChallengeType
  * Both units are everyday, transactional and high-frequency, which is the register
  * the rest of the Japanese corpus already uses. Nothing literary is introduced.
  *
- * **Audio.** 46 distinct clips are wired from these units: 40 on a challenge
- * and 21 on the option that speaks the same text (fifteen clips do both). A SELECT
- * challenge and its correct option share a clip; a CONJUGATE speaks the target
+ * **Audio.** 89 distinct clips are wired from these units: 74 on a challenge and 57 on
+ * the option that speaks the same text (forty-two clips do both, so the two counts are
+ * not disjoint). Units 11-12 alone account for 46 of them, and units 13-14 for the other
+ * 43. A SELECT challenge and its correct option share a clip; a CONJUGATE speaks the target
  * form on the challenge alone, so the option grid never plays the answer. A
  * MATCH_PAIRS challenge gets no challenge clip — its prompt is the instruction
  * "Match the ...", not a sentence — so its clips hang off the paired options
@@ -73,13 +74,17 @@ import com.duo.app.data.local.models.ChallengeType
  * would be unanswerable by ear and is a writing exercise, not a listening one.
  *
  * Id layout inside this file, disjoint from every other curriculum file:
- *   - units `40`, `41`          (Spanish has taken 30-31)
- *   - lessons `400`-`405`
- *   - challenges `60000`-`60043` plus the `LISTEN` block `61000`-`61008`
+ *   - units `40`-`43`        (Spanish has taken 30-33)
+ *   - lessons `400`-`405` for units 40-41, `406`-`412` for units 42-43
+ *   - challenges `60000`-`60043` plus the `LISTEN` block `61000`-`61008` (units 40-41),
+ *     then `62000`-`62040` plus the `LISTEN` block `61100`-`61106` (units 42-43)
  *   - options `600001`-`600184` (600157 is not used; every id below it is taken)
- *     plus the `LISTEN` block `6100001`-`6100027`
+ *     plus the `LISTEN` block `6100001`-`6100027`, then options `6300001`-`6300803`
+ *     plus the `LISTEN` block `6310001`-`6310063`
  *
- * The six held-out items are 60006, 60014, 60021, 60028, 60036 and 60043. They are
+ * The six held-out items are 60006, 60014, 60021, 60028, 60036 and 60043, all in
+ * units 40-41. Units 42-43 hold nothing out: the N4 pool is fixed at 10 and a held-out
+ * item in unit 42 would be selected by no checkpoint. They are
  * seeded like everything else and carry `heldOut = true`, so the lesson path skips
  * them and a checkpoint is the only thing that reaches them. No `LISTEN` item is
  * held out: the held-out pool exists to withhold a *taught form*, and a
@@ -88,7 +93,7 @@ import com.duo.app.data.local.models.ChallengeType
 object JapaneseN4CurriculumData {
 
     // =========================================================================
-    // JAPANESE JLPT N4 (Units 11 - 12)
+    // JAPANESE JLPT N4 (Units 11 - 14)
     // =========================================================================
     val japaneseN4ExtensionUnits: List<UnitPayload> = listOf(
         // Unit 11: Past Tense, Register & Adjectives
@@ -823,6 +828,647 @@ object JapaneseN4CurriculumData {
                 ChallengeOptionEntity(id = 6100025, challengeId = 61008, text = "友達が本をくれました", romaji = "tomodachi ga hon o kuremashita", correct = true),
                 ChallengeOptionEntity(id = 6100026, challengeId = 61008, text = "友達が本をあげました", romaji = "tomodachi ga hon o agemashita", correct = false, errorTag = "WRONG_FORM"),
                 ChallengeOptionEntity(id = 6100027, challengeId = 61008, text = "友達が本をくれませんでした", romaji = "tomodachi ga hon o kuremashimasen deshita", correct = false, errorTag = "WRONG_TENSE"),
+            ),
+        ),
+        // =====================================================================
+        // Units 13-14: the three grammar areas the roadmap said the Japanese
+        // corpus never reached — 受身, 使役 and 修飾節.
+        //
+        // Id layout for this appended block, disjoint from units 11-12 above
+        // and from every other curriculum file:
+        //   - units `42`, `43`
+        //   - lessons `406`-`412`
+        //   - challenges `62000`-`62040` plus the `LISTEN` block `61100`-`61106`
+        //   - options `6300001`-`6300803` plus the `LISTEN` block `6310001`-`6310063`
+        //
+        // **Honesty about what the passive can do.** 受身 is built on 他動詞 —
+        // verbs that take a を-object, because the object is the thing that gets
+        // acted on. 行く, 来る, 寝る and the rest are 自動詞 and have no
+        // ordinary passive; the corpus says so in 62010's and 62012's rule
+        // texts rather than quietly implying every verb can take one. The few
+        // 自動詞 that do (存在する, 生きる) are outside this unit and are not
+        // claimed.
+        //
+        // **られる is three words.** 書かれる is the passive, 書ける is the
+        // potential, and られる also means 得る ('can get'). Lesson 26 and
+        // lesson 27 both turn on that collision, and 62000, 62001, 62006 and
+        // 62025 each pit two of them against each other so the learner meets
+        // the ambiguity instead of being told to memorise an ending.
+        //
+        // **させる is not られる.** The causative adds せ to the stem (読ませる,
+        // 食べさせる) while the passive adds れ (読まれる, 食べられる); 62014
+        // and 62029 are MATCH_PAIRS built on exactly that one-mora difference.
+        // する → させる and 来る → 来させる are the two irregulars, and 62024
+        // and 62025 name them.
+        //
+        // **A は cannot head a relative clause.** の is what binds a clause to
+        // the noun it modifies (62031-62040), and 62039's rule text says so
+        // explicitly because 読みやすいのは日本語の本 is the mistake learners
+        // actually make. When the clause's subject is also the sentence topic
+        // it takes が (日本語が話せる人), which 62037's rule text covers.
+        //
+        // **Audio.** 43 new clips, all wired and all referenced: 34 on a
+        // challenge and 39 on the option that speaks the same text. Every
+        // `LISTEN` challenge carries a clip and none of its options does, the
+        // way `ExerciseScreen` needs, and no `WRONG_*` distractor anywhere in
+        // this block carries a clip.
+        //
+        // **Nothing in this block is unanswerable by ear.** The one real risk
+        // is られる: 書かれる and 書ける, and 読まれる and 読める, sit one mora
+        // apart, so no LISTEN item in this block is built on that pair — 62000,
+        // 62001, 62006 and 62025 are SELECT/CONJUGATE read as text, and their
+        // clips are deliberately on the correct half only. Each LISTEN's
+        // contrast was checked in the IPA the acoustic model is handed:
+        // tsukɯɾaɾe masɨ against tsukɯɾimasɨ, hanaseɾɯ against hanashiteimasɨ,
+        // saɾeteimasɨ against sase te imasɨ, iɾɯ against ita.
+        //
+        // No item here is held out: the held-out pool is fixed at A2 4, B1 8,
+        // N4 10 and the checkpoints are scoped to units 10-31 plus 40 and 41,
+        // so a held-out item in unit 42 would be reachable by nothing.
+        UnitPayload(
+            unit = UnitEntity(
+                id = 42,
+                courseId = 2,
+                title = "Unit 13: The Passive (受身)",
+                description = "Say who did it to what: the される・られる forms, the agent particle に, and 受け身 + ている",
+                orderIndex = 12,
+            ),
+            lessons = listOf(
+                LessonEntity(id = 406, unitId = 42, title = "Lesson 26: Passive Forms", orderIndex = 0),
+                LessonEntity(id = 407, unitId = 42, title = "Lesson 27: Who Did It", orderIndex = 1),
+                LessonEntity(id = 408, unitId = 42, title = "Lesson 28: Right Now", orderIndex = 2),
+            ),
+            challenges = listOf(
+                // --- Lesson 26: Passive Forms (られる) --------------------------
+                ChallengeEntity(
+                    id = 62000, lessonId = 406, type = ChallengeType.SELECT,
+                    question = "How do you say 'It is read (by people)' in the plain passive?",
+                    audioSrc = "asset:///audio/ja/g_passive_yomareru.ogg",
+                    orderIndex = 0,
+                    grammaticalFocus = "ja.passive_formation",
+                    ruleText = "A godan verb makes the plain passive by changing its final う to れる: 読む → 読まれる.\n読める is the potential, 'can be read', and 読みます is the polite present of the active verb — neither puts られる on the stem the way 受身 does.",
+                ),
+                ChallengeEntity(
+                    id = 62001, lessonId = 406, type = ChallengeType.CONJUGATE,
+                    question = "Which plain passive form of 書く means 'is written'?",
+                    audioSrc = "asset:///audio/ja/g_passive_kakareru.ogg",
+                    orderIndex = 1,
+                    grammaticalFocus = "ja.passive_formation",
+                    ruleText = "The passive drops the う and adds れる: 書く → 書かれる. 書ける keeps the け of ける and is the potential, 'can write'.\n書かせられる has the causative せ inside られる and means 'is made to be written'. Only 書かれる is the passive of 書く.",
+                ),
+                ChallengeEntity(
+                    id = 62002, lessonId = 406, type = ChallengeType.FILL_BLANK,
+                    question = "きのう、レポートを___。",
+                    audioSrc = "asset:///audio/ja/g_passive_ripoto_o_dasare.ogg",
+                    orderIndex = 2,
+                    grammaticalFocus = "ja.passive_formation",
+                    acceptedAnswers = "出されました|だされました",
+                    ruleText = "The polite passive past is 出されました: 出す → 出します → 出されます, and レポート keeps を because it is the thing that gets handed in.\n出します is the active polite present, so the report does the handing. 出されませんでした is the polite past negative, so the report was never handed in at all.",
+                ),
+                ChallengeEntity(
+                    id = 62003, lessonId = 406, type = ChallengeType.WORD_BANK,
+                    question = "Assemble: 'The room is cleaned every day'",
+                    orderIndex = 3,
+                    grammaticalFocus = "ja.passive_formation",
+                    ruleText = "In the passive the thing acted on becomes the topic and the one doing it takes に: 部屋は毎日掃除されます.\n部屋は毎日掃除します makes the room the one doing the cleaning, and 毎日部屋を掃除されます leaves を on a verb that can no longer take an object, because the object slot is what moved to the topic.",
+                ),
+                ChallengeEntity(
+                    id = 62004, lessonId = 406, type = ChallengeType.MATCH_PAIRS,
+                    question = "Match the active verb with its passive",
+                    orderIndex = 4,
+                ),
+
+                // --- Lesson 27: Who Did It (に, and the acted-on thing) ---------
+                ChallengeEntity(
+                    id = 62005, lessonId = 407, type = ChallengeType.SELECT,
+                    question = "How do you say 'He was scolded by his mother'?",
+                    audioSrc = "asset:///audio/ja/g_passive_haha_ni_shikarareta.ogg",
+                    orderIndex = 0,
+                    grammaticalFocus = "ja.passive_particles",
+                    ruleText = "The agent of a passive takes に, never を: 母に叱られました.\n母を叱られました keeps を, the particle an object takes while it is being acted on — but the mother is doing the scolding, not receiving it. 母が叱られました makes the mother the one who got scolded, which is the opposite story.",
+                ),
+                ChallengeEntity(
+                    id = 62006, lessonId = 407, type = ChallengeType.CONJUGATE,
+                    question = "Which plain passive form of 見る means 'is seen'?",
+                    audioSrc = "asset:///audio/ja/g_passive_mirerareru.ogg",
+                    orderIndex = 1,
+                    grammaticalFocus = "ja.passive_particles",
+                    ruleText = "見る is an ichidan verb, so the passive drops る and adds られる: 見られる.\n見える is the potential, 'can be seen' — られ- is the れる that makes the passive, not the け of ける. 見せる is the causative, 'shows', and carries a せ the passive never has.",
+                ),
+                ChallengeEntity(
+                    id = 62007, lessonId = 407, type = ChallengeType.FILL_BLANK,
+                    question = "きのう、せんせいに___。",
+                    audioSrc = "asset:///audio/ja/g_passive_sensei_ni_homerareta.ogg",
+                    orderIndex = 2,
+                    grammaticalFocus = "ja.passive_particles",
+                    acceptedAnswers = "褒められました|ほめられました",
+                    ruleText = "ほめる is an ichidan verb, so the polite passive past is 褒められました: ほめます → ほめられます, and せんせい takes に because the teacher is the one doing the praising.\nほめました is the plain active past, so the teacher praised and nobody was praised. ほめられません is the polite present, so the praising is still going on.",
+                ),
+                ChallengeEntity(
+                    id = 62008, lessonId = 407, type = ChallengeType.SELECT,
+                    question = "How do you say 'The plan hasn't been approved'?",
+                    audioSrc = "asset:///audio/ja/g_passive_keikaku_shounin.ogg",
+                    orderIndex = 3,
+                    grammaticalFocus = "ja.passive_particles",
+                    ruleText = "The polite passive negative is この計画は承認されていません: 承認する → 承認します → 承認されていません.\nこの計画は承認していません is the active negative, which has the plan doing the approving — not a thing plans do. この計画は承認しませんでした is the polite past negative, so it answers a question about last week.",
+                ),
+                ChallengeEntity(
+                    id = 62009, lessonId = 407, type = ChallengeType.SELECT,
+                    question = "How do you say 'The match was cancelled because of the rain'?",
+                    audioSrc = "asset:///audio/ja/g_passive_ame_de_chuushi.ogg",
+                    orderIndex = 4,
+                    grammaticalFocus = "ja.passive_particles",
+                    ruleText = "When something outside the agent brings it about, Japanese puts that something in front: 雨で試合は中止されました.\n雨が試合を中止しました makes the rain the one doing the cancelling, and 雨で試合は中止されません is the polite present, so the match is not being cancelled at all.",
+                ),
+                ChallengeEntity(
+                    id = 61100, lessonId = 407, type = ChallengeType.LISTEN,
+                    question = "Tap what you hear",
+                    audioSrc = "asset:///audio/ja/g_passive_kuruma_koujou.ogg",
+                    orderIndex = 5,
+                    grammaticalFocus = "ja.passive_particles",
+                    ruleText = "車は工場で作られます is the polite passive present: 作る → 作ります → 作られます, and 車 is the thing being made, so it is the topic.\n車は工場で作ります has the factory building the cars, and 車は工場で作られませんでした is the polite past negative, the opposite of what the clip says.",
+                ),
+                ChallengeEntity(
+                    id = 61101, lessonId = 407, type = ChallengeType.LISTEN,
+                    question = "Tap what you hear",
+                    audioSrc = "asset:///audio/ja/g_passive_hon_yomareteimasu.ogg",
+                    orderIndex = 6,
+                    grammaticalFocus = "ja.passive_particles",
+                    ruleText = "あの本はとてもよく読まれています is the polite passive: 読まれる + ています, 'is being read', and あの本 is the book being read rather than the reader.\nあの本はとてもよく読みます has the book doing the reading, and あの本はとてもよく読まれませんでした is the polite past negative, so nobody read it at all.",
+                ),
+
+                // --- Lesson 28: Right Now (受け身 + ている) and its limits -----
+                ChallengeEntity(
+                    id = 62010, lessonId = 408, type = ChallengeType.SELECT,
+                    question = "How do you say 'This river is being polluted'?",
+                    audioSrc = "asset:///audio/ja/g_passive_kawa_kogyou.ogg",
+                    orderIndex = 0,
+                    grammaticalFocus = "ja.passive_teiru",
+                    ruleText = "受け身 + ている says the state is on-going right now, so この川は汚染されています comes from 汚染します → 汚染されます → 汚染されています.\nこの川は汚染しています has the river polluting, and この川は汚染されませんでした is the polite past negative, so the pollution is over rather than current.",
+                ),
+                ChallengeEntity(
+                    id = 62011, lessonId = 408, type = ChallengeType.WORD_BANK,
+                    question = "Assemble: 'That shop is closed at the moment'",
+                    orderIndex = 1,
+                    grammaticalFocus = "ja.passive_teiru",
+                    ruleText = "The passive progressive is the polite passive plus ています, so その店は今閉められています comes from 閉めます → 閉められます → 閉められています.\nその店は今閉めています has the shop doing the shutting, and その店は店主が閉めています makes the owner the topic and the shop the thing shut — the other way round.",
+                ),
+                ChallengeEntity(
+                    id = 62012, lessonId = 408, type = ChallengeType.CONJUGATE,
+                    question = "Which plain passive progressive of 使う means 'is being used'?",
+                    audioSrc = "asset:///audio/ja/g_passive_tsukawareteiru.ogg",
+                    orderIndex = 2,
+                    grammaticalFocus = "ja.passive_teiru",
+                    ruleText = "The progressive on a passive is られる + ている: 使う → 使われる → 使われている.\n使っている is built on the て-form, which is the connective shape and never heads a passive. 使わせられている is the causative passive, 'is being made to be used', and the extra せ is the tell.",
+                ),
+                ChallengeEntity(
+                    id = 62013, lessonId = 408, type = ChallengeType.FILL_BLANK,
+                    question = "この道路は現在___。",
+                    audioSrc = "asset:///audio/ja/g_passive_douro_seibi.ogg",
+                    orderIndex = 3,
+                    grammaticalFocus = "ja.passive_teiru",
+                    acceptedAnswers = "整備されています|せいびされています",
+                    ruleText = "The polite passive progressive of 整備する is 整備されています: 整備します → 整備されます → 整備されています.\n整っています is the progressive of the plain verb 整う, 'is tidy', which is a different word. 整備されていません is the polite negative, so the road is being neglected.",
+                ),
+                ChallengeEntity(
+                    id = 62014, lessonId = 408, type = ChallengeType.MATCH_PAIRS,
+                    question = "Match the passive with the causative of the same verb",
+                    orderIndex = 4,
+                ),
+                ChallengeEntity(
+                    id = 61102, lessonId = 408, type = ChallengeType.LISTEN,
+                    question = "Tap what you hear",
+                    audioSrc = "asset:///audio/ja/g_passive_mise_sooji.ogg",
+                    orderIndex = 5,
+                    grammaticalFocus = "ja.passive_teiru",
+                    ruleText = "この店は毎日掃除されています is the polite passive progressive: 掃除します → 掃除されます → 掃除されています.\nこの店は毎日掃除します has the shop doing the sweeping, and この店は毎日掃除されます is the polite passive with no ています, so it does not say the state is on-going.",
+                ),
+            ),
+            options = listOf(
+                ChallengeOptionEntity(id = 6300001, challengeId = 62000, text = "読まれる", romaji = "yomareru", correct = true, audioSrc = "asset:///audio/ja/g_passive_yomareru.ogg"),
+                ChallengeOptionEntity(id = 6300002, challengeId = 62000, text = "読める", romaji = "yomeru", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 6300003, challengeId = 62000, text = "読みます", romaji = "yomimasu", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 6300021, challengeId = 62001, text = "書かれる", romaji = "kakareru", correct = true, audioSrc = "asset:///audio/ja/g_passive_kakareru.ogg"),
+                ChallengeOptionEntity(id = 6300022, challengeId = 62001, text = "書ける", romaji = "kakeru", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 6300023, challengeId = 62001, text = "書かせられる", romaji = "kakaserareru", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 6300041, challengeId = 62002, text = "出されました", romaji = "dasaremashita", correct = true, audioSrc = "asset:///audio/ja/g_passive_ripoto_o_dasare.ogg"),
+                ChallengeOptionEntity(id = 6300042, challengeId = 62002, text = "出します", romaji = "dashimasu", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 6300043, challengeId = 62002, text = "出されませんでした", romaji = "dasaremasen deshita", correct = false, errorTag = "WRONG_TENSE"),
+
+                ChallengeOptionEntity(id = 6300061, challengeId = 62003, text = "部屋は毎日掃除されます", romaji = "heya wa mainichi souji saremasu", correct = true),
+                ChallengeOptionEntity(id = 6300062, challengeId = 62003, text = "部屋は毎日掃除します", romaji = "heya wa mainichi souji shimasu", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 6300063, challengeId = 62003, text = "毎日部屋を掃除されます", romaji = "mainichi heya o souji saremasu", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 6300081, challengeId = 62004, text = "読む", romaji = "yomu", correct = true),
+                ChallengeOptionEntity(id = 6300082, challengeId = 62004, text = "読まれる", romaji = "yomareru", correct = true, audioSrc = "asset:///audio/ja/g_passive_yomareru.ogg"),
+                ChallengeOptionEntity(id = 6300083, challengeId = 62004, text = "使う", romaji = "tsukau", correct = true),
+                ChallengeOptionEntity(id = 6300084, challengeId = 62004, text = "使われる", romaji = "tsukawareru", correct = true, audioSrc = "asset:///audio/ja/g_passive_tsukawareru.ogg"),
+                ChallengeOptionEntity(id = 6300085, challengeId = 62004, text = "見る", romaji = "miru", correct = true),
+                ChallengeOptionEntity(id = 6300086, challengeId = 62004, text = "見られる", romaji = "mirerareru", correct = true, audioSrc = "asset:///audio/ja/g_passive_mirerareru.ogg"),
+                ChallengeOptionEntity(id = 6300087, challengeId = 62004, text = "話す", romaji = "hanasu", correct = true),
+                ChallengeOptionEntity(id = 6300088, challengeId = 62004, text = "話される", romaji = "hanasareru", correct = true, audioSrc = "asset:///audio/ja/g_passive_hanasareru.ogg"),
+                ChallengeOptionEntity(id = 6300089, challengeId = 62004, text = "食べる", romaji = "taberu", correct = true),
+                ChallengeOptionEntity(id = 6300090, challengeId = 62004, text = "食べられる", romaji = "taberareru", correct = true, audioSrc = "asset:///audio/ja/g_passive_taberareta.ogg"),
+                ChallengeOptionEntity(id = 6300091, challengeId = 62004, text = "書く", romaji = "kaku", correct = true),
+                ChallengeOptionEntity(id = 6300092, challengeId = 62004, text = "書かれる", romaji = "kakareru", correct = true, audioSrc = "asset:///audio/ja/g_passive_kakareru.ogg"),
+
+                ChallengeOptionEntity(id = 6300101, challengeId = 62005, text = "母に叱られました", romaji = "haha ni shikararemashita", correct = true, audioSrc = "asset:///audio/ja/g_passive_haha_ni_shikarareta.ogg"),
+                ChallengeOptionEntity(id = 6300102, challengeId = 62005, text = "母を叱られました", romaji = "haha o shikararemashita", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 6300103, challengeId = 62005, text = "母が叱られました", romaji = "haha ga shikararemashita", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 6300121, challengeId = 62006, text = "見られる", romaji = "mirerareru", correct = true, audioSrc = "asset:///audio/ja/g_passive_mirerareru.ogg"),
+                ChallengeOptionEntity(id = 6300122, challengeId = 62006, text = "見える", romaji = "mieru", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 6300123, challengeId = 62006, text = "見せる", romaji = "miseru", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 6300141, challengeId = 62007, text = "褒められました", romaji = "homeraremashita", correct = true, audioSrc = "asset:///audio/ja/g_passive_sensei_ni_homerareta.ogg"),
+                ChallengeOptionEntity(id = 6300142, challengeId = 62007, text = "ほめました", romaji = "homemashita", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 6300143, challengeId = 62007, text = "ほめられません", romaji = "homeraremasen", correct = false, errorTag = "WRONG_TENSE"),
+
+                ChallengeOptionEntity(id = 6300161, challengeId = 62008, text = "この計画は承認されていません", romaji = "kono keikaku wa shounin sareteimasen", correct = true, audioSrc = "asset:///audio/ja/g_passive_keikaku_shounin.ogg"),
+                ChallengeOptionEntity(id = 6300162, challengeId = 62008, text = "この計画は承認していません", romaji = "kono keikaku wa shounin shiteimasen", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 6300163, challengeId = 62008, text = "この計画は承認しませんでした", romaji = "kono keikaku wa shounin shimasen deshita", correct = false, errorTag = "WRONG_TENSE"),
+
+                ChallengeOptionEntity(id = 6300181, challengeId = 62009, text = "雨で試合は中止されました", romaji = "ame de shiai wa chuushi sare mashita", correct = true, audioSrc = "asset:///audio/ja/g_passive_ame_de_chuushi.ogg"),
+                ChallengeOptionEntity(id = 6300182, challengeId = 62009, text = "雨が試合を中止しました", romaji = "ame ga shiai o chuushi shimashita", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 6300183, challengeId = 62009, text = "雨で試合は中止されません", romaji = "ame de shiai wa chuushi saremasen", correct = false, errorTag = "WRONG_TENSE"),
+
+                ChallengeOptionEntity(id = 6310001, challengeId = 61100, text = "車は工場で作られます", romaji = "kuruma wa koujou de tsukureraremasu", correct = true),
+                ChallengeOptionEntity(id = 6310002, challengeId = 61100, text = "車は工場で作ります", romaji = "kuruma wa koujou de tsukurimasu", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 6310003, challengeId = 61100, text = "車は工場で作られませんでした", romaji = "kuruma wa koujou de tsukureraremasen deshita", correct = false, errorTag = "WRONG_TENSE"),
+
+                ChallengeOptionEntity(id = 6300201, challengeId = 62010, text = "この川は汚染されています", romaji = "kono kawa wa osen sareteimasu", correct = true, audioSrc = "asset:///audio/ja/g_passive_kawa_kogyou.ogg"),
+                ChallengeOptionEntity(id = 6300202, challengeId = 62010, text = "この川は汚染しています", romaji = "kono kawa wa osen shiteimasu", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 6300203, challengeId = 62010, text = "この川は汚染されませんでした", romaji = "kono kawa wa osen saremasen deshita", correct = false, errorTag = "WRONG_TENSE"),
+
+                ChallengeOptionEntity(id = 6300221, challengeId = 62011, text = "その店は今閉められています", romaji = "sono mise wa ima shimareteimasu", correct = true),
+                ChallengeOptionEntity(id = 6300222, challengeId = 62011, text = "その店は今閉めています", romaji = "sono mise wa ima shimemasu", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 6300223, challengeId = 62011, text = "その店は店主が閉めています", romaji = "sono mise wa tenchu ga shimemasu", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 6300241, challengeId = 62012, text = "使われている", romaji = "tsukawareteiru", correct = true, audioSrc = "asset:///audio/ja/g_passive_tsukawareteiru.ogg"),
+                ChallengeOptionEntity(id = 6300242, challengeId = 62012, text = "使っている", romaji = "tsukatteiru", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 6300243, challengeId = 62012, text = "使わせられている", romaji = "tsukawasareteiru", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 6300261, challengeId = 62013, text = "整備されています", romaji = "seibi sareteimasu", correct = true, audioSrc = "asset:///audio/ja/g_passive_douro_seibi.ogg"),
+                ChallengeOptionEntity(id = 6300262, challengeId = 62013, text = "整っています", romaji = "tootteimasu", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 6300263, challengeId = 62013, text = "整備されていません", romaji = "seibi sareteimasen", correct = false, errorTag = "WRONG_TENSE"),
+
+                ChallengeOptionEntity(id = 6300281, challengeId = 62014, text = "読まれる", romaji = "yomareru", correct = true),
+                ChallengeOptionEntity(id = 6300282, challengeId = 62014, text = "is read", correct = true),
+                ChallengeOptionEntity(id = 6300283, challengeId = 62014, text = "読ませる", romaji = "yomaseru", correct = true),
+                ChallengeOptionEntity(id = 6300284, challengeId = 62014, text = "makes read", correct = true),
+                ChallengeOptionEntity(id = 6300285, challengeId = 62014, text = "見られる", romaji = "mirerareru", correct = true),
+                ChallengeOptionEntity(id = 6300286, challengeId = 62014, text = "is seen", correct = true),
+                ChallengeOptionEntity(id = 6300287, challengeId = 62014, text = "見せる", romaji = "miseru", correct = true),
+                ChallengeOptionEntity(id = 6300288, challengeId = 62014, text = "shows", correct = true),
+                ChallengeOptionEntity(id = 6300289, challengeId = 62014, text = "書かれる", romaji = "kakareru", correct = true),
+                ChallengeOptionEntity(id = 6300290, challengeId = 62014, text = "is written", correct = true),
+                ChallengeOptionEntity(id = 6300291, challengeId = 62014, text = "書かせる", romaji = "kakaseru", correct = true),
+                ChallengeOptionEntity(id = 6300292, challengeId = 62014, text = "makes write", correct = true),
+                ChallengeOptionEntity(id = 6300293, challengeId = 62014, text = "食べられる", romaji = "taberareru", correct = true),
+                ChallengeOptionEntity(id = 6300294, challengeId = 62014, text = "is eaten", correct = true),
+                ChallengeOptionEntity(id = 6300295, challengeId = 62014, text = "食べさせる", romaji = "tabesaseru", correct = true),
+                ChallengeOptionEntity(id = 6300296, challengeId = 62014, text = "makes eat", correct = true),
+
+                ChallengeOptionEntity(id = 6310011, challengeId = 61101, text = "あの本はとてもよく読まれています", romaji = "ano hon wa totemo yoku yomareteimasu", correct = true),
+
+                ChallengeOptionEntity(id = 6310012, challengeId = 61101, text = "あの本はとてもよく読みます", romaji = "ano hon wa totemo yoku yomimasu", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 6310013, challengeId = 61101, text = "あの本はとてもよく読まれませんでした", romaji = "ano hon wa totemo yoku yomaremasen deshita", correct = false, errorTag = "WRONG_TENSE"),
+
+                ChallengeOptionEntity(id = 6310021, challengeId = 61102, text = "この店は毎日掃除されています", romaji = "kono mise wa mainichi souji sareteimasu", correct = true),
+                ChallengeOptionEntity(id = 6310022, challengeId = 61102, text = "この店は毎日掃除します", romaji = "kono mise wa mainichi souji shimasu", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 6310023, challengeId = 61102, text = "この店は毎日掃除されます", romaji = "kono mise wa mainichi souji saremasu", correct = false, errorTag = "WRONG_FORM"),
+            ),
+        ),
+        UnitPayload(
+            unit = UnitEntity(
+                id = 43,
+                courseId = 2,
+                title = "Unit 14: The Causative (使役) and Relative Clauses (修飾節)",
+                description = "Make someone do it: 〜させる, the する and 来る irregulars, させる + ている — then the clause that modifies a noun: 〜た人, 〜ている人, 〜ない人, and the plain form + の",
+                orderIndex = 13,
+            ),
+            lessons = listOf(
+                LessonEntity(id = 409, unitId = 43, title = "Lesson 29: Making Someone Do", orderIndex = 0),
+                LessonEntity(id = 410, unitId = 43, title = "Lesson 30: Being Made To Do It", orderIndex = 1),
+                LessonEntity(id = 411, unitId = 43, title = "Lesson 31: The Noun With a Story", orderIndex = 2),
+                LessonEntity(id = 412, unitId = 43, title = "Lesson 32: Who's In The Clause", orderIndex = 3),
+            ),
+            challenges = listOf(
+                // --- Lesson 29: Making Someone Do (使役) ------------------------
+                ChallengeEntity(
+                    id = 62020, lessonId = 409, type = ChallengeType.SELECT,
+                    question = "How do you say 'I'll make him eat' in the plain causative?",
+                    audioSrc = "asset:///audio/ja/g_causative_tabesaseru.ogg",
+                    orderIndex = 0,
+                    grammaticalFocus = "ja.causative_formation",
+                    ruleText = "The causative adds させる to an ichidan verb's stem: 食べる → 食べさせる, and the thing named by を is the one being made to act.\n食べさせられる carries a ら as well as the せ, which is the passive of 食べさせる. 食べられました is the polite past of the plain passive and never gets anybody to do anything.",
+                ),
+                ChallengeEntity(
+                    id = 62021, lessonId = 409, type = ChallengeType.CONJUGATE,
+                    question = "Which plain causative form of 読む means 'makes (someone) read'?",
+                    audioSrc = "asset:///audio/ja/g_causative_yomaseru.ogg",
+                    orderIndex = 1,
+                    grammaticalFocus = "ja.causative_formation",
+                    ruleText = "A godan verb makes the causative by changing its final う to せる: 読む → 読ませる.\n読まれる is the passive, 'is read' — せる and れる differ in one mora. 読ませます is the polite form of the very same causative, so it is the right meaning in the wrong register.",
+                ),
+                ChallengeEntity(
+                    id = 62022, lessonId = 409, type = ChallengeType.FILL_BLANK,
+                    question = "母が野菜を___。",
+                    audioSrc = "asset:///audio/ja/g_causative_tabesasemashita.ogg",
+                    orderIndex = 2,
+                    grammaticalFocus = "ja.causative_formation",
+                    acceptedAnswers = "食べさせました|たべさせました",
+                    ruleText = "The polite causative past is させました on the causative stem: 食べさせます → 食べさせました, and 母が is the one making it happen.\n食べられました is the polite past *passive*, so the vegetable is the one being made to eat. 食べました is the ordinary polite past of 食べる, so the mother ate the vegetables herself.",
+                ),
+                ChallengeEntity(
+                    id = 62023, lessonId = 409, type = ChallengeType.WORD_BANK,
+                    question = "Assemble: 'The coach makes the team run every morning'",
+                    orderIndex = 3,
+                    grammaticalFocus = "ja.causative_formation",
+                    ruleText = "走る is a godan verb, so its causative is 走らせる: コーチは毎朝チームを走らせます, and チームを is the one being made to run.\nコーチは毎朝チームが走ります leaves the team running on its own, and コーチは毎朝チームの走らせます leaves を on a verb that has become its own action — once a verb turns causative, what it used to act on moves into に.",
+                ),
+                ChallengeEntity(
+                    id = 62024, lessonId = 409, type = ChallengeType.SELECT,
+                    question = "Which plain causative of する means 'makes (someone) do'?",
+                    audioSrc = "asset:///audio/ja/g_causative_saseru.ogg",
+                    orderIndex = 4,
+                    grammaticalFocus = "ja.causative_formation",
+                    ruleText = "する is irregular here: the causative is させる, not するせる — 勉強する → 勉強させる, and nothing is inserted between.\nせられる is the old honorific causative, kept in a handful of set phrases, and される is the plain passive of する. Only させる is the plain causative stem a learner builds on.",
+                ),
+                ChallengeEntity(
+                    id = 62025, lessonId = 409, type = ChallengeType.SELECT,
+                    question = "Which plain causative of 来る means 'makes (someone) come'?",
+                    audioSrc = "asset:///audio/ja/g_causative_kuramaseru.ogg",
+                    orderIndex = 5,
+                    grammaticalFocus = "ja.causative_formation",
+                    ruleText = "来る is irregular too, and its causative is 来させる: 友達が来させる. The stem keeps its 来 and takes させる, with nothing inserted.\n来られる is the potential, 'can come', which is the whole reason the two get confused. 来かせました puts a せ in a place させる never puts one, because させる already carries it.",
+                ),
+                ChallengeEntity(
+                    id = 61103, lessonId = 409, type = ChallengeType.LISTEN,
+                    question = "Tap what you hear",
+                    audioSrc = "asset:///audio/ja/g_causative_shizuka_sasemashita.ogg",
+                    orderIndex = 6,
+                    grammaticalFocus = "ja.causative_formation",
+                    ruleText = "先生は生徒に静かにさせました is the polite causative past: させる → させます → させました, with 生徒に marking the one being made to be quiet.\n先生は生徒に静かにされました has the students quieting the teacher, so the roles are reversed. 先生は生徒に静かにさせません is the polite present, so he never makes them be quiet at all.",
+                ),
+
+                // --- Lesson 30: Being Made To Do It (使役 + ている) --------------
+                ChallengeEntity(
+                    id = 62026, lessonId = 410, type = ChallengeType.SELECT,
+                    question = "How do you say 'My mother is making me eat vegetables' (right now)?",
+                    audioSrc = "asset:///audio/ja/g_causative_tabesaseteimasu.ogg",
+                    orderIndex = 0,
+                    grammaticalFocus = "ja.causative_teiru",
+                    ruleText = "The causative has a progressive just as the passive does, so 母は私に野菜を食べさせています comes from 食べさせます → 食べさせています, and 私に is the one being made to eat.\n母は私に野菜を食べさせられています is the passive of the causative and reverses the roles. 母は私に野菜を食べさせませんでした is the polite past negative, so she is not doing it.",
+                ),
+                ChallengeEntity(
+                    id = 62027, lessonId = 410, type = ChallengeType.CONJUGATE,
+                    question = "Which plain causative progressive of 食べる means 'is making (someone) eat'?",
+                    audioSrc = "asset:///audio/ja/g_causative_tabesaserteiru.ogg",
+                    orderIndex = 1,
+                    grammaticalFocus = "ja.causative_teiru",
+                    ruleText = "The progressive on a causative is させる + ている: 食べる → 食べさせる → 食べさせている. The せ stays where it is and ている goes on the end.\n食べられている is the progressive of the plain passive 食べられる, so the eater is being fed rather than made to eat. 食べさせられました is the polite past, so the making is over.",
+                ),
+                ChallengeEntity(
+                    id = 62028, lessonId = 410, type = ChallengeType.FILL_BLANK,
+                    question = "先生が生徒に宿題を___。",
+                    audioSrc = "asset:///audio/ja/g_causative_shukudai_dasemashita.ogg",
+                    orderIndex = 2,
+                    grammaticalFocus = "ja.causative_teiru",
+                    acceptedAnswers = "出させました|ださせました",
+                    ruleText = "出す is a godan verb, so its causative is 出させる and the polite past is 出させました: 先生が生徒に宿題を出させました, with 生徒に marking the one being made to do it.\n出します is the plain polite form and leaves the students handing in their own homework. 出されませんでした is the polite past *negative* of the passive, so it says the homework was not handed in.",
+                ),
+                ChallengeEntity(
+                    id = 62029, lessonId = 410, type = ChallengeType.MATCH_PAIRS,
+                    question = "Match the passive with the causative of the same verb",
+                    orderIndex = 3,
+                ),
+                ChallengeEntity(
+                    id = 62030, lessonId = 410, type = ChallengeType.SELECT,
+                    question = "How do you say 'My father made me clean the room'?",
+                    audioSrc = "asset:///audio/ja/g_causative_chichi_souji.ogg",
+                    orderIndex = 4,
+                    grammaticalFocus = "ja.causative_teiru",
+                    ruleText = "父に部屋を掃除させました puts 父に in the slot of the one doing the making and 部屋を in the slot of the one made to clean: 父 + に + 部屋 + を + 掃除させました.\n父に部屋を掃除されます turns the causative back into a passive — 'the room is cleaned by my father' — with nobody doing it to anybody. 父に部屋を掃除します is the plain polite, so the father is doing the cleaning himself.",
+                ),
+                ChallengeEntity(
+                    id = 61104, lessonId = 410, type = ChallengeType.LISTEN,
+                    question = "Tap what you hear",
+                    audioSrc = "asset:///audio/ja/g_causative_gyunyu_nomaseru.ogg",
+                    orderIndex = 5,
+                    grammaticalFocus = "ja.causative_teiru",
+                    ruleText = "母が私に牛乳を飲ませています is the causative progressive of 飲む: 飲ませます → 飲ませています, and 私に is the one being made to drink.\n母が私に牛乳を飲ませられています is the passive of the causative. 母が私に牛乳を飲ませました is the polite past, so the making is over rather than going on.",
+                ),
+
+                // --- Lesson 31: The Noun With a Story (修飾節) ------------------
+                ChallengeEntity(
+                    id = 62031, lessonId = 411, type = ChallengeType.SELECT,
+                    question = "Which one means 'students who study Japanese'?",
+                    audioSrc = "asset:///audio/ja/g_rel_benkyousuru_gakusei.ogg",
+                    orderIndex = 0,
+                    grammaticalFocus = "ja.relative_clause",
+                    ruleText = "A relative clause is a verb in the plain form with の standing where the noun goes, so 日本語を勉強する学生 is 日本語を勉強する + 学生. の is what turns the clause into a noun.\n日本語を勉強した学生 is the た-form and points at students who have finished. 日本語を勉強しています学生 is a ます form, which a clause in front of a noun never takes.",
+                ),
+                ChallengeEntity(
+                    id = 62032, lessonId = 411, type = ChallengeType.CONJUGATE,
+                    question = "Which plain relative clause means 'the friend who went to Kyoto'?",
+                    audioSrc = "asset:///audio/ja/g_rel_kyouto_itta_tomodachi.ogg",
+                    orderIndex = 1,
+                    grammaticalFocus = "ja.relative_clause",
+                    ruleText = "A た-form in front of a noun points at something finished, so 京都に行った友達 is 行った + 友達, and 京都 takes に because 行く is a 移動 verb with no object.\n京都に行きます友達 is the polite present, so it points at a friend who always goes. 京都に行っている友達 is the progressive, so it points at a friend who is there right now.",
+                ),
+                ChallengeEntity(
+                    id = 62033, lessonId = 411, type = ChallengeType.FILL_BLANK,
+                    question = "日本語を___人は親切です。",
+                    audioSrc = "asset:///audio/ja/g_rel_nihongo_hanaseru_hito.ogg",
+                    orderIndex = 2,
+                    grammaticalFocus = "ja.relative_clause",
+                    acceptedAnswers = "話せる人|はなせるひと",
+                    ruleText = "A clause in front of a noun ends in the plain form and 人 is what the clause describes, so 日本語を話せる人 is 日本語を話せる + 人.\n話しています人 is a ます form inside a relative clause. 話した人 is the た-form, so it counts the people who have already finished speaking.",
+                ),
+                ChallengeEntity(
+                    id = 62034, lessonId = 411, type = ChallengeType.WORD_BANK,
+                    question = "Assemble: 'the book I read yesterday'",
+                    orderIndex = 3,
+                    grammaticalFocus = "ja.relative_clause",
+                    ruleText = "A past relative clause is a た-form plus の, so きのう読んだ本 is きのう + 読んだ + 本.\nきのう読んでいる本 is the ている form and points at a book being read right now. きのう読めた本 is the potential, 'the book I was able to read', which says nothing about the reading being the thing done.",
+                ),
+                ChallengeEntity(
+                    id = 62035, lessonId = 411, type = ChallengeType.MATCH_PAIRS,
+                    question = "Match the relative clause to the noun it describes",
+                    orderIndex = 4,
+                ),
+                ChallengeEntity(
+                    id = 61105, lessonId = 411, type = ChallengeType.LISTEN,
+                    question = "Tap what you hear",
+                    audioSrc = "asset:///audio/ja/g_rel_nihongo_hanaseru_sannin.ogg",
+                    orderIndex = 5,
+                    grammaticalFocus = "ja.relative_clause",
+                    ruleText = "日本語を話せる人は三人です puts a plain-form potential straight in front of 人, and は picks 人 up as the topic of 三人です.\n日本語を話しています人は三人です is a ます form inside a relative clause. 日本語を話した人は三人です is the た-form, so it counts the people who have finished speaking.",
+                ),
+
+                // --- Lesson 32: Who's In The Clause (ている / ない / の) ---------
+                ChallengeEntity(
+                    id = 62036, lessonId = 412, type = ChallengeType.SELECT,
+                    question = "Which one means 'the shop that is shut right now'?",
+                    audioSrc = "asset:///audio/ja/g_rel_ima_shimatteiru_mise.ogg",
+                    orderIndex = 0,
+                    grammaticalFocus = "ja.relative_clause",
+                    ruleText = "A ている-form in front of a noun describes a state that is on-going at the moment, so 今閉まっている店 is 今 + 閉まっている + 店.\n今閉まった店 is the た-form and points at a shop that has finished shutting. 今閉まります店 is the polite present, so it points at a shop that shuts at this time every day.",
+                ),
+                ChallengeEntity(
+                    id = 62037, lessonId = 412, type = ChallengeType.CONJUGATE,
+                    question = "Which relative clause means 'the person who cannot read kanji'?",
+                    audioSrc = "asset:///audio/ja/g_rel_kanji_o_yomenai_hito.ogg",
+                    orderIndex = 1,
+                    grammaticalFocus = "ja.relative_clause",
+                    ruleText = "A ない-form in front of a noun says what the noun does not do, so 漢字を読めない人 is 漢字を + 読めない + 人, and 読めない is the plain negative of the potential よめる.\n漢字を読んだ人 is the た-form and points at a person who has finished reading. 漢字を読む人 is the plain positive, so it describes readers. And when the clause's subject is also the sentence topic it takes が, not は: 日本語が話せる人.",
+                ),
+                ChallengeEntity(
+                    id = 62038, lessonId = 412, type = ChallengeType.FILL_BLANK,
+                    question = "辞書を___人は少ないです。",
+                    audioSrc = "asset:///audio/ja/g_rel_jisho_tsukawanai.ogg",
+                    orderIndex = 2,
+                    grammaticalFocus = "ja.relative_clause",
+                    acceptedAnswers = "使わない人|つかわないひと",
+                    ruleText = "辞書を + 使わない + 人 is the whole clause and 人は the subject 少ないです then takes — の is what joins the clause to 人, so nothing is left for は to do inside it.\n使いません人 is a ます form inside a relative clause. 使った人 is the た-form, so it counts the people who used a dictionary and put it away. 使わない人 is the plain ない-form, which is the only one of the three that describes what the person does not do.",
+                ),
+                ChallengeEntity(
+                    id = 62039, lessonId = 412, type = ChallengeType.SELECT,
+                    question = "Which one means 'the Japanese book that is easy to read'?",
+                    audioSrc = "asset:///audio/ja/g_rel_yomiyasui_nihongo_no_hon.ogg",
+                    orderIndex = 3,
+                    grammaticalFocus = "ja.relative_clause",
+                    ruleText = "An い-adjective in front of a noun keeps い — it never takes く — so 読みやすい日本語の本 is 読みやすい + 日本語の本, and の attaches the whole noun phrase to the last noun.\n読みやすいのは日本語の本 puts は inside the clause, which is where a topic particle cannot go — は belongs to the sentence, の belongs to the clause. 読みやすく日本語の本 uses the く-adverbial form, which cannot modify a noun.",
+                ),
+                ChallengeEntity(
+                    id = 62040, lessonId = 412, type = ChallengeType.WORD_BANK,
+                    question = "Assemble: 'the woman in the red coat'",
+                    orderIndex = 4,
+                    grammaticalFocus = "ja.relative_clause",
+                    ruleText = "The clause goes in front of the noun it describes and の binds them, so 赤いコートを着ている女性 is 赤い + コートを着ている + 女性.\n赤いコートを着る女性 is the plain form, which describes what she does generally rather than what she has on right now. 赤いコートの女性 puts の straight after コート, which claims the coat itself owns someone.",
+                ),
+                ChallengeEntity(
+                    id = 61106, lessonId = 412, type = ChallengeType.LISTEN,
+                    question = "Tap what you hear",
+                    audioSrc = "asset:///audio/ja/g_rel_asoko_ni_iru_ryugakusei.ogg",
+                    orderIndex = 5,
+                    grammaticalFocus = "ja.relative_clause",
+                    ruleText = "あそこにいる人は留学生です is a plain-form いる clause in front of 人, with は picking 人 up as the topic of 留学生です.\nあそこにいた人は留学生です is the た-form, so it counts the people who were there and are not any more. あそこにいます人は留学生です is a ます form inside a relative clause.",
+                ),
+            ),
+            options = listOf(
+                ChallengeOptionEntity(id = 6300401, challengeId = 62020, text = "食べさせる", romaji = "tabesaseru", correct = true, audioSrc = "asset:///audio/ja/g_causative_tabesaseru.ogg"),
+                ChallengeOptionEntity(id = 6300402, challengeId = 62020, text = "食べさせられる", romaji = "tabesaserareru", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 6300403, challengeId = 62020, text = "食べられました", romaji = "taberaremashita", correct = false, errorTag = "WRONG_TENSE"),
+
+                ChallengeOptionEntity(id = 6300421, challengeId = 62021, text = "読ませる", romaji = "yomaseru", correct = true, audioSrc = "asset:///audio/ja/g_causative_yomaseru.ogg"),
+                ChallengeOptionEntity(id = 6300422, challengeId = 62021, text = "読まれる", romaji = "yomareru", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 6300423, challengeId = 62021, text = "読ませます", romaji = "yomasemasu", correct = false, errorTag = "WRONG_REGISTER"),
+
+                ChallengeOptionEntity(id = 6300441, challengeId = 62022, text = "食べさせました", romaji = "tabesasemashita", correct = true, audioSrc = "asset:///audio/ja/g_causative_tabesasemashita.ogg"),
+                ChallengeOptionEntity(id = 6300442, challengeId = 62022, text = "食べられました", romaji = "taberaremashita", correct = false, errorTag = "WRONG_TENSE"),
+                ChallengeOptionEntity(id = 6300443, challengeId = 62022, text = "食べました", romaji = "tabemashita", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 6300461, challengeId = 62023, text = "コーチは毎朝チームを走らせます", romaji = "koochi wa mainichi chiimu o hashirasemasu", correct = true),
+                ChallengeOptionEntity(id = 6300462, challengeId = 62023, text = "コーチは毎朝チームが走ります", romaji = "koochi wa mainichi chiimu ga hashirimasu", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 6300463, challengeId = 62023, text = "コーチは毎朝チームの走らせます", romaji = "koochi wa mainichi chiimu no hashirasemasu", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 6300481, challengeId = 62024, text = "させる", romaji = "saseru", correct = true, audioSrc = "asset:///audio/ja/g_causative_saseru.ogg"),
+                ChallengeOptionEntity(id = 6300482, challengeId = 62024, text = "せられる", romaji = "serareru", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 6300483, challengeId = 62024, text = "される", romaji = "sareru", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 6300501, challengeId = 62025, text = "来させる", romaji = "kurasaseru", correct = true, audioSrc = "asset:///audio/ja/g_causative_kuramaseru.ogg"),
+                ChallengeOptionEntity(id = 6300502, challengeId = 62025, text = "来られる", romaji = "koreru", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 6300503, challengeId = 62025, text = "来かせました", romaji = "kurasemashita", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 6310031, challengeId = 61103, text = "先生は生徒に静かにさせました", romaji = "sensei wa seito ni shizuka ni sasemashita", correct = true),
+                ChallengeOptionEntity(id = 6310032, challengeId = 61103, text = "先生は生徒に静かにされました", romaji = "sensei wa seito ni shizuka ni sare mashita", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 6310033, challengeId = 61103, text = "先生は生徒に静かにさせません", romaji = "sensei wa seito ni shizuka ni sasemasen", correct = false, errorTag = "WRONG_TENSE"),
+
+                ChallengeOptionEntity(id = 6300521, challengeId = 62026, text = "母は私に野菜を食べさせています", romaji = "haha wa watashi ni yasai o tabesaseteimasu", correct = true, audioSrc = "asset:///audio/ja/g_causative_tabesaseteimasu.ogg"),
+                ChallengeOptionEntity(id = 6300522, challengeId = 62026, text = "母は私に野菜を食べさせられています", romaji = "haha wa watashi ni yasai o tabesasareteimasu", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 6300523, challengeId = 62026, text = "母は私に野菜を食べさせませんでした", romaji = "haha wa watashi ni yasai o tabesasemasen deshita", correct = false, errorTag = "WRONG_TENSE"),
+
+                ChallengeOptionEntity(id = 6300541, challengeId = 62027, text = "食べさせている", romaji = "tabesaseteiru", correct = true, audioSrc = "asset:///audio/ja/g_causative_tabesaserteiru.ogg"),
+                ChallengeOptionEntity(id = 6300542, challengeId = 62027, text = "食べられている", romaji = "taberareteiru", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 6300543, challengeId = 62027, text = "食べさせられました", romaji = "tabesaseraremashita", correct = false, errorTag = "WRONG_TENSE"),
+
+                ChallengeOptionEntity(id = 6300561, challengeId = 62028, text = "出させました", romaji = "dasasemashita", correct = true, audioSrc = "asset:///audio/ja/g_causative_shukudai_dasemashita.ogg"),
+                ChallengeOptionEntity(id = 6300562, challengeId = 62028, text = "出します", romaji = "dashimasu", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 6300563, challengeId = 62028, text = "出されませんでした", romaji = "dasaremasen deshita", correct = false, errorTag = "WRONG_TENSE"),
+
+                ChallengeOptionEntity(id = 6300581, challengeId = 62029, text = "休まれる", romaji = "yasumareru", correct = true),
+                ChallengeOptionEntity(id = 6300582, challengeId = 62029, text = "休ませる", romaji = "yasumaseru", correct = true, audioSrc = "asset:///audio/ja/g_causative_yasumaseru.ogg"),
+                ChallengeOptionEntity(id = 6300583, challengeId = 62029, text = "待たれる", romaji = "matareru", correct = true),
+                ChallengeOptionEntity(id = 6300584, challengeId = 62029, text = "待たせる", romaji = "matasaseru", correct = true, audioSrc = "asset:///audio/ja/g_causative_matasaseru.ogg"),
+                ChallengeOptionEntity(id = 6300585, challengeId = 62029, text = "飲まれる", romaji = "nomareru", correct = true),
+                ChallengeOptionEntity(id = 6300586, challengeId = 62029, text = "飲ませる", romaji = "nomasaseru", correct = true, audioSrc = "asset:///audio/ja/g_causative_nomasaseru.ogg"),
+                ChallengeOptionEntity(id = 6300587, challengeId = 62029, text = "書かれる", romaji = "kakareru", correct = true),
+                ChallengeOptionEntity(id = 6300588, challengeId = 62029, text = "書かせる", romaji = "kakaseru", correct = true),
+
+                ChallengeOptionEntity(id = 6300601, challengeId = 62030, text = "父に部屋を掃除させました", romaji = "chichi ni heya o souji sasemashita", correct = true, audioSrc = "asset:///audio/ja/g_causative_chichi_souji.ogg"),
+                ChallengeOptionEntity(id = 6300602, challengeId = 62030, text = "父に部屋を掃除されます", romaji = "chichi ni heya o souji saremasu", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 6300603, challengeId = 62030, text = "父に部屋を掃除します", romaji = "chichi ni heya o souji shimasu", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 6310041, challengeId = 61104, text = "母が私に牛乳を飲ませています", romaji = "haha ga watashi ni gyunyu o nomaseteimasu", correct = true),
+                ChallengeOptionEntity(id = 6310042, challengeId = 61104, text = "母が私に牛乳を飲ませられています", romaji = "haha ga watashi ni gyunyu o nomasareteimasu", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 6310043, challengeId = 61104, text = "母が私に牛乳を飲ませました", romaji = "haha ga watashi ni gyunyu o nomasemashita", correct = false, errorTag = "WRONG_TENSE"),
+
+                ChallengeOptionEntity(id = 6300621, challengeId = 62031, text = "日本語を勉強する学生", romaji = "nihongo o benkyou suru gakusei", correct = true, audioSrc = "asset:///audio/ja/g_rel_benkyousuru_gakusei.ogg"),
+                ChallengeOptionEntity(id = 6300622, challengeId = 62031, text = "日本語を勉強した学生", romaji = "nihongo o benkyou shita gakusei", correct = false, errorTag = "WRONG_TENSE"),
+                ChallengeOptionEntity(id = 6300623, challengeId = 62031, text = "日本語を勉強しています学生", romaji = "nihongo o benkyou shiteimasu gakusei", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 6300641, challengeId = 62032, text = "京都に行った友達", romaji = "kyouto ni itta tomodachi", correct = true, audioSrc = "asset:///audio/ja/g_rel_kyouto_itta_tomodachi.ogg"),
+                ChallengeOptionEntity(id = 6300642, challengeId = 62032, text = "京都に行きます友達", romaji = "kyouto ni ikimasu tomodachi", correct = false, errorTag = "WRONG_TENSE"),
+                ChallengeOptionEntity(id = 6300643, challengeId = 62032, text = "京都に行っている友達", romaji = "kyouto ni itteiru tomodachi", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 6300661, challengeId = 62033, text = "話せる人", romaji = "hanaseru hito", correct = true, audioSrc = "asset:///audio/ja/g_rel_nihongo_hanaseru_hito.ogg"),
+                ChallengeOptionEntity(id = 6300662, challengeId = 62033, text = "話しています人", romaji = "hanashiteimasu hito", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 6300663, challengeId = 62033, text = "話した人", romaji = "hanashita hito", correct = false, errorTag = "WRONG_TENSE"),
+
+                ChallengeOptionEntity(id = 6300681, challengeId = 62034, text = "きのう読んだ本", romaji = "kinou yonda hon", correct = true),
+                ChallengeOptionEntity(id = 6300682, challengeId = 62034, text = "きのう読んでいる本", romaji = "kinou yondeiru hon", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 6300683, challengeId = 62034, text = "きのう読めた本", romaji = "kinou yometahon", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 6300701, challengeId = 62035, text = "走っている", romaji = "hashitteiru", correct = true, audioSrc = "asset:///audio/ja/g_rel_hashiratteiru.ogg"),
+                ChallengeOptionEntity(id = 6300702, challengeId = 62035, text = "ランナー (the runner)", correct = true),
+                ChallengeOptionEntity(id = 6300703, challengeId = 62035, text = "走った", romaji = "hashitta", correct = true, audioSrc = "asset:///audio/ja/g_rel_hashitta.ogg"),
+                ChallengeOptionEntity(id = 6300704, challengeId = 62035, text = "記録 (the record)", correct = true),
+                ChallengeOptionEntity(id = 6300705, challengeId = 62035, text = "歩いている", romaji = "aruiteiru", correct = true, audioSrc = "asset:///audio/ja/g_rel_aruiteru.ogg"),
+                ChallengeOptionEntity(id = 6300706, challengeId = 62035, text = "人 (the person)", correct = true),
+                ChallengeOptionEntity(id = 6300707, challengeId = 62035, text = "読んだ", romaji = "yonda", correct = true),
+                ChallengeOptionEntity(id = 6300708, challengeId = 62035, text = "本 (the book)", correct = true),
+
+                ChallengeOptionEntity(id = 6310051, challengeId = 61105, text = "日本語を話せる人は三人です", romaji = "nihongo o hanaseru hito wa sannin desu", correct = true),
+                ChallengeOptionEntity(id = 6310052, challengeId = 61105, text = "日本語を話しています人は三人です", romaji = "nihongo o hanashiteimasu hito wa sannin desu", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 6310053, challengeId = 61105, text = "日本語を話した人は三人です", romaji = "nihongo o hanashita hito wa sannin desu", correct = false, errorTag = "WRONG_TENSE"),
+
+                ChallengeOptionEntity(id = 6300721, challengeId = 62036, text = "今閉まっている店", romaji = "ima shimatteiru mise", correct = true, audioSrc = "asset:///audio/ja/g_rel_ima_shimatteiru_mise.ogg"),
+                ChallengeOptionEntity(id = 6300722, challengeId = 62036, text = "今閉まった店", romaji = "ima shimatta mise", correct = false, errorTag = "WRONG_TENSE"),
+                ChallengeOptionEntity(id = 6300723, challengeId = 62036, text = "今閉まります店", romaji = "ima shimarimasu mise", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 6300741, challengeId = 62037, text = "漢字を読めない人", romaji = "kanji o yomenai hito", correct = true, audioSrc = "asset:///audio/ja/g_rel_kanji_o_yomenai_hito.ogg"),
+                ChallengeOptionEntity(id = 6300742, challengeId = 62037, text = "漢字を読んだ人", romaji = "kanji o yonda hito", correct = false, errorTag = "WRONG_TENSE"),
+                ChallengeOptionEntity(id = 6300743, challengeId = 62037, text = "漢字を読む人", romaji = "kanji o yomu hito", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 6300761, challengeId = 62038, text = "使わない人", romaji = "tsukawanai hito", correct = true, audioSrc = "asset:///audio/ja/g_rel_jisho_tsukawanai.ogg"),
+                ChallengeOptionEntity(id = 6300762, challengeId = 62038, text = "使いません人", romaji = "tsukaimasu hito", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 6300763, challengeId = 62038, text = "使った人", romaji = "tsukatta hito", correct = false, errorTag = "WRONG_TENSE"),
+
+                ChallengeOptionEntity(id = 6300781, challengeId = 62039, text = "読みやすい日本語の本", romaji = "yomiyasui nihongo no hon", correct = true, audioSrc = "asset:///audio/ja/g_rel_yomiyasui_nihongo_no_hon.ogg"),
+                ChallengeOptionEntity(id = 6300782, challengeId = 62039, text = "読みやすいのは日本語の本", romaji = "yomiyasui no wa nihongo no hon", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 6300783, challengeId = 62039, text = "読みやすく日本語の本", romaji = "yomiyasuku nihongo no hon", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 6300801, challengeId = 62040, text = "赤いコートを着ている女性", romaji = "akai kooto o kiteiru josei", correct = true),
+                ChallengeOptionEntity(id = 6300802, challengeId = 62040, text = "赤いコートを着る女性", romaji = "akai kooto o kiru josei", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 6300803, challengeId = 62040, text = "赤いコートの女性", romaji = "akai kooto no josei", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 6310061, challengeId = 61106, text = "あそこにいる人は留学生です", romaji = "asoko ni iru hito wa ryugakusei desu", correct = true),
+                ChallengeOptionEntity(id = 6310062, challengeId = 61106, text = "あそこにいた人は留学生です", romaji = "asoko ni ita hito wa ryugakusei desu", correct = false, errorTag = "WRONG_TENSE"),
+                ChallengeOptionEntity(id = 6310063, challengeId = 61106, text = "あそこにいます人は留学生です", romaji = "asoko ni imasu hito wa ryugakusei desu", correct = false, errorTag = "WRONG_FORM"),
             ),
         ),
     )
