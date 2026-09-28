@@ -169,6 +169,24 @@ class CurriculumIntegrityTest {
         "ja.keigo_honorific" to setOf("WRONG_FORM", "WRONG_REGISTER"),
         "ja.keigo_humble" to setOf("WRONG_FORM", "WRONG_REGISTER", "WRONG_TENSE"),
         "ja.rareru_readings" to setOf("WRONG_FORM", "WRONG_REGISTER", "WRONG_TENSE"),
+        // The themed vocabulary units (Spanish 18-19, Japanese units 18-19).
+        // A themed unit teaches nouns in context, so the frame is right and
+        // the tile is the wrong word for it. Every distractor is therefore a
+        // form error (a word that cannot carry the article, the number or the
+        // ending the slot needs) or a person/number error (a noun of the
+        // wrong gender or number). UNRELATED is deliberately absent from both
+        // Spanish vocab tags: this test forbids UNRELATED on any focused
+        // challenge, because a challenge that carries a grammaticalFocus has
+        // told the learner the grammar point is what is being tested, and a
+        // distractor that is simply a different noun contradicts that. The
+        // Japanese modality frames are the same three every other Japanese
+        // focus admits - a wrong form, a plain form where a polite one is
+        // asked for, and a tense where the ます form carries one.
+        "es.vocab.everyday_life" to setOf("WRONG_FORM", "WRONG_PERSON", "WRONG_TENSE"),
+        "es.vocab.travel" to setOf("WRONG_FORM", "WRONG_PERSON", "WRONG_TENSE"),
+        "ja.necessity" to setOf("WRONG_FORM", "WRONG_REGISTER", "WRONG_TENSE"),
+        "ja.permission" to setOf("WRONG_FORM", "WRONG_REGISTER", "WRONG_TENSE"),
+        "ja.experience" to setOf("WRONG_FORM", "WRONG_REGISTER", "WRONG_TENSE"),
     )
 
     @Test

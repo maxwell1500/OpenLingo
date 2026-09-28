@@ -6,6 +6,7 @@ import com.duo.app.data.local.entities.LessonEntity
 import com.duo.app.data.local.entities.UnitEntity
 import com.duo.app.data.local.models.ChallengeType
 
+
 /**
  * The intermediate stage of the curriculum. The `B1` in this file's name is the
  * *roadmap workstream* — `docs/CURRICULUM_B1_N4_ROADMAP.md` — and not a claim about
@@ -24,6 +25,11 @@ import com.duo.app.data.local.models.ChallengeType
  *     `para` by cause, exchange, result, purpose, direction and recipient. These
  *     closed the last three gaps the roadmap named, so the whole of 30-35 is what a
  *     B1 checkpoint draws on.
+ *   Spanish: Units 17-18 (unit ids 36-37) — the themed everyday vocabulary, the
+ *     body, the home, food and shopping in 36 and travel, the city and the
+ *     workplace in 37. They are declared in `SpanishVocabularyCurriculumData` and
+ *     appended to this list, because folding 164 challenges in here overflowed the
+ *     JVM's 64 KB method limit and the object stopped compiling.
  *   Japanese: Units 9-10 (unit ids 28-29) — Te-form & Requests, Potential & Ability.
  *     These are genuinely JLPT N4 grammar points, so N4 is the honest label.
  *
@@ -54,6 +60,11 @@ import com.duo.app.data.local.models.ChallengeType
  *                       Nothing here is held out: the B1 pool stays fixed at 8, drawn
  *                       from units 30-31, so a held-out item in unit 34 would be
  *                       reachable by nothing.
+ *   - `90xxx`           units 36-37 and lessons 900-905 (Spanish units 17-18), with
+ *                       the challenges at `90000`-`95540` and the options from
+ *                       `900000` up. Also not held out, for the same reason. These
+ *                       are declared in `SpanishVocabularyCurriculumData`; the id
+ *                       layout is documented in that file's own header.
  */
 object B1CurriculumData {
 
@@ -2923,11 +2934,11 @@ object B1CurriculumData {
                 ChallengeOptionEntity(id = 800563, challengeId = 80056, text = "Por eso no pudimos venir", correct = false, errorTag = "WRONG_PERSON"),
             ),
         ),
-    )
 
     // =========================================================================
     // JAPANESE JLPT N4 (Units 9 - 10)
     // =========================================================================
+    ) + SpanishVocabularyCurriculumData.spanishVocabularyUnits
     val japaneseN4Units: List<UnitPayload> = listOf(
         // Unit 9: Te-form & Requests (~てください / ~ています)
         UnitPayload(

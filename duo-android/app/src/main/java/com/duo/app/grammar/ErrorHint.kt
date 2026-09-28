@@ -334,6 +334,38 @@ object ErrorHint {
             "a Japanese counter",
             "Counters follow the shape of the thing counted — 枚 for flat things, 本 for long things, 匹 for animals.",
         ),
+        // Themed vocabulary: the frames are right and the wrong word is in the
+        // slot, so the honest diagnosis is a form error (the word does not
+        // agree with the article, the number and the ending that go with it)
+        // or a person/number error. UNRELATED is deliberately absent: a
+        // different noun is not a grammar slip, and CurriculumIntegrityTest
+        // refuses UNRELATED on any focused challenge, so a themed unit states
+        // the kind of mistake its distractors actually make.
+        "es.vocab.everyday_life" to FocusProfile(
+            "everyday Spanish vocabulary",
+            "That word does not fit the slot: check the article, the number and the ending that go with it.",
+        ),
+        "es.vocab.travel" to FocusProfile(
+            "travel Spanish vocabulary",
+            "That is not the word this sentence needs: check the article, the number and the ending that go with it.",
+        ),
+        // 〜なければなりません, 〜てもいい and 〜たことがあります: the three
+        // N4 modality frames units 18-19 add. Each is an ending built in two
+        // halves, so every distractor is a wrong form, a wrong register (the
+        // plain form where the item states a polite one) or a wrong tense
+        // where the ます-form carries one.
+        "ja.necessity" to FocusProfile(
+            "Japanese 〜なければなりません (necessity)",
+            "Necessity is 〜なければなりません: the ない-form minus い plus なければ, plus なりません — and nothing may follow なければ.",
+        ),
+        "ja.permission" to FocusProfile(
+            "Japanese 〜てもいい (permission)",
+            "Permission is 〜てもいい: the て-form plus てもいい, and てもいいですか asks the question and expects an answer back.",
+        ),
+        "ja.experience" to FocusProfile(
+            "Japanese 〜たことがあります (experience)",
+            "Experience is 〜たことがあります: the plain past た plus こと plus が plus あります, and the が is what makes it a clause.",
+        ),
     )
 
     private fun profile(focus: String?): FocusProfile =

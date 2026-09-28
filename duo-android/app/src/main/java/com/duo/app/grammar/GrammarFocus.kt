@@ -78,6 +78,9 @@ object GrammarFocus {
         "es.connectives" to "Connecting with porque",
         "es.reported_speech.no_backshift" to "Reported speech: a verb already in the past",
         "es.reported_speech.backshift" to "Reported speech: moving the verb back",
+        // --- Spanish: themed vocabulary units ---------------------------
+        "es.vocab.everyday_life" to "Everyday vocabulary",
+        "es.vocab.travel" to "Travel vocabulary",
 
         // --- Japanese: the polite frame ----------------------------------
         "ja.polite_verb" to "Polite verb: the ます form",
@@ -116,6 +119,10 @@ object GrammarFocus {
         // --- Japanese: keigo ---------------------------------------------
         "ja.keigo_honorific" to "Keigo: 尊敬語, lifting the other person",
         "ja.keigo_humble" to "Keigo: 謙譲語, lowering yourself",
+        // --- Japanese: modality -----------------------------------------
+        "ja.necessity" to "Saying you must: 〜なければなりません",
+        "ja.permission" to "Asking and giving permission: 〜てもいい",
+        "ja.experience" to "Talking about experience: 〜たことがあります",
 
         // --- Japanese: conditions ----------------------------------------
         "ja.conditional_ba" to "〜れば: the written if",

@@ -504,6 +504,68 @@ class ErrorHintTest {
         assertTrue("does not name the 得る set: $hint", hint.contains("得る"))
         assertTrue("does not say what settles it: $hint", hint.contains("subject slot"))
     }
+    // --- the themed vocabulary and modality units -------------------------
+
+    @Test
+    fun `a themed vocabulary hint names the agreement the wrong word breaks`() {
+        // A themed unit puts the frame right and the wrong noun in the slot, so
+        // the hint has to point at agreement rather than at grammar the learner
+        // has not been taught yet.
+        val everyday = ErrorHint.forChoice("el ojos", "el ojo", "WRONG_PERSON", "es.vocab.everyday_life")
+        require(everyday != null)
+        assertTrue("does not name the grammar point: $everyday", everyday.contains("everyday Spanish vocabulary"))
+        assertTrue("does not say what to check: $everyday", everyday.contains("the article, the number and the ending"))
+        assertTrue("does not name the answer: $everyday", everyday.contains("“el ojo”"))
+
+        val travel = ErrorHint.forChoice("la estación", "el estación", "WRONG_FORM", "es.vocab.travel")
+        require(travel != null)
+        assertTrue("does not name the grammar point: $travel", travel.contains("travel Spanish vocabulary"))
+        assertTrue("reuses the everyday wording verbatim: $travel", travel != everyday)
+        assertTrue("does not say what to check: $travel", travel.contains("not the word this sentence needs"))
+    }
+
+    @Test
+    fun `the necessity hint builds the ending and says nothing may follow it`() {
+        val hint = ErrorHint.forChoice("現金で払う", "現金で払わなければなりません", "WRONG_FORM", "ja.necessity")
+        require(hint != null)
+        assertTrue("does not name the grammar point: $hint", hint.contains("〜なければなりません"))
+        assertTrue("does not say how the ending is built: $hint", hint.contains("the ない-form minus い plus なければ"))
+        assertTrue("does not state the closed ending: $hint", hint.contains("nothing may follow なければ"))
+        assertTrue("does not name the answer: $hint", hint.contains("“現金で払わなければなりません”"))
+    }
+
+    @Test
+    fun `the permission hint says てもいい and that the question expects an answer`() {
+        val hint = ErrorHint.forChoice("行きます", "行ってもいいです", "WRONG_FORM", "ja.permission")
+        require(hint != null)
+        assertTrue("does not name the grammar point: $hint", hint.contains("〜てもいい"))
+        assertTrue("does not say what it is built on: $hint", hint.contains("the て-form plus てもいい"))
+        assertTrue("does not say the question expects an answer: $hint", hint.contains("expects an answer back"))
+    }
+
+    @Test
+    fun `the experience hint says the が is what makes it a clause`() {
+        val hint = ErrorHint.forChoice("日本に行きます", "日本に行ったことがあります", "WRONG_FORM", "ja.experience")
+        require(hint != null)
+        assertTrue("does not name the grammar point: $hint", hint.contains("〜たことがあります"))
+        assertTrue("does not build the ending: $hint", hint.contains("the plain past た plus こと plus が plus あります"))
+        assertTrue("does not say what the が is for: $hint", hint.contains("what makes it a clause"))
+    }
+
+    @Test
+    fun `a plain form against a Japanese modality frame is called the wrong register`() {
+        // 〜なければなりません and 〜てもいい are the polite surface of the
+        // sentence, so the plain verb is right grammar in the wrong clothes and
+        // WRONG_REGISTER is the honest diagnosis rather than WRONG_FORM.
+        val necessity = ErrorHint.forChoice("払わない", "払わなければなりません", "WRONG_REGISTER", "ja.necessity")
+        require(necessity != null)
+        assertTrue("does not state the rule: $necessity", necessity.contains("〜なければなりません"))
+
+        val permission = ErrorHint.forChoice("行っていい", "行ってもいいです", "WRONG_REGISTER", "ja.permission")
+        require(permission != null)
+        assertTrue("does not state the rule: $permission", permission.contains("てもいい"))
+    }
+
 
     // --- FILL_BLANK ---------------------------------------------------------
 

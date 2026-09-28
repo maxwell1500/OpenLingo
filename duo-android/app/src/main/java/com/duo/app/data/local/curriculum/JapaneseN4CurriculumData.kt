@@ -38,12 +38,13 @@ import com.duo.app.data.local.models.ChallengeType
  * Both units are everyday, transactional and high-frequency, which is the register
  * the rest of the Japanese corpus already uses. Nothing literary is introduced.
  *
- * **Audio.** 132 distinct clips are wired from these units, 46 from units 11-12,
- * 43 from units 13-14 and 43 from units 15-16. A SELECT challenge and its correct
- * option share a clip; a CONJUGATE speaks the target form on the challenge alone, so
- * the option grid never plays the answer. A MATCH_PAIRS challenge gets no challenge
- * clip — its prompt is the instruction "Match the ...", not a sentence — so its clips
- * hang off the paired options instead.
+ * **Audio.** 165 distinct clips are wired from these units, 46 from units 11-12,
+ * 43 from units 13-14, 43 from units 15-16 and 33 from units 17-18. A SELECT
+ * challenge and its correct option share a clip; a CONJUGATE speaks the target
+ * form on the challenge alone, so the option grid never plays the answer. A
+ * MATCH_PAIRS challenge gets no challenge clip — its prompt is the instruction
+ * "Match the ...", not a sentence — so its clips hang off the paired options
+ * instead.
  *
  * Challenge 60025 is the one item whose scaffold names the whole target
  * sentence, so it carries the sentence clip rather than a form clip — the same
@@ -70,18 +71,50 @@ import com.duo.app.data.local.models.ChallengeType
  * Two readings were deliberately left out. こうかい is 観光 "sightseeing" and
  * 高 "expensive"; both synthesise to `koːkai`, so a LISTEN item on the pair
  * would be unanswerable by ear and is a writing exercise, not a listening one.
+
+ * **Units 17-18 (ids 46-47)** add the themed everyday vocabulary — the shop,
+ * prices and the home in unit 46; the train, work, the week and the weather in
+ * unit 47 — alongside three N4 modality frames the grammar arc had named but
+ * never taught: 〜なければなりません (`ja.necessity`), 〜てもいい
+ * (`ja.permission`) and 〜たことがあります (`ja.experience`). ようにする /
+ * ことにする is still untaught and is listed as missing in the roadmap.
+ *
+ * **Two known limitations of the bundled voice, recorded rather than hidden.**
+ *
+ *  1. The Kokoro `jf_alpha` voice renders つ as the phoneme for `i`, not `u`, so
+ *     靴 in `ookii.ogg` (この靴は___。) sounds like "k-u-ts-i". This is the
+ *     voice's own fixed mapping, not the text: a standalone つ and すし behave
+ *     identically, and the clip has a normal /k/-release and a real [ts]
+ *     affricate before the vowel, so what is wrong is the vowel's quality and
+ *     nothing else. It is a **pre-existing limitation of the shipped audio** —
+ *     `atsui.ogg` (あつい) and `matta.ogg` already carry the same つ — and not a
+ *     regression introduced by this unit. A TTS voice is not hotfixed here.
+ *  2. The `unidic` backend misreads 払えます, 降る and 晴れる, so units 17-18
+ *     carry **no synthesised clip for 降る or 晴れる**, and 払える appears only
+ *     as untargeted 払う (a clip the word is safe in). The three pre-existing
+ *     clips that do speak 降 or 晴 (`ja_cond_ame_ga_futtara_*`,
+ *     `ashita_wa_hareru_to_omoimasu`) predate this unit and are left as they are.
  *
  * Id layout inside this file, disjoint from every other curriculum file:
- *   - units `40`-`45`        (Spanish has taken 30-35)
+ *   - units `40`-`47`        (Spanish has taken 30-37)
  *   - lessons `400`-`405` for units 40-41, `406`-`412` for units 42-43,
- *     `800`-`805` for units 44-45
+ *     `800`-`805` for units 44-45, `850`-`855` for units 46-47
  *   - challenges `60000`-`60043` plus the `LISTEN` block `61000`-`61008` (units 40-41),
  *     then `62000`-`62040` plus the `LISTEN` block `61100`-`61106` (units 42-43), then
- *     `64000`-`64026` plus the `LISTEN` block `64100`-`64105` (units 44-45)
+ *     `64000`-`64026` plus the `LISTEN` block `64100`-`64105` (units 44-45), then
+ *     `65000`-`65306` (units 46-47)
  *   - options `600001`-`600184` (600157 is not used; every id below it is taken)
  *     plus the `LISTEN` block `6100001`-`6100027`, then options `6300001`-`6300803`
  *     plus the `LISTEN` block `6310001`-`6310063`, then options `6400001` up and the
- *     `LISTEN` block `6410001` up (units 44-45)
+ *     `LISTEN` block `6410001` up (units 44-45), then options `6500001`-`6500227`
+ *     and `7500001`-`7500227` (units 46-47; the `7xxxxxx` block exists because
+ *     `6500001`+ had already been spent by the lessons above)
+ *
+ * Lessons 850-855 were authored as 900-905, which collided with the Spanish
+ * themed units' lessons in `SpanishVocabularyCurriculumData`. They were moved
+ * here because 806-899 was the one block free corpus-wide, and the renumber
+ * moved every referencing `ChallengeEntity(lessonId = ...)` with it. The
+ * challenge id ranges were left alone: they never collided.
  *
  * The six held-out items are 60006, 60014, 60021, 60028, 60036 and 60043, all in
  * units 40-41. Units 42-45 hold nothing out: the N4 pool is fixed at 10 and a held-out
@@ -2050,6 +2083,1057 @@ object JapaneseN4CurriculumData {
                 ChallengeOptionEntity(id = 6410016, challengeId = 64105, text = "この部屋は毎日掃除されています。", romaji = "kono heya wa mainichi souji sareteimasu", correct = true),
                 ChallengeOptionEntity(id = 6410017, challengeId = 64105, text = "この部屋は毎日掃除されます。", romaji = "kono heya wa mainichi souji saremasu", correct = false, errorTag = "WRONG_FORM"),
                 ChallengeOptionEntity(id = 6410018, challengeId = 64105, text = "この部屋は毎日掃除していません。", romaji = "kono heya wa mainichi souji shiteimasen", correct = false, errorTag = "WRONG_TENSE"),
+            ),
+        ),
+        // =====================================================================
+        // =====================================================================
+        UnitPayload(
+            unit = UnitEntity(
+                id = 46,
+                courseId = 2,
+                title = "Unit 17: Shopping, Money & the Home",
+                description = "The everyday N4 nouns of the two places a learner spends money and time: the shop, the till, and the flat",
+                orderIndex = 16,
+            ),
+            lessons = listOf(
+                LessonEntity(id = 850, unitId = 46, title = "Lesson 39: At the Shop", orderIndex = 0),
+                LessonEntity(id = 851, unitId = 46, title = "Lesson 40: Paying and Prices", orderIndex = 1),
+                LessonEntity(id = 852, unitId = 46, title = "Lesson 41: The Home", orderIndex = 2),
+            ),
+            challenges = listOf(
+                // --- Lesson 39: At the Shop ---
+                ChallengeEntity(
+                    id = 65000, lessonId = 850, type = ChallengeType.MATCH_PAIRS,
+                    question = "Match the shop words",
+                    orderIndex = 0,
+                ),
+                ChallengeEntity(
+                    id = 65001, lessonId = 850, type = ChallengeType.MATCH_PAIRS,
+                    question = "Match the buying words",
+                    orderIndex = 1,
+                ),
+                ChallengeEntity(
+                    id = 65002, lessonId = 850, type = ChallengeType.MATCH_PAIRS,
+                    question = "Match the shop signs and places",
+                    orderIndex = 2,
+                ),
+                ChallengeEntity(
+                    id = 65003, lessonId = 850, type = ChallengeType.MATCH_PAIRS,
+                    question = "Match the words for size and price",
+                    orderIndex = 3,
+                ),
+                ChallengeEntity(
+                    id = 65004, lessonId = 850, type = ChallengeType.SELECT,
+                    question = "Which one means 'the list price'?",
+                    audioSrc = "asset:///audio/ja/teika.ogg",
+                    orderIndex = 4,
+                    ruleText = "定価 is 定 (a set, as in 設定) + 価 (price): the price the shop set and printed, before anything comes off it. The 価 is read ka, so teika, and it is the same 価 as in 物価 and 評価.\n値段 is the price you are quoted, 値札 is the card the price is written on, and 割引 is money taken off. All three are real shop words; only 定価 is the price as printed.",
+                ),
+                ChallengeEntity(
+                    id = 65005, lessonId = 850, type = ChallengeType.SELECT,
+                    question = "Which one means 'sold out'?",
+                    audioSrc = "asset:///audio/ja/urikire.ogg",
+                    orderIndex = 5,
+                    ruleText = "売り切れ is 売り (selling) + 切れ (cut off): there is nothing left on the shelf. The 切 carries a small つ before れ, so uriKIRE, and the れ is the plain れ of れる.\n営業中 is the sign that says the shop is trading, 閉店 is the hour the shutters come down, and 値札 is the price card. 営業中 is the opposite state: the shop is open and there is stock to sell.",
+                ),
+                ChallengeEntity(
+                    id = 65006, lessonId = 850, type = ChallengeType.SELECT,
+                    question = "Which one means 'vegetables'?",
+                    audioSrc = "asset:///audio/ja/yasai.ogg",
+                    orderIndex = 6,
+                    ruleText = "野菜 is やさい, said yasai: the や is short and the さい carries no long vowel. It is the same 菜 as in お菜.\n果物は katsumono, the fruit; 肉 is meat and 魚 is fish. Those three are all food words and all of them are things you buy at the same counter, which is what makes them good distractors.",
+                ),
+                ChallengeEntity(
+                    id = 65007, lessonId = 850, type = ChallengeType.SELECT,
+                    question = "Which one means 'the day a shop is always shut'?",
+                    audioSrc = "asset:///audio/ja/teikyubi.ogg",
+                    orderIndex = 7,
+                    ruleText = "定休日 is 定 (fixed) + 休 (rest) + 日 (day): the weekday the shop is always shut. The 休 is read kyuu here, with the small ゆ, and then 日 is bi, so teikyuubi — the long ゅ carries the extra mora and the 日 gives the bi.\n閉店 is the hour the shutters come down tonight, 営業中 is the open sign, and 半額 is a price. 定休日 is a day on a calendar, not an hour on a clock.",
+                ),
+                ChallengeEntity(
+                    id = 65008, lessonId = 850, type = ChallengeType.WORD_BANK,
+                    question = "Assemble: 'Yesterday I bought a hat at that shop'",
+                    orderIndex = 8,
+                    grammaticalFocus = "ja.past_polite",
+                    ruleText = "The polite past is the ます form plus ました: 買う → 買います → 買いました.\nあの店で is あの (that) + 店 (shop) + で, and で marks the place an action happens at. 買った is the plain 断定形, and this item asks for the 丁寧形. あの店と puts と (and / with) where the place marker belongs, and 買う on its own is the plain present.",
+                ),
+                ChallengeEntity(
+                    id = 65009, lessonId = 850, type = ChallengeType.CONJUGATE,
+                    question = "Which one means 'I have to pay in cash'?",
+                    audioSrc = "asset:///audio/ja/genkindeharwanakerebanarimasen.ogg",
+                    orderIndex = 9,
+                    grammaticalFocus = "ja.necessity",
+                    ruleText = "Necessity is 〜なければなりません, built in two halves: the ない-form minus い plus なければ, then なりません. 払う → 払わない → 払わなければ + なりません. で marks the way the paying is done, and nothing may follow なければ: なければなりません is the whole ending.\n現金で払う is the bare plain verb. It says what I do, not that I have to. 現金で払わなくてもいいです is 〜てもいいです, which is permission, the opposite of an obligation. 現金で払わなかった is the plain past negative, which says the paying did not happen rather than that it had to.",
+                ),
+                ChallengeEntity(
+                    id = 65010, lessonId = 850, type = ChallengeType.FILL_BLANK,
+                    question = "この靴は___。",
+                    audioSrc = "asset:///audio/ja/ookii.ogg",
+                    orderIndex = 10,
+                    grammaticalFocus = "ja.i_adjective",
+                    acceptedAnswers = "大きい|おおきい",
+                    ruleText = "この靴は大きい is a plain い-adjective in front of は: 大 + き + い, with the final い intact.\n大きく drops that い and leaves only the stem, and 大きく is what ない and ありません are built on, so on its own it is not an adjective. 大きいです adds the polite copula, and this blank is the plain 断定形. 大きかった is the plain past, so the shoes are not big any more.",
+                ),
+                ChallengeEntity(
+                    id = 65011, lessonId = 850, type = ChallengeType.SELECT,
+                    question = "You want to suggest a film to a friend. Which one is the polite suggestion?",
+                    orderIndex = 11,
+                    grammaticalFocus = "ja.volition_polite",
+                    ruleText = "The polite volitional is the ます-stem plus ましょう: 見る → 見ます + ましょう, so 見ましょう, and it is a proposal the other person is free to refuse.\nいっしょに映画を見ましょうか turns the proposal into a question that expects an answer, and this item states the proposal. いっしょに映画を見よう is the plain 意向形, which is right to a close friend but drops the politeness the register asks for. いっしょに映画を見ました is the polite past, so the film is already over.",
+                ),
+                ChallengeEntity(
+                    id = 65100, lessonId = 850, type = ChallengeType.LISTEN,
+                    question = "Tap what you hear",
+                    audioSrc = "asset:///audio/ja/konomisenokutsuwayasuidesu.ogg",
+                    orderIndex = 12,
+                    grammaticalFocus = "ja.i_adjective",
+                    ruleText = "安いです is the polite present of the い-adjective 安い. The stem やす never surfaces here: the polite form is the bare stem plus です, so the ear hears yasui and not yasuku.\nこの店の靴は安いくです glues く onto です, and く is the stem the negative is built on, never a polite ending. yasui against yasuku is a whole extra syllable. この店の靴は安いでした hangs です past tense onto an い-adjective, which takes かった and never でした.",
+                ),
+                ChallengeEntity(
+                    id = 65101, lessonId = 850, type = ChallengeType.LISTEN,
+                    question = "Tap what you hear",
+                    audioSrc = "asset:///audio/ja/kinouanomisedekutsuokaimashita.ogg",
+                    orderIndex = 13,
+                    grammaticalFocus = "ja.past_polite",
+                    ruleText = "買いました is 買います plus ました. The small つ of the ます-stem sits in the middle of it, and the shop word 靴 carries its own small つ in kutsu, so this sentence has two geminate marks in it.\nきのう、あの店で靴を買います is the polite present, so nothing in it says the buying is over. きのう、あの店で靴を買った is the plain 断定形, which drops ます altogether, and the plain past sounds almost exactly like the polite one, which is what this round is for.",
+                ),
+                ChallengeEntity(
+                    id = 65102, lessonId = 850, type = ChallengeType.LISTEN,
+                    question = "Tap what you hear",
+                    audioSrc = "asset:///audio/ja/ekidekippuokawanakerebanarimasen.ogg",
+                    orderIndex = 14,
+                    grammaticalFocus = "ja.necessity",
+                    ruleText = "買わなければなりません is 買わない minus い, plus なければ, plus なりません. The small つ inside 切符 has to survive too: kippu, not kipu.\n駅で切符を買わなくてもいいです is 〜てもいいです, which is permission and says the opposite thing. 駅で切符を買いました is the polite past, so the buying is over rather than obligatory.",
+                ),
+                ChallengeEntity(
+                    id = 65103, lessonId = 850, type = ChallengeType.STORY,
+                    question = "📖 買い物\n\n\n母: 「あした、靴を買いに行こう。」\n私: 「私も新しい帽子がほしい。」\n母: 「じゃあ、商店街へ行きましょう。試着室があればいいね。」\n私: 「うん、ついでお菓子も買おう。」\n\n❓ Where will the mother and child go?",
+                    orderIndex = 15,
+                    ruleText = "商店街 is the street lined with small shops. It is shoTENgai, and the 街 carries a gy-: the ear hears ぎゃ on it, not a bare g.\n百貨店 is a department store, a single big building. 屋台 is a street food cart. 試着室 is a fitting room. All three are real words, and none of them is a street of shops.",
+                ),
+                // --- Lesson 40: Paying and Prices ---
+                ChallengeEntity(
+                    id = 65028, lessonId = 851, type = ChallengeType.MATCH_PAIRS,
+                    question = "Match the money words",
+                    orderIndex = 0,
+                ),
+                ChallengeEntity(
+                    id = 65029, lessonId = 851, type = ChallengeType.MATCH_PAIRS,
+                    question = "Match the paying words",
+                    orderIndex = 1,
+                ),
+                ChallengeEntity(
+                    id = 65030, lessonId = 851, type = ChallengeType.MATCH_PAIRS,
+                    question = "Match the shop types",
+                    orderIndex = 2,
+                ),
+                ChallengeEntity(
+                    id = 65031, lessonId = 851, type = ChallengeType.MATCH_PAIRS,
+                    question = "Match the words for price and money",
+                    orderIndex = 3,
+                ),
+                ChallengeEntity(
+                    id = 65014, lessonId = 851, type = ChallengeType.SELECT,
+                    question = "Which one means 'a convenience store'?",
+                    audioSrc = "asset:///audio/ja/konbini.ogg",
+                    orderIndex = 4,
+                    ruleText = "コンビニ is a katakana loanword: koNBI ni. The ビ carries the dakuten of bi, so the ear hears konbini and never konbinni.\nスーパー is the supermarket, 薬屋 the pharmacy and 書店 the bookshop. All four are places that sell things, which is exactly why they are the distractors: only コンビニ is the corner shop that is open late.",
+                ),
+                ChallengeEntity(
+                    id = 65015, lessonId = 851, type = ChallengeType.SELECT,
+                    question = "Which one means 'tax included'?",
+                    audioSrc = "asset:///audio/ja/zeikomi.ogg",
+                    orderIndex = 5,
+                    ruleText = "税込 is 税 (tax) + 込 (mi, as in 込む, to put in): the price already has the tax put in. It is zeikomi, and 税 is read zei here.\n割引 is money taken off and 値札 is the price card. 予算 is the amount of money you decided to spend. 税込 is the label that says the tax is already inside the number.",
+                ),
+                ChallengeEntity(
+                    id = 65016, lessonId = 851, type = ChallengeType.SELECT,
+                    question = "Which one means 'a receipt'?",
+                    audioSrc = "asset:///audio/ja/ryoushosho.ogg",
+                    orderIndex = 6,
+                    ruleText = "領収書 is 領収 (receiving) + 書 (a document). The 書 is read sho, so ryouSHOshO, with a small ょ in each of the two syllables.\n割引券 is the coupon that takes money off before you pay, 会計 is the bill itself, and 値札 is the price tag on the shelf. The receipt is the one piece of paper you keep: 領収書.",
+                ),
+                ChallengeEntity(
+                    id = 65017, lessonId = 851, type = ChallengeType.SELECT,
+                    question = "Which one means 'a fish shop'?",
+                    audioSrc = "asset:///audio/ja/sakanaya.ogg",
+                    orderIndex = 7,
+                    ruleText = "魚屋 is 魚 (fish) + 屋 (shop), said sakana-ya. The 魚 is the same one as in 魚 and 釣り, and the 屋 is the same 屋 as in 屋台 and 本屋.\n薬屋 sells medicine, 八百屋 sells vegetables, and 書店 sells books. They are all 屋 words, which is what makes them the distractors: the one that sells fish is 魚屋.",
+                ),
+                ChallengeEntity(
+                    id = 65018, lessonId = 851, type = ChallengeType.CONJUGATE,
+                    question = "Which one means 'How much is it altogether'?",
+                    audioSrc = "asset:///audio/ja/goukeiwaikuradesuka.ogg",
+                    orderIndex = 8,
+                    grammaticalFocus = "ja.na_adjective",
+                    ruleText = "合計 is a な-adjective, and a な-adjective never changes its stem: 合計 + です attaches です straight on, which is the polite copula doing the work, not a conjugation of 合計.\n合計はいくらだった is the plain 断定形, so it drops the polite ending the question asks for. 合計である is the plain written copula である, which is the register wrong. 合計がいくらですか puts が where the topic marker belongs: は names what is being asked about, and this question asks about 合計.",
+                ),
+                ChallengeEntity(
+                    id = 65019, lessonId = 851, type = ChallengeType.CONJUGATE,
+                    question = "Which one means 'I can't buy it by card'?",
+                    audioSrc = "asset:///audio/ja/kaadodewakaemasen.ogg",
+                    orderIndex = 9,
+                    grammaticalFocus = "ja.ability_polite",
+                    ruleText = "買えません is the polite potential negative: 買う → 買えます → 買えません. The う-stem changes to え, and then ません makes the negative, so kaemasen and not kaimasen. で は carries the は of contrast, so de wa says 'by card rather than some other way', and the は is read wa after で.\nカードでは買います is the plain ability to buy, with nothing said about being unable to. カードでは買わなくてもいい is 〜てもいい, which is permission, and it drops the polite です. カードでは買わなくていい puts なくて where えません belongs, and ない is the plain negative where this slot wants the polite potential.",
+                ),
+                ChallengeEntity(
+                    id = 65105, lessonId = 851, type = ChallengeType.LISTEN,
+                    question = "Tap what you hear",
+                    audioSrc = "asset:///audio/ja/konomisenoyasaiwayasuidesu.ogg",
+                    orderIndex = 10,
+                    grammaticalFocus = "ja.i_adjective",
+                    ruleText = "安いです is the polite present of the い-adjective 安い: the bare stem plus です, so yasui and not yasuku.\nこの店の野菜は安いくです glues the negative stem く onto です, which is never a polite ending. この店の野菜は安いでした hangs です past tense onto an い-adjective, which takes かった and never でした.",
+                ),
+                ChallengeEntity(
+                    id = 65104, lessonId = 851, type = ChallengeType.STORY,
+                    question = "📖 お会計\n\n\n店員: 「お会計をお願いします。」\n私: 「これ、現金でお願いします。」\n店員: 「かしこまりました。領収書をお渡しします。」\n私: 「ありがとうございます。」\n\n❓ What will the customer get from the shop assistant?",
+                    orderIndex = 11,
+                    ruleText = "領収書 is what お渡しします, what the assistant hands over with the change: ryouSHOshO, with a small ょ in each of the two syllables.\n割引券 is the coupon you hand in before paying, 値札 is the tag on the shelf, and 小銭 is the coins. None of them is a document the shop gives you at the till.",
+                ),
+                // --- Lesson 41: The Home ---
+                ChallengeEntity(
+                    id = 65020, lessonId = 852, type = ChallengeType.MATCH_PAIRS,
+                    question = "Match the rooms",
+                    orderIndex = 0,
+                ),
+                ChallengeEntity(
+                    id = 65021, lessonId = 852, type = ChallengeType.MATCH_PAIRS,
+                    question = "Match the furniture and machines",
+                    orderIndex = 1,
+                ),
+                ChallengeEntity(
+                    id = 65022, lessonId = 852, type = ChallengeType.MATCH_PAIRS,
+                    question = "Match the things in the kitchen",
+                    orderIndex = 2,
+                ),
+                ChallengeEntity(
+                    id = 65023, lessonId = 852, type = ChallengeType.MATCH_PAIRS,
+                    question = "Match the describing words",
+                    orderIndex = 3,
+                ),
+                ChallengeEntity(
+                    id = 65024, lessonId = 852, type = ChallengeType.SELECT,
+                    question = "Which one means the kitchen?",
+                    audioSrc = "asset:///audio/ja/daidokoro.ogg",
+                    orderIndex = 4,
+                    ruleText = "台所 is the place where you cook: the older spelling is 厨, and 所 is a place. It is daiDOKoro — the second syllable is the low do, not a high one.\n洗面所 is the washroom, 寝室 the bedroom, and 冷蔵庫 the fridge. All three are rooms or objects in a flat, and the one where you cook is 台所.",
+                ),
+                ChallengeEntity(
+                    id = 65025, lessonId = 852, type = ChallengeType.SELECT,
+                    question = "Which one means 'a washing machine'?",
+                    audioSrc = "asset:///audio/ja/sentakuki.ogg",
+                    orderIndex = 5,
+                    ruleText = "洗濯機 is 洗濯 (laundry) + 機 (a machine), said sentaKUKI: the き carries a small つ in its second mora.\n冷蔵庫 is the fridge, 掃除機 the vacuum cleaner, and 茶碗 a rice bowl. Two machines and a piece of crockery, and only one of them washes your clothes.",
+                ),
+                ChallengeEntity(
+                    id = 65106, lessonId = 852, type = ChallengeType.LISTEN,
+                    question = "Tap what you hear",
+                    audioSrc = "asset:///audio/ja/konoheyawahiroidesu.ogg",
+                    orderIndex = 6,
+                    grammaticalFocus = "ja.i_adjective",
+                    ruleText = "広いです is the polite present of the い-adjective 広い: the bare stem plus です, so hiroi and not hiroku.\nこの部屋は広くなかった is the plain past negative, so the room is no longer spacious. この部屋は広いでした hangs です past tense onto an い-adjective, which takes かった and never でした.",
+                ),
+                ChallengeEntity(
+                    id = 65026, lessonId = 852, type = ChallengeType.FILL_BLANK,
+                    question = "去年、日本へ___。",
+                    audioSrc = "asset:///audio/ja/ikimashita.ogg",
+                    orderIndex = 7,
+                    grammaticalFocus = "ja.past_polite",
+                    acceptedAnswers = "行きました|いきました",
+                    ruleText = "去年、日本へ行きました is the polite past: 行く → 行きます → 行きました, and 去年 is last year so the journey is over. で is not used with 行く to a country: 日本へ takes the directional へ.\n去年、日本へ行きます is the polite present, so nothing in it says the journey is finished. 去年、日本へ行きましたか is the polite past turned into a question, and this item states a fact. 去年、日本へ行ってください is a request addressed to someone else, and the blank here is the speaker's own report of what they did.",
+                ),
+                ChallengeEntity(
+                    id = 65027, lessonId = 852, type = ChallengeType.SELECT,
+                    question = "Which one says 'I have lived here for three years'?",
+                    orderIndex = 8,
+                    grammaticalFocus = "ja.te_form",
+                    ruleText = "住んでいます is 住む + ています, the polite present progressive: I still live here. Here is に, because 住む takes に for the place someone lives in.\nここに三年住みました is the polite past, so the living is over. ここに三年住んでいますか is the same sentence turned into a question, which is the shape of an ask rather than a statement. ここに三年住んでいません is the progressive negative, so the living has stopped.",
+                ),
+                ChallengeEntity(
+                    id = 65107, lessonId = 852, type = ChallengeType.LISTEN,
+                    question = "Tap what you hear",
+                    audioSrc = "asset:///audio/ja/mainichikonoheyaosoujishimasu.ogg",
+                    orderIndex = 9,
+                    grammaticalFocus = "ja.polite_verb",
+                    ruleText = "掃除します is the polite present of the ichidan verb 掃除する: drop る, and す becomes します.\n毎日この部屋を掃除しません is the polite negative present, so the sweeping does not happen. 毎日この部屋を掃除でした is a noun given a copula, and 掃除する is a する-verb — it takes します, not です.",
+                ),
+                ChallengeEntity(
+                    id = 65108, lessonId = 852, type = ChallengeType.STORY,
+                    question = "📖 買い物\n\n\n母: 「冷蔵庫に何もないね。買い物に行こう。」\n私: 「うん。野菜と牛乳を買おう。」\n母: 「いいわ。あと、おさとうも。」\n私: 「冷蔵庫に入れておくね。」\n\n❓ What do the mother and child decide to do?",
+                    orderIndex = 10,
+                    ruleText = "買い物 is 買物 in the modern spelling: 買 (to buy) + 物 (a thing), said kaimono. The 物 is mono, so the second syllable is long — the opposite of 食べ物, where the second syllable is short.\n台所 is the kitchen, 洗面所 the washroom, and 寝室 the bedroom. All three are rooms in the flat, and the one that means a trip to the shops is 買い物.",
+                ),
+            ),
+            options = listOf(
+
+                ChallengeOptionEntity(id = 6500001, challengeId = 65000, text = "店", romaji = "mise", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500002, challengeId = 65000, text = "shop", romaji = null, correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500003, challengeId = 65000, text = "靴", romaji = "kutsu", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500004, challengeId = 65000, text = "shoes", romaji = null, correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500005, challengeId = 65000, text = "帽子", romaji = "boshi", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500006, challengeId = 65000, text = "hat", romaji = null, correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500007, challengeId = 65000, text = "かばん", romaji = "kaban", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500008, challengeId = 65000, text = "bag", romaji = null, correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500009, challengeId = 65000, text = "服", romaji = "fuku", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500010, challengeId = 65000, text = "clothes", romaji = null, correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500011, challengeId = 65000, text = "靴下", romaji = "kutsushita", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500012, challengeId = 65000, text = "socks", romaji = null, correct = true, errorTag = null),
+
+                ChallengeOptionEntity(id = 6500013, challengeId = 65001, text = "買う", romaji = "kau", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500014, challengeId = 65001, text = "to buy", romaji = null, correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500015, challengeId = 65001, text = "値段", romaji = "nedan", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500016, challengeId = 65001, text = "price", romaji = null, correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500017, challengeId = 65001, text = "安い", romaji = "yasui", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500018, challengeId = 65001, text = "cheap", romaji = null, correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500019, challengeId = 65001, text = "選ぶ", romaji = "erabu", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500020, challengeId = 65001, text = "to choose", romaji = null, correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500021, challengeId = 65001, text = "割引", romaji = "waribiki", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500022, challengeId = 65001, text = "discount", romaji = null, correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500023, challengeId = 65001, text = "値札", romaji = "nefuda", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500024, challengeId = 65001, text = "price tag", romaji = null, correct = true, errorTag = null),
+
+                ChallengeOptionEntity(id = 6500025, challengeId = 65002, text = "試着室", romaji = "shichakushitsu", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500026, challengeId = 65002, text = "fitting room", romaji = null, correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500027, challengeId = 65002, text = "売り場", romaji = "uriba", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500028, challengeId = 65002, text = "sales area", romaji = null, correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500029, challengeId = 65002, text = "営業中", romaji = "eigyouchuu", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500030, challengeId = 65002, text = "open for business", romaji = null, correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500031, challengeId = 65002, text = "閉店", romaji = "heiten", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500032, challengeId = 65002, text = "closing time", romaji = null, correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500033, challengeId = 65002, text = "屋台", romaji = "yatai", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500034, challengeId = 65002, text = "street food stall", romaji = null, correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500035, challengeId = 65002, text = "百貨店", romaji = "hyakkaten", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500036, challengeId = 65002, text = "department store", romaji = null, correct = true, errorTag = null),
+
+                ChallengeOptionEntity(id = 6500037, challengeId = 65003, text = "古い", romaji = "furui", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500038, challengeId = 65003, text = "old", romaji = null, correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500039, challengeId = 65003, text = "サイズ", romaji = "saizu", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500040, challengeId = 65003, text = "size", romaji = null, correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500041, challengeId = 65003, text = "大きい", romaji = "ookii", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500042, challengeId = 65003, text = "big", romaji = null, correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500043, challengeId = 65003, text = "小さい", romaji = "chiisai", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500044, challengeId = 65003, text = "small", romaji = null, correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500045, challengeId = 65003, text = "新しい", romaji = "atarashii", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500046, challengeId = 65003, text = "new", romaji = null, correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500047, challengeId = 65003, text = "半額", romaji = "hangaku", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500048, challengeId = 65003, text = "half price", romaji = null, correct = true, errorTag = null),
+
+                ChallengeOptionEntity(id = 6500049, challengeId = 65004, text = "定価", romaji = "teika", correct = true, errorTag = null, audioSrc = "asset:///audio/ja/teika.ogg"),
+                ChallengeOptionEntity(id = 6500050, challengeId = 65004, text = "値段", romaji = "nedan", correct = false, errorTag = null),
+                ChallengeOptionEntity(id = 6500051, challengeId = 65004, text = "値札", romaji = "nefuda", correct = false, errorTag = null),
+                ChallengeOptionEntity(id = 6500052, challengeId = 65004, text = "割引", romaji = "waribiki", correct = false, errorTag = null),
+
+                ChallengeOptionEntity(id = 6500053, challengeId = 65005, text = "売り切れ", romaji = "urikire", correct = true, errorTag = null, audioSrc = "asset:///audio/ja/urikire.ogg"),
+                ChallengeOptionEntity(id = 6500054, challengeId = 65005, text = "営業中", romaji = "eigyouchuu", correct = false, errorTag = null),
+                ChallengeOptionEntity(id = 6500055, challengeId = 65005, text = "閉店", romaji = "heiten", correct = false, errorTag = null),
+                ChallengeOptionEntity(id = 6500056, challengeId = 65005, text = "値札", romaji = "nefuda", correct = false, errorTag = null),
+
+                ChallengeOptionEntity(id = 6500057, challengeId = 65006, text = "野菜", romaji = "yasai", correct = true, errorTag = null, audioSrc = "asset:///audio/ja/yasai.ogg"),
+                ChallengeOptionEntity(id = 6500058, challengeId = 65006, text = "果物", romaji = "katsumono", correct = false, errorTag = null),
+                ChallengeOptionEntity(id = 6500059, challengeId = 65006, text = "肉", romaji = "niku", correct = false, errorTag = null),
+                ChallengeOptionEntity(id = 6500060, challengeId = 65006, text = "魚", romaji = "sakana", correct = false, errorTag = null),
+
+                ChallengeOptionEntity(id = 6500061, challengeId = 65007, text = "定休日", romaji = "teikyubi", correct = true, errorTag = null, audioSrc = "asset:///audio/ja/teikyubi.ogg"),
+                ChallengeOptionEntity(id = 6500062, challengeId = 65007, text = "閉店", romaji = "heiten", correct = false, errorTag = null),
+                ChallengeOptionEntity(id = 6500063, challengeId = 65007, text = "営業中", romaji = "eigyouchuu", correct = false, errorTag = null),
+                ChallengeOptionEntity(id = 6500064, challengeId = 65007, text = "半額", romaji = "hangaku", correct = false, errorTag = null),
+
+                ChallengeOptionEntity(id = 6500065, challengeId = 65008, text = "きのう、", romaji = "kinou", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500066, challengeId = 65008, text = "あの店で", romaji = "ano mise de", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500067, challengeId = 65008, text = "帽子を", romaji = "boshi o", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500068, challengeId = 65008, text = "買いました", romaji = "kaimashita", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500069, challengeId = 65008, text = "買った", romaji = "katta", correct = false, errorTag = "WRONG_TENSE"),
+                ChallengeOptionEntity(id = 6500070, challengeId = 65008, text = "あの店と", romaji = "ano mise to", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 6500071, challengeId = 65008, text = "買う", romaji = "kau", correct = false, errorTag = "WRONG_REGISTER"),
+
+                ChallengeOptionEntity(id = 6500072, challengeId = 65009, text = "現金で払わなければなりません。", romaji = "genkin de harwanakereba narimasen", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500073, challengeId = 65009, text = "現金で払う。", romaji = "genkin de harau", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 6500074, challengeId = 65009, text = "現金で払わなくてもいいです。", romaji = "genkin de harwanakutemo ii desu", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 6500075, challengeId = 65009, text = "現金で払わなかった。", romaji = "genkin de harwanakatta", correct = false, errorTag = "WRONG_TENSE"),
+
+                ChallengeOptionEntity(id = 6500076, challengeId = 65010, text = "大きい", romaji = "ookii", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500077, challengeId = 65010, text = "大きく", romaji = "ookiku", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 6500078, challengeId = 65010, text = "大きいです", romaji = "ookii desu", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 6500079, challengeId = 65010, text = "大きかった", romaji = "ookikatta", correct = false, errorTag = "WRONG_TENSE"),
+
+                ChallengeOptionEntity(id = 6500080, challengeId = 65011, text = "いっしょに映画を見ましょう。", romaji = "isshoni eiga o mimashou", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500081, challengeId = 65011, text = "いっしょに映画を見ましょうか。", romaji = "isshoni eiga o mimashou ka", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 6500082, challengeId = 65011, text = "いっしょに映画を見よう。", romaji = "isshoni eiga o miyou", correct = false, errorTag = "WRONG_REGISTER"),
+                ChallengeOptionEntity(id = 6500083, challengeId = 65011, text = "いっしょに映画を見ました。", romaji = "isshoni eiga o mimashita", correct = false, errorTag = "WRONG_TENSE"),
+
+                ChallengeOptionEntity(id = 6500084, challengeId = 65100, text = "この店の靴は安いです。", romaji = "kono mise no kutsu wa yasui desu", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500085, challengeId = 65100, text = "この店の靴は安いくです。", romaji = "kono mise no kutsu wa yasuku desu", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 6500086, challengeId = 65100, text = "この店の靴は安いでした。", romaji = "kono mise no kutsu wa yasui deshita", correct = false, errorTag = "WRONG_TENSE"),
+
+                ChallengeOptionEntity(id = 6500087, challengeId = 65101, text = "きのう、あの店で靴を買いました。", romaji = "kinou ano mise de kutsu o kaimashita", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500088, challengeId = 65101, text = "きのう、あの店で靴を買います。", romaji = "kinou ano mise de kutsu o kaimasu", correct = false, errorTag = "WRONG_TENSE"),
+                ChallengeOptionEntity(id = 6500089, challengeId = 65101, text = "きのう、あの店で靴を買った。", romaji = "kinou ano mise de kutsu o katta", correct = false, errorTag = "WRONG_REGISTER"),
+
+                ChallengeOptionEntity(id = 6500090, challengeId = 65102, text = "駅で切符を買わなければなりません。", romaji = "eki de kippu o kawanakereba narimasen", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500091, challengeId = 65102, text = "駅で切符を買わなくてもいいです。", romaji = "eki de kippu o kawanakutemo ii desu", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 6500092, challengeId = 65102, text = "駅で切符を買いました。", romaji = "eki de kippu o kaimashita", correct = false, errorTag = "WRONG_TENSE"),
+
+                ChallengeOptionEntity(id = 6500093, challengeId = 65103, text = "商店街", romaji = "shotengai", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500094, challengeId = 65103, text = "百貨店", romaji = "hyakkaten", correct = false, errorTag = "UNRELATED"),
+                ChallengeOptionEntity(id = 6500095, challengeId = 65103, text = "屋台", romaji = "yatai", correct = false, errorTag = "UNRELATED"),
+                ChallengeOptionEntity(id = 6500096, challengeId = 65103, text = "試着室", romaji = "shichakushitsu", correct = false, errorTag = "UNRELATED"),
+
+                ChallengeOptionEntity(id = 6500097, challengeId = 65028, text = "お金", romaji = "okane", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500098, challengeId = 65028, text = "money", romaji = null, correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500099, challengeId = 65028, text = "現金", romaji = "genkin", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500100, challengeId = 65028, text = "cash", romaji = null, correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500101, challengeId = 65028, text = "おつり", romaji = "otsuri", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500102, challengeId = 65028, text = "change", romaji = null, correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500103, challengeId = 65028, text = "札", romaji = "satsu", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500104, challengeId = 65028, text = "banknote", romaji = null, correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500105, challengeId = 65028, text = "小銭", romaji = "kozeni", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500106, challengeId = 65028, text = "coins", romaji = null, correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500107, challengeId = 65028, text = "財布", romaji = "saifu", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500108, challengeId = 65028, text = "wallet", romaji = null, correct = true, errorTag = null),
+
+                ChallengeOptionEntity(id = 6500109, challengeId = 65029, text = "払う", romaji = "harau", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500110, challengeId = 65029, text = "to pay", romaji = null, correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500111, challengeId = 65029, text = "会計", romaji = "kaikei", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500112, challengeId = 65029, text = "the bill", romaji = null, correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500113, challengeId = 65029, text = "領収書", romaji = "ryoushosho", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500114, challengeId = 65029, text = "receipt", romaji = null, correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500115, challengeId = 65029, text = "両替", romaji = "riougae", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500116, challengeId = 65029, text = "changing money", romaji = null, correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500117, challengeId = 65029, text = "カウンター", romaji = "kauntaa", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500118, challengeId = 65029, text = "the counter", romaji = null, correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500119, challengeId = 65029, text = "値札", romaji = "nefuda", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500120, challengeId = 65029, text = "price tag", romaji = null, correct = true, errorTag = null),
+
+                ChallengeOptionEntity(id = 6500121, challengeId = 65030, text = "スーパー", romaji = "suupaa", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500122, challengeId = 65030, text = "supermarket", romaji = null, correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500123, challengeId = 65030, text = "コンビニ", romaji = "konbini", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500124, challengeId = 65030, text = "convenience store", romaji = null, correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500125, challengeId = 65030, text = "書店", romaji = "shoten", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500126, challengeId = 65030, text = "bookshop", romaji = null, correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500127, challengeId = 65030, text = "薬屋", romaji = "kusuriya", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500128, challengeId = 65030, text = "pharmacy", romaji = null, correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500129, challengeId = 65030, text = "魚屋", romaji = "sakana ya", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500130, challengeId = 65030, text = "fish shop", romaji = null, correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500131, challengeId = 65030, text = "八百屋", romaji = "yaoya", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500132, challengeId = 65030, text = "greengrocer", romaji = null, correct = true, errorTag = null),
+
+                ChallengeOptionEntity(id = 6500133, challengeId = 65031, text = "予算", romaji = "yosan", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500134, challengeId = 65031, text = "budget", romaji = null, correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500135, challengeId = 65031, text = "税込", romaji = "zeikomi", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500136, challengeId = 65031, text = "tax included", romaji = null, correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500137, challengeId = 65031, text = "割引券", romaji = "waribikiken", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500138, challengeId = 65031, text = "discount coupon", romaji = null, correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500139, challengeId = 65031, text = "品物", romaji = "shinamono", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500140, challengeId = 65031, text = "goods", romaji = null, correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500141, challengeId = 65031, text = "封筒", romaji = "fuutoo", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500142, challengeId = 65031, text = "an envelope", romaji = null, correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500143, challengeId = 65031, text = "切手", romaji = "kitte", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500144, challengeId = 65031, text = "a stamp", romaji = null, correct = true, errorTag = null),
+
+                ChallengeOptionEntity(id = 6500145, challengeId = 65014, text = "コンビニ", romaji = "konbini", correct = true, errorTag = null, audioSrc = "asset:///audio/ja/konbini.ogg"),
+                ChallengeOptionEntity(id = 6500146, challengeId = 65014, text = "スーパー", romaji = "suupaa", correct = false, errorTag = null),
+                ChallengeOptionEntity(id = 6500147, challengeId = 65014, text = "薬屋", romaji = "kusuriya", correct = false, errorTag = null),
+                ChallengeOptionEntity(id = 6500148, challengeId = 65014, text = "書店", romaji = "shoten", correct = false, errorTag = null),
+
+                ChallengeOptionEntity(id = 6500149, challengeId = 65015, text = "税込", romaji = "zeikomi", correct = true, errorTag = null, audioSrc = "asset:///audio/ja/zeikomi.ogg"),
+                ChallengeOptionEntity(id = 6500150, challengeId = 65015, text = "割引", romaji = "waribiki", correct = false, errorTag = null),
+                ChallengeOptionEntity(id = 6500151, challengeId = 65015, text = "値札", romaji = "nefuda", correct = false, errorTag = null),
+                ChallengeOptionEntity(id = 6500152, challengeId = 65015, text = "予算", romaji = "yosan", correct = false, errorTag = null),
+
+                ChallengeOptionEntity(id = 6500153, challengeId = 65016, text = "領収書", romaji = "ryoushosho", correct = true, errorTag = null, audioSrc = "asset:///audio/ja/ryoushosho.ogg"),
+                ChallengeOptionEntity(id = 6500154, challengeId = 65016, text = "割引券", romaji = "waribikiken", correct = false, errorTag = null),
+                ChallengeOptionEntity(id = 6500155, challengeId = 65016, text = "会計", romaji = "kaikei", correct = false, errorTag = null),
+                ChallengeOptionEntity(id = 6500156, challengeId = 65016, text = "値札", romaji = "nefuda", correct = false, errorTag = null),
+
+                ChallengeOptionEntity(id = 6500157, challengeId = 65017, text = "魚屋", romaji = "sakana ya", correct = true, errorTag = null, audioSrc = "asset:///audio/ja/sakanaya.ogg"),
+                ChallengeOptionEntity(id = 6500158, challengeId = 65017, text = "薬屋", romaji = "kusuriya", correct = false, errorTag = null),
+                ChallengeOptionEntity(id = 6500159, challengeId = 65017, text = "八百屋", romaji = "yaoya", correct = false, errorTag = null),
+                ChallengeOptionEntity(id = 6500160, challengeId = 65017, text = "書店", romaji = "shoten", correct = false, errorTag = null),
+
+                ChallengeOptionEntity(id = 6500161, challengeId = 65018, text = "合計はいくらですか。", romaji = "goukei wa ikura desu ka", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500162, challengeId = 65018, text = "合計はいくらだった。", romaji = "goukei wa ikura datta", correct = false, errorTag = "WRONG_REGISTER"),
+                ChallengeOptionEntity(id = 6500163, challengeId = 65018, text = "合計である。", romaji = "goukei de aru", correct = false, errorTag = "WRONG_REGISTER"),
+                ChallengeOptionEntity(id = 6500164, challengeId = 65018, text = "合計がいくらですか。", romaji = "goukei ga ikura desu ka", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 6500165, challengeId = 65019, text = "カードでは買えません。", romaji = "kaado de wa kaemasen", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500166, challengeId = 65019, text = "カードでは買います。", romaji = "kaado de wa kaimasu", correct = false, errorTag = "WRONG_TENSE"),
+                ChallengeOptionEntity(id = 6500167, challengeId = 65019, text = "カードでは買わなくてもいい。", romaji = "kaado de wa kawanakutemo ii", correct = false, errorTag = "WRONG_REGISTER"),
+                ChallengeOptionEntity(id = 6500168, challengeId = 65019, text = "カードでは買わなくていい。", romaji = "kaado de wa kawanakute ii", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 6500169, challengeId = 65105, text = "この店の野菜は安いです。", romaji = "kono mise no yasai wa yasui desu", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500170, challengeId = 65105, text = "この店の野菜は安いくです。", romaji = "kono mise no yasai wa yasuku desu", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 6500171, challengeId = 65105, text = "この店の野菜は安いでした。", romaji = "kono mise no yasai wa yasui deshita", correct = false, errorTag = "WRONG_TENSE"),
+
+                ChallengeOptionEntity(id = 6500172, challengeId = 65104, text = "領収書", romaji = "ryoushosho", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500173, challengeId = 65104, text = "割引券", romaji = "waribikiken", correct = false, errorTag = "UNRELATED"),
+                ChallengeOptionEntity(id = 6500174, challengeId = 65104, text = "値札", romaji = "nefuda", correct = false, errorTag = "UNRELATED"),
+                ChallengeOptionEntity(id = 6500175, challengeId = 65104, text = "小銭", romaji = "kozeni", correct = false, errorTag = "UNRELATED"),
+
+                ChallengeOptionEntity(id = 6500176, challengeId = 65020, text = "台所", romaji = "daidokoro", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500177, challengeId = 65020, text = "kitchen", romaji = null, correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500178, challengeId = 65020, text = "寝室", romaji = "shinshitsu", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500179, challengeId = 65020, text = "bedroom", romaji = null, correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500180, challengeId = 65020, text = "居間", romaji = "ima", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500181, challengeId = 65020, text = "living room", romaji = null, correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500182, challengeId = 65020, text = "洗面所", romaji = "senmenjo", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500183, challengeId = 65020, text = "washroom", romaji = null, correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500184, challengeId = 65020, text = "冷蔵庫", romaji = "reezooko", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500185, challengeId = 65020, text = "fridge", romaji = null, correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500186, challengeId = 65020, text = "窓", romaji = "mado", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500187, challengeId = 65020, text = "window", romaji = null, correct = true, errorTag = null),
+
+                ChallengeOptionEntity(id = 6500188, challengeId = 65021, text = "テーブル", romaji = "teeburu", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500189, challengeId = 65021, text = "table", romaji = null, correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500190, challengeId = 65021, text = "椅子", romaji = "isu", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500191, challengeId = 65021, text = "chair", romaji = null, correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500192, challengeId = 65021, text = "洗濯機", romaji = "sentakuki", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500193, challengeId = 65021, text = "washing machine", romaji = null, correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500194, challengeId = 65021, text = "掃除機", romaji = "soojiki", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500195, challengeId = 65021, text = "vacuum cleaner", romaji = null, correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500196, challengeId = 65021, text = "ドア", romaji = "doa", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500197, challengeId = 65021, text = "door", romaji = null, correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500198, challengeId = 65021, text = "電気", romaji = "denki", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500199, challengeId = 65021, text = "electricity", romaji = null, correct = true, errorTag = null),
+
+                ChallengeOptionEntity(id = 6500200, challengeId = 65022, text = "包丁", romaji = "houchou", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500201, challengeId = 65022, text = "kitchen knife", romaji = null, correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500202, challengeId = 65022, text = "皿", romaji = "sara", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500203, challengeId = 65022, text = "plate", romaji = null, correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500204, challengeId = 65022, text = "箸", romaji = "hashi", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500205, challengeId = 65022, text = "chopsticks", romaji = null, correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500206, challengeId = 65022, text = "茶碗", romaji = "chawan", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500207, challengeId = 65022, text = "rice bowl", romaji = null, correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500208, challengeId = 65022, text = "鍋", romaji = "nabe", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500209, challengeId = 65022, text = "cooking pot", romaji = null, correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500210, challengeId = 65022, text = "飲み物", romaji = "nomimono", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500211, challengeId = 65022, text = "a drink", romaji = null, correct = true, errorTag = null),
+
+                ChallengeOptionEntity(id = 6500212, challengeId = 65023, text = "広い", romaji = "hiroi", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500213, challengeId = 65023, text = "spacious", romaji = null, correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500214, challengeId = 65023, text = "狭い", romaji = "semai", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500215, challengeId = 65023, text = "narrow", romaji = null, correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500216, challengeId = 65023, text = "新しい", romaji = "atarashii", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500217, challengeId = 65023, text = "new", romaji = null, correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500218, challengeId = 65023, text = "古い", romaji = "furui", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500219, challengeId = 65023, text = "old", romaji = null, correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500220, challengeId = 65023, text = "明るい", romaji = "akarui", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500221, challengeId = 65023, text = "bright", romaji = null, correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500222, challengeId = 65023, text = "暗い", romaji = "kurai", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500223, challengeId = 65023, text = "dark", romaji = null, correct = true, errorTag = null),
+
+                ChallengeOptionEntity(id = 6500224, challengeId = 65024, text = "台所", romaji = "daidokoro", correct = true, errorTag = null, audioSrc = "asset:///audio/ja/daidokoro.ogg"),
+                ChallengeOptionEntity(id = 6500225, challengeId = 65024, text = "洗面所", romaji = "senmenjo", correct = false, errorTag = null),
+                ChallengeOptionEntity(id = 6500226, challengeId = 65024, text = "寝室", romaji = "shinshitsu", correct = false, errorTag = null),
+                ChallengeOptionEntity(id = 6500227, challengeId = 65024, text = "冷蔵庫", romaji = "reezooko", correct = false, errorTag = null),
+
+                ChallengeOptionEntity(id = 6500228, challengeId = 65025, text = "洗濯機", romaji = "sentakuki", correct = true, errorTag = null, audioSrc = "asset:///audio/ja/sentakuki.ogg"),
+                ChallengeOptionEntity(id = 6500229, challengeId = 65025, text = "冷蔵庫", romaji = "reezooko", correct = false, errorTag = null),
+                ChallengeOptionEntity(id = 6500230, challengeId = 65025, text = "掃除機", romaji = "soojiki", correct = false, errorTag = null),
+                ChallengeOptionEntity(id = 6500231, challengeId = 65025, text = "茶碗", romaji = "chawan", correct = false, errorTag = null),
+
+                ChallengeOptionEntity(id = 6500232, challengeId = 65106, text = "この部屋は広いです。", romaji = "kono heya wa hiroi desu", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500233, challengeId = 65106, text = "この部屋は広くなかった。", romaji = "kono heya wa hiroku nakatta", correct = false, errorTag = "WRONG_TENSE"),
+                ChallengeOptionEntity(id = 6500234, challengeId = 65106, text = "この部屋は広いでした。", romaji = "kono heya wa hiroi deshita", correct = false, errorTag = "WRONG_TENSE"),
+
+                ChallengeOptionEntity(id = 6500235, challengeId = 65026, text = "行きました", romaji = "ikimashita", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500236, challengeId = 65026, text = "行きます。", romaji = "ikimasu", correct = false, errorTag = "WRONG_TENSE"),
+                ChallengeOptionEntity(id = 6500237, challengeId = 65026, text = "行きましたか。", romaji = "ikimashita ka", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 6500238, challengeId = 65026, text = "去年、日本へ行ってください。", romaji = "kyonen nippon e itte kudasai", correct = false, errorTag = "WRONG_REGISTER"),
+
+                ChallengeOptionEntity(id = 6500239, challengeId = 65027, text = "ここに三年住んでいます。", romaji = "koko ni sannen sunde imasu", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500240, challengeId = 65027, text = "ここに三年住みました。", romaji = "koko ni sannen sumimashita", correct = false, errorTag = "WRONG_TENSE"),
+                ChallengeOptionEntity(id = 6500241, challengeId = 65027, text = "ここに三年住んでいますか。", romaji = "koko ni sannen sunde imasu ka", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 6500242, challengeId = 65027, text = "ここに三年住んでいません。", romaji = "koko ni sannen sunde imasen", correct = false, errorTag = "WRONG_TENSE"),
+
+                ChallengeOptionEntity(id = 6500243, challengeId = 65107, text = "毎日この部屋を掃除します。", romaji = "mainichi kono heya o souji shimasu", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500244, challengeId = 65107, text = "毎日この部屋を掃除しません。", romaji = "mainichi kono heya o souji shimasen", correct = false, errorTag = "WRONG_TENSE"),
+                ChallengeOptionEntity(id = 6500245, challengeId = 65107, text = "毎日この部屋を掃除でした。", romaji = "mainichi kono heya o souji deshita", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 6500246, challengeId = 65108, text = "買い物", romaji = "kaimono", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500247, challengeId = 65108, text = "台所", romaji = "daidokoro", correct = false, errorTag = "UNRELATED"),
+                ChallengeOptionEntity(id = 6500248, challengeId = 65108, text = "洗面所", romaji = "senmenjo", correct = false, errorTag = "UNRELATED"),
+                ChallengeOptionEntity(id = 6500249, challengeId = 65108, text = "寝室", romaji = "shinshitsu", correct = false, errorTag = "UNRELATED"),
+            ),
+        ),
+        // =====================================================================
+        UnitPayload(
+            unit = UnitEntity(
+                id = 47,
+                courseId = 2,
+                title = "Unit 18: Getting Around & Going to Work",
+                description = "The N4 nouns of a commute: the ticket, the platform, the office, and the people in it",
+                orderIndex = 17,
+            ),
+            lessons = listOf(
+                LessonEntity(id = 853, unitId = 47, title = "Lesson 42: The Train and the Ticket", orderIndex = 0),
+                LessonEntity(id = 854, unitId = 47, title = "Lesson 43: At Work", orderIndex = 1),
+                LessonEntity(id = 855, unitId = 47, title = "Lesson 44: The Week and the Weather", orderIndex = 2),
+            ),
+            challenges = listOf(
+                // --- Lesson 42: The Train and the Ticket ---
+                ChallengeEntity(
+                    id = 65200, lessonId = 853, type = ChallengeType.MATCH_PAIRS,
+                    question = "Match the ticket words",
+                    orderIndex = 0,
+                ),
+                ChallengeEntity(
+                    id = 65201, lessonId = 853, type = ChallengeType.MATCH_PAIRS,
+                    question = "Match the station words",
+                    orderIndex = 1,
+                ),
+                ChallengeEntity(
+                    id = 65202, lessonId = 853, type = ChallengeType.MATCH_PAIRS,
+                    question = "Match the people on the train",
+                    orderIndex = 2,
+                ),
+                ChallengeEntity(
+                    id = 65203, lessonId = 853, type = ChallengeType.MATCH_PAIRS,
+                    question = "Match the words for the journey",
+                    orderIndex = 3,
+                ),
+                ChallengeEntity(
+                    id = 65204, lessonId = 853, type = ChallengeType.SELECT,
+                    question = "Which one means 'a season ticket'?",
+                    audioSrc = "asset:///audio/ja/teekiken.ogg",
+                    orderIndex = 4,
+                    ruleText = "定期券 is 定期 (a fixed term) + 券 (a voucher): the ticket that is valid for a month or a year. The 期 is read ki with a small い before the ん, so teiki.\n切符 is a single ticket, 往復券 the return ticket and 片道券 the one-way ticket. All four are things you hand over at the gate, and the one you buy once and use all month is 定期券.",
+                ),
+                ChallengeEntity(
+                    id = 65205, lessonId = 853, type = ChallengeType.SELECT,
+                    question = "Which one means 'the bus stop'?",
+                    audioSrc = "asset:///audio/ja/teeryuujo.ogg",
+                    orderIndex = 5,
+                    ruleText = "停留所 is 停留 (a stop, as in 停留所) written with a kanji form you do not need: said teeRYUUjo. The り carries a long vowel, so ryuu, and the 所 is jo.\n待合室 is the indoor waiting room, 切符売り場 the ticket office, and 入口 the way in. Three places inside a station, and the one the bus stops at is 停留所.",
+                ),
+                ChallengeEntity(
+                    id = 65206, lessonId = 853, type = ChallengeType.SELECT,
+                    question = "Which one says 'the train leaves at nine'?",
+                    orderIndex = 6,
+                    grammaticalFocus = "ja.polite_verb",
+                    ruleText = "出発します is 出発する, a する-verb in the polite present: 出発 + します. 九時に puts に on the hour, because a time takes に and not は.\n電車は九時に到着します is the arrival, not the departure, and the two nouns are not interchangeable. 電車は九時に出発しません is the polite negative. 電車は九時が出発します puts が on the hour, and が marks the subject of a transitive verb — 出発する has no object, so the hour goes under に.",
+                ),
+                ChallengeEntity(
+                    id = 65207, lessonId = 853, type = ChallengeType.CONJUGATE,
+                    question = "Which one means 'I change trains at the next station'?",
+                    audioSrc = "asset:///audio/ja/tsuginoekidenorikaemasu.ogg",
+                    orderIndex = 7,
+                    grammaticalFocus = "ja.polite_verb",
+                    ruleText = "乗り換えます is the polite present: 乗り換える → 乗り換えます. で marks the station where the change happens, and 換 is the 扌 plus 奐.\n次の駅で乗り換えますか is the same sentence as a question. 次の駅で乗り換えました is the polite past, so the change is over. 次の駅で乗り換えています is the progressive, built on the te-form 乗り換えて — and that is not the plain form the polite present is made from.",
+                ),
+                ChallengeEntity(
+                    id = 65300, lessonId = 853, type = ChallengeType.LISTEN,
+                    question = "Tap what you hear",
+                    audioSrc = "asset:///audio/ja/denshagaokureteimasu.ogg",
+                    orderIndex = 8,
+                    grammaticalFocus = "ja.te_form",
+                    ruleText = "遅れています is 遅れる + ています, the polite present progressive, so the train is late right now. が marks the train as the thing that is late.\n電車が遅れました is the polite past, so the train was late and is not any more. 電車は遅れています swaps が for は, and は marks the topic rather than the subject of an intransitive verb — the difference is audible as a pause.",
+                ),
+                ChallengeEntity(
+                    id = 65301, lessonId = 853, type = ChallengeType.LISTEN,
+                    question = "Tap what you hear",
+                    audioSrc = "asset:///audio/ja/kippuoichimaikattekudasai.ogg",
+                    orderIndex = 9,
+                    grammaticalFocus = "ja.request_polite",
+                    ruleText = "買ってください is the polite request: the て-form of 買う plus ください, so katte kudasai. 一枚 is ichiMAI — the counter for thin flat things, and the い carries no long vowel.\n切符を一枚買ってくださいです doubles the polite ending: ください is already the polite request, and です may not follow it. 切符を一枚買うてください separates 買う and てください, and ください only ever follows the て-form.",
+                ),
+                ChallengeEntity(
+                    id = 65302, lessonId = 853, type = ChallengeType.STORY,
+                    question = "📖 駅\n\n\n私: 「切符を一枚お願いします。」\n駅員: 「片道ですか、往復ですか。」\n私: 「往復で。定期券は持っています。」\n駅員: 「では、切符売り場へどうぞ。」\n\n❓ Where does the station staff send her?",
+                    orderIndex = 10,
+                    ruleText = "切符売り場 is where you buy the ticket: 切符 + 売り (selling) + 場 (a place), said kippuURIBA. The 売 carries the り, so the middle syllable is longer than the first.\n待合室 is where you sit and wait, 停留所 is where the bus stops, and 入口 is the way in. The 場 is the same 場 as in 駐車場 and 工場 — the counter for a place, and 売り場 is the part of a shop where a thing is sold.",
+                ),
+                // --- Lesson 43: At Work ---
+                ChallengeEntity(
+                    id = 65210, lessonId = 854, type = ChallengeType.MATCH_PAIRS,
+                    question = "Match the job titles",
+                    orderIndex = 0,
+                ),
+                ChallengeEntity(
+                    id = 65211, lessonId = 854, type = ChallengeType.MATCH_PAIRS,
+                    question = "Match the workplace words",
+                    orderIndex = 1,
+                ),
+                ChallengeEntity(
+                    id = 65212, lessonId = 854, type = ChallengeType.MATCH_PAIRS,
+                    question = "Match the people at work",
+                    orderIndex = 2,
+                ),
+                ChallengeEntity(
+                    id = 65213, lessonId = 854, type = ChallengeType.MATCH_PAIRS,
+                    question = "Match the place-of-work words",
+                    orderIndex = 3,
+                ),
+                ChallengeEntity(
+                    id = 65214, lessonId = 854, type = ChallengeType.SELECT,
+                    question = "Which one means 'overtime'?",
+                    audioSrc = "asset:///audio/ja/zangyoo.ogg",
+                    orderIndex = 4,
+                    ruleText = "残業 is 残 (to remain) + 業 (work): work you stay on past the hours. The 業 is read gyoo, so zangyoo, and the よ is long.\n休憩 is the break you get during the day, 出張 is a trip for work, and 給料 is the money that comes at the end of the month. The one that means working extra hours is 残業.",
+                ),
+                ChallengeEntity(
+                    id = 65215, lessonId = 854, type = ChallengeType.SELECT,
+                    question = "Which one means 'a CV'?",
+                    audioSrc = "asset:///audio/ja/rirekisho.ogg",
+                    orderIndex = 5,
+                    ruleText = "履歴書 is 履歴 (a record) + 書 (a document): the document listing what you have done. The 書 is read sho.\n名刺 is the business card you hand over, 貯金 is the money you save, and 面接 is the meeting itself. The paper you write your history on is 履歴書.",
+                ),
+                ChallengeEntity(
+                    id = 65216, lessonId = 854, type = ChallengeType.SELECT,
+                    question = "Which one says 'I work for a company from nine to six'?",
+                    orderIndex = 6,
+                    grammaticalFocus = "ja.polite_verb",
+                    ruleText = "働きます is the polite present of the godan verb 働く: the く becomes き and ます is added, so hatarakimasu. から marks the start of a span of time and まで marks the end of it — まで cannot stand alone here.\n私は九時から六時まで働きました is the polite past, so the working is over. 私は九時から六時に働きます drops まで and leaves the end of the span unsaid. 私は九時から六時まで働いています is the progressive, built on the te-form 働いて, and this item asks for the plain polite form.",
+                ),
+                ChallengeEntity(
+                    id = 65217, lessonId = 854, type = ChallengeType.SELECT,
+                    question = "Which one asks the boss for permission to go home early?",
+                    orderIndex = 7,
+                    grammaticalFocus = "ja.permission",
+                    ruleText = "てもいいですか asks permission and expects an answer, so it carries both the 〜てもいい ending and the question ですか. Here 帰る is an ichidan verb, so the て-form is 帰って and nothing more may follow it before も.\n早めに帰ってください is a command, not an ask, and ください cannot follow ても. 早めに帰らなければ is the necessity ending, which states an obligation instead of requesting one. 早めに帰ってもいいです ends in です where the question needs ですか, and a statement gets no answer to come back.",
+                ),
+                ChallengeEntity(
+                    id = 65303, lessonId = 854, type = ChallengeType.LISTEN,
+                    question = "Tap what you hear",
+                    audioSrc = "asset:///audio/ja/kaigiwasanjikarahajimarimasu.ogg",
+                    orderIndex = 8,
+                    grammaticalFocus = "ja.polite_verb",
+                    ruleText = "始まります is the polite present of the godan verb 始まる: the る becomes り and ます is added, so hajimarimasu. から marks the point the meeting starts from.\n会議は三時に始まります drops から and leaves only the hour. 会議は三時から始まりました is the polite past, so the meeting has already begun — the two differ by one mora and a whole tense.",
+                ),
+                ChallengeEntity(
+                    id = 65304, lessonId = 854, type = ChallengeType.STORY,
+                    question = "📖 出勤\n\n\n部長: 「今日、九時からです。」\n私: 「はい、会議室に行きます。」\n部長: 「資料をコピーしてください。」\n私: 「コピーしてきます。」\n\n❓ What is the boss telling the worker to do?",
+                    orderIndex = 9,
+                    ruleText = "資料 is the material: 資 (goods) + 料 (material), and コピー is the katakana loanword for a photocopy, said koPII. ください is the polite request.\n給料をコピーしてください is the pay, 会議をコピーしてください the meeting, and 休憩をコピーしてください the break. All three take を the same way 資料 does, and only one of them is a thing you would photocopy.",
+                ),
+                // --- Lesson 44: The Week and the Weather ---
+                ChallengeEntity(
+                    id = 65220, lessonId = 855, type = ChallengeType.MATCH_PAIRS,
+                    question = "Match the weather words",
+                    orderIndex = 0,
+                ),
+                ChallengeEntity(
+                    id = 65221, lessonId = 855, type = ChallengeType.MATCH_PAIRS,
+                    question = "Match the more weather words",
+                    orderIndex = 1,
+                ),
+                ChallengeEntity(
+                    id = 65222, lessonId = 855, type = ChallengeType.MATCH_PAIRS,
+                    question = "Match the seasons",
+                    orderIndex = 2,
+                ),
+                ChallengeEntity(
+                    id = 65223, lessonId = 855, type = ChallengeType.MATCH_PAIRS,
+                    question = "Match the time-of-day words",
+                    orderIndex = 3,
+                ),
+                ChallengeEntity(
+                    id = 65224, lessonId = 855, type = ChallengeType.MATCH_PAIRS,
+                    question = "Match the frequency words",
+                    orderIndex = 4,
+                ),
+                ChallengeEntity(
+                    id = 65225, lessonId = 855, type = ChallengeType.SELECT,
+                    question = "Which one means 'the rainy season'?",
+                    audioSrc = "asset:///audio/ja/tsuyu.ogg",
+                    orderIndex = 5,
+                    ruleText = "梅雨 is 梅 (the plum tree) + 雨 (rain), said tsuYU. Both kanji keep their own reading: 梅 is tsu and 雨 is yu, and neither is the reading you would guess from the meaning.\n季節 is any season, 春雨 is the light rain of early spring, and 曇り is the cloudiness itself. The one that names the wet weeks of early summer is 梅雨.",
+                ),
+                ChallengeEntity(
+                    id = 65226, lessonId = 855, type = ChallengeType.SELECT,
+                    question = "Which one means 'rarely'?",
+                    audioSrc = "asset:///audio/ja/mettani.ogg",
+                    orderIndex = 6,
+                    ruleText = "めったに is written in kana and takes a negative: めったに + ない. The つ is small, so mettaNI.\nよく is often, 時々 is sometimes, and いつも is always. All four are frequency adverbs and three of them are positive; the one that needs ない in front of a verb is めったに.",
+                ),
+                ChallengeEntity(
+                    id = 65227, lessonId = 855, type = ChallengeType.CONJUGATE,
+                    question = "Which one means 'I have been to Japan before'?",
+                    audioSrc = "asset:///audio/ja/nipponniittakotogaarimasu.ogg",
+                    orderIndex = 7,
+                    grammaticalFocus = "ja.experience",
+                    ruleText = "Experience is 〜たことがあります: the plain past た, then こと (the する nominaliser) plus が, then あります. 行った + ことがあります, so itta koto ga arimasu. The が is what makes it a clause rather than a phrase.\n日本に行きます is the plain present, so nothing in it says you were ever there. 日本に行ったります is not a form: あります takes あ, and ります is the negative of あります — ありません — so nothing may stand between こと and あります. 日本に行ったことあります drops the が that binds the clause together, and the subject of あります has to be named.",
+                ),
+                ChallengeEntity(
+                    id = 65228, lessonId = 855, type = ChallengeType.SELECT,
+                    question = "Which one says 'It will snow tomorrow'?",
+                    orderIndex = 8,
+                    grammaticalFocus = "ja.polite_verb",
+                    ruleText = "雪になります is 雪 + になる: the noun 雪, に, and the godan verb なる. It is the polite present, so narimasu.\n明日は雪です treats 雪 as a plain noun with a copula, and a weather noun like this takes になる, not です. 明日は雪がなります puts が where に belongs, and になる is a directional change: something turns into snow rather than being snow. 明日は雪でした is the polite past, so the snow is already over.",
+                ),
+                ChallengeEntity(
+                    id = 65305, lessonId = 855, type = ChallengeType.LISTEN,
+                    question = "Tap what you hear",
+                    audioSrc = "asset:///audio/ja/kyoowakazegatsuyoidesu.ogg",
+                    orderIndex = 9,
+                    grammaticalFocus = "ja.i_adjective",
+                    ruleText = "強いです is the polite present of the い-adjective 強い: the bare stem plus です, so tsuyoi and not tsuyoku.\n今日は風が強くです glues the negative stem く onto です, which is never a polite ending. 今日は風が強いでした hangs です past tense onto an い-adjective, which takes かった and never でした.",
+                ),
+                ChallengeEntity(
+                    id = 65306, lessonId = 855, type = ChallengeType.STORY,
+                    question = "📖 天気\n\n\n同僚: 「今朝は雨でしたよ。」\n私: 「ええ、突然の雨だった。」\n同僚: 「今日は空に雲が多いでしょう。」\n私: 「でも、夕方からは晴れるかもしれません。」\n\n❓ What does the colleague predict about the sky today?",
+                    orderIndex = 10,
+                    ruleText = "雲 is the cloud itself: the older spelling is 雲, read kumo, and the 雲 in 曇り is the same character.\n雪 is snow, 風 is wind and 霜 is frost. All four are things that appear in the sky, and the one the colleague says there is a lot of is 雲.",
+                ),
+            ),
+            options = listOf(
+
+                ChallengeOptionEntity(id = 7500001, challengeId = 65200, text = "切符", romaji = "kippu", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500002, challengeId = 65200, text = "ticket", romaji = null, correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500003, challengeId = 65200, text = "定期券", romaji = "teekiken", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500004, challengeId = 65200, text = "season ticket", romaji = null, correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500005, challengeId = 65200, text = "往復", romaji = "oofuku", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500006, challengeId = 65200, text = "return", romaji = null, correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500007, challengeId = 65200, text = "片道", romaji = "katamichi", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500008, challengeId = 65200, text = "one way", romaji = null, correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500009, challengeId = 65200, text = "券", romaji = "ken", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500010, challengeId = 65200, text = "a voucher", romaji = null, correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500011, challengeId = 65200, text = "切り取り線", romaji = "kiritorisen", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500012, challengeId = 65200, text = "the perforation", romaji = null, correct = true, errorTag = null),
+
+                ChallengeOptionEntity(id = 7500013, challengeId = 65201, text = "停留所", romaji = "teeryuujo", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500014, challengeId = 65201, text = "bus stop", romaji = null, correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500015, challengeId = 65201, text = "乗り換え", romaji = "norikae", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500016, challengeId = 65201, text = "a change", romaji = null, correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500017, challengeId = 65201, text = "出口", romaji = "deguchi", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500018, challengeId = 65201, text = "exit", romaji = null, correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500019, challengeId = 65201, text = "入口", romaji = "iriguchi", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500020, challengeId = 65201, text = "entrance", romaji = null, correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500021, challengeId = 65201, text = "切符売り場", romaji = "kippuuriba", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500022, challengeId = 65201, text = "ticket office", romaji = null, correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500023, challengeId = 65201, text = "待合室", romaji = "machiaishitsu", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500024, challengeId = 65201, text = "waiting room", romaji = null, correct = true, errorTag = null),
+
+                ChallengeOptionEntity(id = 7500025, challengeId = 65202, text = "運転手", romaji = "untenshu", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500026, challengeId = 65202, text = "driver", romaji = null, correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500027, challengeId = 65202, text = "車掌", romaji = "shashoo", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500028, challengeId = 65202, text = "conductor", romaji = null, correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500029, challengeId = 65202, text = "乗客", romaji = "joukyaku", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500030, challengeId = 65202, text = "passenger", romaji = null, correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500031, challengeId = 65202, text = "駅員", romaji = "ekiin", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500032, challengeId = 65202, text = "station staff", romaji = null, correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500033, challengeId = 65202, text = "車内", romaji = "shanai", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500034, challengeId = 65202, text = "inside the train", romaji = null, correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500035, challengeId = 65202, text = "途中", romaji = "tochuu", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500036, challengeId = 65202, text = "on the way", romaji = null, correct = true, errorTag = null),
+
+                ChallengeOptionEntity(id = 7500037, challengeId = 65203, text = "出発", romaji = "shuppatsu", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500038, challengeId = 65203, text = "departure", romaji = null, correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500039, challengeId = 65203, text = "到着", romaji = "touchaku", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500040, challengeId = 65203, text = "arrival", romaji = null, correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500041, challengeId = 65203, text = "遅れ", romaji = "okure", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500042, challengeId = 65203, text = "a delay", romaji = null, correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500043, challengeId = 65203, text = "満員", romaji = "manin", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500044, challengeId = 65203, text = "full", romaji = null, correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500045, challengeId = 65203, text = "空席", romaji = "kuuseki", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500046, challengeId = 65203, text = "a free seat", romaji = null, correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500047, challengeId = 65203, text = "折り返し", romaji = "orikaeshi", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500048, challengeId = 65203, text = "the return service", romaji = null, correct = true, errorTag = null),
+
+                ChallengeOptionEntity(id = 7500049, challengeId = 65204, text = "定期券", romaji = "teekiken", correct = true, errorTag = null, audioSrc = "asset:///audio/ja/teekiken.ogg"),
+                ChallengeOptionEntity(id = 7500050, challengeId = 65204, text = "切符", romaji = "kippu", correct = false, errorTag = null),
+                ChallengeOptionEntity(id = 7500051, challengeId = 65204, text = "往復券", romaji = "oofukuken", correct = false, errorTag = null),
+                ChallengeOptionEntity(id = 7500052, challengeId = 65204, text = "片道券", romaji = "katamichiken", correct = false, errorTag = null),
+
+                ChallengeOptionEntity(id = 7500053, challengeId = 65205, text = "停留所", romaji = "teeryuujo", correct = true, errorTag = null, audioSrc = "asset:///audio/ja/teeryuujo.ogg"),
+                ChallengeOptionEntity(id = 7500054, challengeId = 65205, text = "待合室", romaji = "machiaishitsu", correct = false, errorTag = null),
+                ChallengeOptionEntity(id = 7500055, challengeId = 65205, text = "切符売り場", romaji = "kippuuriba", correct = false, errorTag = null),
+                ChallengeOptionEntity(id = 7500056, challengeId = 65205, text = "入口", romaji = "iriguchi", correct = false, errorTag = null),
+
+                ChallengeOptionEntity(id = 7500057, challengeId = 65206, text = "電車は九時に出発します。", romaji = "densha wa kuji ni shuppatsu shimasu", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500058, challengeId = 65206, text = "電車は九時に到着します。", romaji = "densha wa kuji ni touchaku shimasu", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 7500059, challengeId = 65206, text = "電車は九時に出発しません。", romaji = "densha wa kuji ni shuppatsu shimasen", correct = false, errorTag = "WRONG_TENSE"),
+                ChallengeOptionEntity(id = 7500060, challengeId = 65206, text = "電車は九時が出発します。", romaji = "densha wa kuji ga shuppatsu shimasu", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 7500061, challengeId = 65207, text = "次の駅で乗り換えます。", romaji = "tsugi no eki de norikaemasu", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500062, challengeId = 65207, text = "次の駅で乗り換えますか。", romaji = "tsugi no eki de norikaemasu ka", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 7500063, challengeId = 65207, text = "次の駅で乗り換えました。", romaji = "tsugi no eki de norikaemashita", correct = false, errorTag = "WRONG_TENSE"),
+                ChallengeOptionEntity(id = 7500064, challengeId = 65207, text = "次の駅で乗り換えています。", romaji = "tsugi no eki de norikaete imasu", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 7500065, challengeId = 65300, text = "電車が遅れています。", romaji = "densha ga okurete imasu", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500066, challengeId = 65300, text = "電車が遅れました。", romaji = "densha ga okuremashita", correct = false, errorTag = "WRONG_TENSE"),
+                ChallengeOptionEntity(id = 7500067, challengeId = 65300, text = "電車は遅れています。", romaji = "densha wa okurete imasu", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 7500068, challengeId = 65301, text = "切符を一枚買ってください。", romaji = "kippu o ichimai katte kudasai", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500069, challengeId = 65301, text = "切符を一枚買ってくださいです。", romaji = "kippu o ichimai katte kudasai desu", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 7500070, challengeId = 65301, text = "切符を一枚買うてください。", romaji = "kippu o ichimai kau te kudasai", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 7500071, challengeId = 65302, text = "切符売り場", romaji = "kippuuriba", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500072, challengeId = 65302, text = "待合室", romaji = "machiaishitsu", correct = false, errorTag = "UNRELATED"),
+                ChallengeOptionEntity(id = 7500073, challengeId = 65302, text = "停留所", romaji = "teeryuujo", correct = false, errorTag = "UNRELATED"),
+                ChallengeOptionEntity(id = 7500074, challengeId = 65302, text = "入口", romaji = "iriguchi", correct = false, errorTag = "UNRELATED"),
+
+                ChallengeOptionEntity(id = 7500075, challengeId = 65210, text = "会社員", romaji = "kaishain", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500076, challengeId = 65210, text = "office worker", romaji = null, correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500077, challengeId = 65210, text = "社長", romaji = "shachoo", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500078, challengeId = 65210, text = "company president", romaji = null, correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500079, challengeId = 65210, text = "部長", romaji = "buchoo", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500080, challengeId = 65210, text = "department head", romaji = null, correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500081, challengeId = 65210, text = "事務", romaji = "jimu", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500082, challengeId = 65210, text = "clerical work", romaji = null, correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500083, challengeId = 65210, text = "運転手", romaji = "untenshu", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500084, challengeId = 65210, text = "driver", romaji = null, correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500085, challengeId = 65210, text = "面接", romaji = "mensetsu", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500086, challengeId = 65210, text = "an interview", romaji = null, correct = true, errorTag = null),
+
+                ChallengeOptionEntity(id = 7500087, challengeId = 65211, text = "会議", romaji = "kaigi", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500088, challengeId = 65211, text = "a meeting", romaji = null, correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500089, challengeId = 65211, text = "休憩", romaji = "kyuukee", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500090, challengeId = 65211, text = "a break", romaji = null, correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500091, challengeId = 65211, text = "出張", romaji = "shucchoo", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500092, challengeId = 65211, text = "a business trip", romaji = null, correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500093, challengeId = 65211, text = "残業", romaji = "zangyoo", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500094, challengeId = 65211, text = "overtime", romaji = null, correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500095, challengeId = 65211, text = "給料", romaji = "kyuuryoo", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500096, challengeId = 65211, text = "salary", romaji = null, correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500097, challengeId = 65211, text = "履歴書", romaji = "rirekisho", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500098, challengeId = 65211, text = "CV", romaji = null, correct = true, errorTag = null),
+
+                ChallengeOptionEntity(id = 7500099, challengeId = 65212, text = "部下", romaji = "buka", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500100, challengeId = 65212, text = "a subordinate", romaji = null, correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500101, challengeId = 65212, text = "同僚", romaji = "dooryoo", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500102, challengeId = 65212, text = "a colleague", romaji = null, correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500103, challengeId = 65212, text = "社員", romaji = "shain", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500104, challengeId = 65212, text = "a staff member", romaji = null, correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500105, challengeId = 65212, text = "アルバイト", romaji = "arubaito", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500106, challengeId = 65212, text = "a part-timer", romaji = null, correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500107, challengeId = 65212, text = "退職", romaji = "taishoku", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500108, challengeId = 65212, text = "retirement", romaji = null, correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500109, challengeId = 65212, text = "社員", romaji = "shain", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500110, challengeId = 65212, text = "a staff member", romaji = null, correct = true, errorTag = null),
+
+                ChallengeOptionEntity(id = 7500111, challengeId = 65213, text = "事務所", romaji = "jimusho", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500112, challengeId = 65213, text = "an office", romaji = null, correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500113, challengeId = 65213, text = "工場", romaji = "kojou", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500114, challengeId = 65213, text = "the factory", romaji = null, correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500115, challengeId = 65213, text = "会議室", romaji = "kaigishitsu", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500116, challengeId = 65213, text = "the meeting room", romaji = null, correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500117, challengeId = 65213, text = "応接室", romaji = "ousetsushitsu", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500118, challengeId = 65213, text = "the reception room", romaji = null, correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500119, challengeId = 65213, text = "更衣室", romaji = "kouishitsu", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500120, challengeId = 65213, text = "the changing room", romaji = null, correct = true, errorTag = null),
+
+                ChallengeOptionEntity(id = 7500121, challengeId = 65214, text = "残業", romaji = "zangyoo", correct = true, errorTag = null, audioSrc = "asset:///audio/ja/zangyoo.ogg"),
+                ChallengeOptionEntity(id = 7500122, challengeId = 65214, text = "休憩", romaji = "kyuukee", correct = false, errorTag = null),
+                ChallengeOptionEntity(id = 7500123, challengeId = 65214, text = "出張", romaji = "shucchoo", correct = false, errorTag = null),
+                ChallengeOptionEntity(id = 7500124, challengeId = 65214, text = "給料", romaji = "kyuuryoo", correct = false, errorTag = null),
+
+                ChallengeOptionEntity(id = 7500125, challengeId = 65215, text = "履歴書", romaji = "rirekisho", correct = true, errorTag = null, audioSrc = "asset:///audio/ja/rirekisho.ogg"),
+                ChallengeOptionEntity(id = 7500126, challengeId = 65215, text = "名刺", romaji = "meishi", correct = false, errorTag = null),
+                ChallengeOptionEntity(id = 7500127, challengeId = 65215, text = "貯金", romaji = "chokin", correct = false, errorTag = null),
+                ChallengeOptionEntity(id = 7500128, challengeId = 65215, text = "面接", romaji = "mensetsu", correct = false, errorTag = null),
+
+                ChallengeOptionEntity(id = 7500129, challengeId = 65216, text = "私は九時から六時まで働きます。", romaji = "watashi wa kuji kara roku made hatarakimasu", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500130, challengeId = 65216, text = "私は九時から六時まで働きました。", romaji = "watashi wa kuji kara roku made hatarakimashita", correct = false, errorTag = "WRONG_TENSE"),
+                ChallengeOptionEntity(id = 7500131, challengeId = 65216, text = "私は九時から六時に働きます。", romaji = "watashi wa kuji kara roku ni hatarakimasu", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 7500132, challengeId = 65216, text = "私は九時から六時まで働いています。", romaji = "watashi wa kuji kara roku made hataraite imasu", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 7500133, challengeId = 65217, text = "早めに帰ってもいいですか。", romaji = "hayame ni kaette mo ii desu ka", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500134, challengeId = 65217, text = "早めに帰ってください。", romaji = "hayame ni kaette kudasai", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 7500135, challengeId = 65217, text = "早めに帰らなければ。", romaji = "hayame ni kaeranakereba", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 7500136, challengeId = 65217, text = "早めに帰ってもいいです。", romaji = "hayame ni kaette mo ii desu", correct = false, errorTag = "WRONG_REGISTER"),
+
+                ChallengeOptionEntity(id = 7500137, challengeId = 65303, text = "会議は三時から始まります。", romaji = "kaigi wa sanji kara hajimarimasu", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500138, challengeId = 65303, text = "会議は三時に始まります。", romaji = "kaigi wa sanji ni hajimarimasu", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 7500139, challengeId = 65303, text = "会議は三時から始まりました。", romaji = "kaigi wa sanji kara hajimarimashita", correct = false, errorTag = "WRONG_TENSE"),
+
+                ChallengeOptionEntity(id = 7500140, challengeId = 65304, text = "資料をコピーしてください", romaji = "shiryo o kopii shite kudasai", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500141, challengeId = 65304, text = "給料をコピーしてください", romaji = "kyuuryo o kopii shite kudasai", correct = false, errorTag = "UNRELATED"),
+                ChallengeOptionEntity(id = 7500142, challengeId = 65304, text = "会議をコピーしてください", romaji = "kaigi o kopii shite kudasai", correct = false, errorTag = "UNRELATED"),
+                ChallengeOptionEntity(id = 7500143, challengeId = 65304, text = "休憩をコピーしてください", romaji = "kyuukee o kopii shite kudasai", correct = false, errorTag = "UNRELATED"),
+
+                ChallengeOptionEntity(id = 7500144, challengeId = 65220, text = "天気", romaji = "tenki", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500145, challengeId = 65220, text = "weather", romaji = null, correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500146, challengeId = 65220, text = "晴れ", romaji = "hare", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500147, challengeId = 65220, text = "a clear sky", romaji = null, correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500148, challengeId = 65220, text = "曇り", romaji = "kumori", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500149, challengeId = 65220, text = "cloudiness", romaji = null, correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500150, challengeId = 65220, text = "雪", romaji = "yuki", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500151, challengeId = 65220, text = "snow", romaji = null, correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500152, challengeId = 65220, text = "風", romaji = "kaze", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500153, challengeId = 65220, text = "wind", romaji = null, correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500154, challengeId = 65220, text = "雲", romaji = "kumo", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500155, challengeId = 65220, text = "cloud", romaji = null, correct = true, errorTag = null),
+
+                ChallengeOptionEntity(id = 7500156, challengeId = 65221, text = "雷", romaji = "kaminari", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500157, challengeId = 65221, text = "thunder", romaji = null, correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500158, challengeId = 65221, text = "虹", romaji = "niji", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500159, challengeId = 65221, text = "a rainbow", romaji = null, correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500160, challengeId = 65221, text = "傘", romaji = "kasa", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500161, challengeId = 65221, text = "an umbrella", romaji = null, correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500162, challengeId = 65221, text = "霜", romaji = "shimo", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500163, challengeId = 65221, text = "frost", romaji = null, correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500164, challengeId = 65221, text = "霧", romaji = "kiri", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500165, challengeId = 65221, text = "fog", romaji = null, correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500166, challengeId = 65221, text = "嵐", romaji = "arashi", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500167, challengeId = 65221, text = "a storm", romaji = null, correct = true, errorTag = null),
+
+                ChallengeOptionEntity(id = 7500168, challengeId = 65222, text = "春", romaji = "haru", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500169, challengeId = 65222, text = "spring", romaji = null, correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500170, challengeId = 65222, text = "夏", romaji = "natsu", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500171, challengeId = 65222, text = "summer", romaji = null, correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500172, challengeId = 65222, text = "秋", romaji = "aki", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500173, challengeId = 65222, text = "autumn", romaji = null, correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500174, challengeId = 65222, text = "冬", romaji = "fuyu", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500175, challengeId = 65222, text = "winter", romaji = null, correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500176, challengeId = 65222, text = "梅雨", romaji = "tsuyu", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500177, challengeId = 65222, text = "the rainy season", romaji = null, correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500178, challengeId = 65222, text = "季節", romaji = "kisetsu", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500179, challengeId = 65222, text = "season", romaji = null, correct = true, errorTag = null),
+
+                ChallengeOptionEntity(id = 7500180, challengeId = 65223, text = "朝", romaji = "asa", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500181, challengeId = 65223, text = "morning", romaji = null, correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500182, challengeId = 65223, text = "昼", romaji = "hiru", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500183, challengeId = 65223, text = "daytime", romaji = null, correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500184, challengeId = 65223, text = "夕方", romaji = "yuugata", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500185, challengeId = 65223, text = "evening", romaji = null, correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500186, challengeId = 65223, text = "夜", romaji = "yoru", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500187, challengeId = 65223, text = "night", romaji = null, correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500188, challengeId = 65223, text = "今朝", romaji = "kesa", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500189, challengeId = 65223, text = "this morning", romaji = null, correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500190, challengeId = 65223, text = "昨夜", romaji = "sakuya", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500191, challengeId = 65223, text = "last night", romaji = null, correct = true, errorTag = null),
+
+                ChallengeOptionEntity(id = 7500192, challengeId = 65224, text = "毎日", romaji = "mainichi", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500193, challengeId = 65224, text = "every day", romaji = null, correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500194, challengeId = 65224, text = "毎週", romaji = "maishuu", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500195, challengeId = 65224, text = "every week", romaji = null, correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500196, challengeId = 65224, text = "よく", romaji = "yoku", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500197, challengeId = 65224, text = "often", romaji = null, correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500198, challengeId = 65224, text = "時々", romaji = "tokidoki", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500199, challengeId = 65224, text = "sometimes", romaji = null, correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500200, challengeId = 65224, text = "あまり", romaji = "amari", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500201, challengeId = 65224, text = "not very", romaji = null, correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500202, challengeId = 65224, text = "めったに", romaji = "mettani", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500203, challengeId = 65224, text = "rarely", romaji = null, correct = true, errorTag = null),
+
+                ChallengeOptionEntity(id = 7500204, challengeId = 65225, text = "梅雨", romaji = "tsuyu", correct = true, errorTag = null, audioSrc = "asset:///audio/ja/tsuyu.ogg"),
+                ChallengeOptionEntity(id = 7500205, challengeId = 65225, text = "季節", romaji = "kisetsu", correct = false, errorTag = null),
+                ChallengeOptionEntity(id = 7500206, challengeId = 65225, text = "春雨", romaji = "harusame", correct = false, errorTag = null),
+                ChallengeOptionEntity(id = 7500207, challengeId = 65225, text = "曇り", romaji = "kumori", correct = false, errorTag = null),
+
+                ChallengeOptionEntity(id = 7500208, challengeId = 65226, text = "めったに", romaji = "mettani", correct = true, errorTag = null, audioSrc = "asset:///audio/ja/mettani.ogg"),
+                ChallengeOptionEntity(id = 7500209, challengeId = 65226, text = "よく", romaji = "yoku", correct = false, errorTag = null),
+                ChallengeOptionEntity(id = 7500210, challengeId = 65226, text = "時々", romaji = "tokidoki", correct = false, errorTag = null),
+                ChallengeOptionEntity(id = 7500211, challengeId = 65226, text = "いつも", romaji = "itsumo", correct = false, errorTag = null),
+
+                ChallengeOptionEntity(id = 7500212, challengeId = 65227, text = "日本に行ったことがあります。", romaji = "nippon ni itta koto ga arimasu", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500213, challengeId = 65227, text = "日本に行きます。", romaji = "nippon ni ikimasu", correct = false, errorTag = "WRONG_TENSE"),
+                ChallengeOptionEntity(id = 7500214, challengeId = 65227, text = "日本に行ったります。", romaji = "nippon ni itta arimasu", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 7500215, challengeId = 65227, text = "日本に行ったことあります。", romaji = "nippon ni itta koto arimasu", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 7500216, challengeId = 65228, text = "明日は雪になります。", romaji = "ashita wa yuki ni narimasu", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500217, challengeId = 65228, text = "明日は雪です。", romaji = "ashita wa yuki desu", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 7500218, challengeId = 65228, text = "明日は雪がなります。", romaji = "ashita wa yuki ga narimasu", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 7500219, challengeId = 65228, text = "明日は雪でした。", romaji = "ashita wa yuki deshita", correct = false, errorTag = "WRONG_TENSE"),
+
+                ChallengeOptionEntity(id = 7500220, challengeId = 65305, text = "今日は風が強いです。", romaji = "kyoo wa kaze ga tsuyoi desu", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500221, challengeId = 65305, text = "今日は風が強くです。", romaji = "kyoo wa kaze ga tsuyoku desu", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 7500222, challengeId = 65305, text = "今日は風が強いでした。", romaji = "kyoo wa kaze ga tsuyoi deshita", correct = false, errorTag = "WRONG_TENSE"),
+
+                ChallengeOptionEntity(id = 7500223, challengeId = 65306, text = "雲", romaji = "kumo", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500224, challengeId = 65306, text = "雪", romaji = "yuki", correct = false, errorTag = "UNRELATED"),
+                ChallengeOptionEntity(id = 7500225, challengeId = 65306, text = "風", romaji = "kaze", correct = false, errorTag = "UNRELATED"),
+                ChallengeOptionEntity(id = 7500226, challengeId = 65306, text = "霜", romaji = "shimo", correct = false, errorTag = "UNRELATED"),
             ),
         ),
     )
