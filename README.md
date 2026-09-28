@@ -75,6 +75,7 @@ There is no network stack at all — the app does not request the `INTERNET` per
 | `duo-android/docs/AUDIT_feature_comparison.md` | Feature-by-feature comparison against Duolingo, marking what is matched, exceeded, or absent |
 | `NOTICE` | Origin and attribution — the project this repository grew out of |
 | `duo-android/fastlane/` | Google Play store metadata |
+| `duo-android/dist/fdroid/` | F-Droid build recipe — copied into a fork of fdroiddata and merged, not read by Gradle |
 
 ## Getting started
 
@@ -108,6 +109,37 @@ For a throwaway local build only, ask for the debug signature explicitly:
 That prints a loud warning, and the APK is signed with your machine's local debug key. It cannot be uploaded to Google Play and must not be shared or installed by anyone else — debug keys are per-machine, so updates over it will fail. `:app:assembleDebug` and `:app:test` need no keystore at all and are unaffected.
 
 The signed release APK lands in `duo-android/app/build/outputs/apk/release/`.
+
+## F-Droid packaging
+
+`duo-android/dist/fdroid/com.duo.app.yml` is the build recipe F-Droid builds this app from. Nothing in the Gradle build reads it: it is a standalone file you copy into a fork of [fdroiddata](https://gitlab.com/fdroid/fdroiddata) (the recipes repository, formerly `fdroid/recipes`) and open a merge request against. The file is named after the application ID because fdroiddata requires `metadata/<applicationId>.yml`.
+
+Store metadata — name, summary, description, icon, feature graphic, screenshots, privacy policy and the per-version changelog — is deliberately **not** in the recipe. It already lives in `duo-android/fastlane/metadata/android/en-US/`, which is the arrangement F-Droid recommends: metadata kept in the app's own source repository is copied into the F-Droid repository automatically, and it is the only way to ship an icon or screenshots. Repeating those fields in the recipe would override the upstream text and then quietly drift away from it.
+
+To submit:
+
+```bash
+git clone https://gitlab.com/<your-handle>/fdroiddata.git
+cd fdroiddata
+git checkout -b com.duo.app
+mkdir -p metadata
+cp /path/to/OpenLingo/duo-android/dist/fdroid/com.duo.app.yml metadata/com.duo.app.yml
+fdroid readmeta                          # fails loudly on any syntax error
+fdroid rewritemeta com.duo.app           # normalise the file
+fdroid lint com.duo.app                  # must come back clean
+git add metadata/com.duo.app.yml
+git commit -m "New app: OpenLingo"
+git push origin com.duo.app
+```
+
+`fdroid readmeta` and friends come from fdroidserver (`pip install git+https://gitlab.com/fdroid/fdroidserver.git`). Then open a merge request at <https://gitlab.com/fdroid/fdroiddata/-/merge_requests/new>, titled `New app: OpenLingo`, and fill in the "App inclusion" checklist. Its CI pipeline builds the APK the way the real buildserver does, so a green run is the closest thing to a rehearsal of the submission.
+
+Two things about the recipe itself are worth knowing before editing it:
+
+- The build runs `./gradlew :app:assembleRelease -PallowDebugSigning` through the committed wrapper, the same command CI runs. The flag is mandatory, not a shortcut — [the guard above](#building-a-release-apk) refuses to package a release artifact with no keystore — and F-Droid re-signs every build with its own key, so the throwaway debug signature is discarded before the APK is published. No secret, keystore or credential is involved at any point.
+- The recipe sets no `AuthorEmail`. This project publishes no contact address on purpose; public GitHub issues are the only reporting route, and the F-Droid metadata reference says that field can be omitted. `IssueTracker` points at them.
+
+For a new release: tag it (`v1.1.1`), add a `Builds` entry with the full 40-character commit hash, and add `duo-android/fastlane/metadata/android/en-US/changelogs/<versionCode>.txt` (`fdroid checkupdates` fills in `CurrentVersion` and `CurrentVersionCode` from the tag).
 
 ## Progress backup & restore
 
