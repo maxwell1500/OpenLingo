@@ -27,7 +27,7 @@ jobs:
           # v3 shipped `tools platform-tools` by default, and the legacy
           # `tools` package was withdrawn from Google's SDK repository, so
           # sdkmanager began exiting 1 with "Failed to find package 'tools'"
-          # and the job died before Gradle was ever invoked — 22 consecutive
+          # and the job died before Gradle was ever invoked — 23 consecutive
           # red runs that never touched the code. v4 defaults to
           # `platform-tools`; stating it here means the contract no longer
           # depends on an upstream default that broke this pipeline silently
