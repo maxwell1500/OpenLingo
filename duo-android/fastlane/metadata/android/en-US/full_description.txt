@@ -12,7 +12,7 @@ Key Features:
 • Mistake Reviews That Teach: your mistakes come back with the rule attached, shown before you re-attempt them.
 • Per-Unit Vocabulary List: every unit's words as one browsable, listenable list, grouped by topic.
 • Structure Drills: conjugation tables generated from the lessons a unit already teaches — a study surface that never touches your progress.
-• Seven Exercise Types: Multiple Choice, Word Bank sentence builder, Verb Conjugation, Fill in the Blank, Match Pairs, Listen, and Story — with a 0.5x / 0.75x / 1.0x playback speed selector on every audio button.
+• Seven Exercise Types per lesson: Multiple Choice, Word Bank sentence builder, Verb Conjugation, Fill in the Blank, Match Pairs, Listen, and Story — with a 0.5x / 0.75x / 1.0x playback speed selector on every audio button. An eighth type, Vocabulary Assist, is wired in, but its two questions carry no blank to fill yet, so it plays as Multiple Choice.
 • Winding S-Curve Lesson Map: sequential lesson unlocking with golden crowns and a floating START chip on your next lesson.
 • Level Checkpoint Assessments: test your mastery of CEFR A1/A2/B1 and JLPT N5/N4 with celebratory badges. A2, B1 and N4 sessions open with a held-out pool of unseen sentences — 4, 8 and 10 items — so early questions test generalisation, not recall. A1 and N5 are drawn entirely from taught items.
 • FSRS-4.5 Spaced Repetition: the Free Spaced Repetition Scheduler algorithm for vocabulary review, with 4-rating intervals and due card tracking.

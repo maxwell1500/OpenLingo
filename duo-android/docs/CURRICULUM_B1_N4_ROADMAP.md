@@ -84,7 +84,7 @@ plans vocabulary rides along inside them.
 
 Target: Units 9–12 (10 lessons, 80 challenges).
 
-Status: **Units 9–12 have shipped.** Units 9–10 are in `B1CurriculumData.kt` (`japaneseN4Units`) — 4 lessons and 27 challenges. Units 11–12 are in `JapaneseN4CurriculumData.kt` (`japaneseN4ExtensionUnits`, unit ids 40–41, lessons 400–405, challenges 60000–60043) — 6 lessons and 53 challenges, 6 of them held out, so the N4 checkpoint now holds 10 held-out items. As with Spanish 11–12, the themes this roadmap originally sketched for units 11–12 (past experience 〜たことがある, plans 〜つもり, reasons 〜から, comparisons 〜より) were not what the grammar gap needed, and the shipped units teach different points: without a past tense there is no tense to conjugate, and every verb in units 1–10 was stuck in the present.
+Status: **Units 9–12 have shipped.** Units 9–10 are in `B1CurriculumData.kt` (`japaneseN4Units`) — 4 lessons and 27 challenges. Units 11–12 are in `JapaneseN4CurriculumData.kt` (`japaneseN4ExtensionUnits`, unit ids 40–41, lessons 400–405, challenges `60000`-`60043` plus the `LISTEN` block `61000`-`61008`) — 6 lessons and 53 challenges, 6 of them held out, so the N4 checkpoint now holds 10 held-out items. As with Spanish 11–12, the themes this roadmap originally sketched for units 11–12 (past experience 〜たことがある, plans 〜つもり, reasons 〜から, comparisons 〜より) were not what the grammar gap needed, and the shipped units teach different points: without a past tense there is no tense to conjugate, and every verb in units 1–10 was stuck in the present.
 
 ### Unit 9: Te-form & Requests (〜てください / 〜ています)
 • Focus: Connecting verbs, ongoing actions, polite requests
