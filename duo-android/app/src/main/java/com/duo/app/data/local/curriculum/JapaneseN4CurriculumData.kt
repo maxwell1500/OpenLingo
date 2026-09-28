@@ -38,30 +38,52 @@ import com.duo.app.data.local.models.ChallengeType
  * Both units are everyday, transactional and high-frequency, which is the register
  * the rest of the Japanese corpus already uses. Nothing literary is introduced.
  *
- * **Audio.** All 43 clips generated for these units are wired: 35 on the
- * challenge and 21 on the option that speaks the same text. A SELECT challenge and
- * its correct option share a clip; a CONJUGATE speaks the target form on the
- * challenge alone, so the option grid never plays the answer. A MATCH_PAIRS
- * challenge gets no challenge clip — its prompt is the instruction "Match the ...", not
- * a sentence — so its clips hang off the paired options instead.
+ * **Audio.** 46 distinct clips are wired from these units: 40 on a challenge
+ * and 21 on the option that speaks the same text (fifteen clips do both). A SELECT
+ * challenge and its correct option share a clip; a CONJUGATE speaks the target
+ * form on the challenge alone, so the option grid never plays the answer. A
+ * MATCH_PAIRS challenge gets no challenge clip — its prompt is the instruction
+ * "Match the ...", not a sentence — so its clips hang off the paired options
+ * instead.
  *
  * Challenge 60025 is the one item whose scaffold names the whole target
  * sentence, so it carries the sentence clip rather than a form clip — the same
  * rule a SELECT challenge follows, for the same reason.
  *
- * `LISTEN` is still absent here, as in the rest of the Japanese corpus: hearing a
- * sentence and picking it out of four near-identical sentences is a different
- * authoring decision from recording one.
+ * **`LISTEN`, and the three clips it needed.** `LISTEN` used to be absent here
+ * because no audio existed; the clips are there now, so each lesson closes with
+ * a listening round. A `LISTEN` challenge carries the clip and its options carry
+ * none — `ExerciseScreen` plays `challenge.audioSrc` from the big speaker and
+ * withholds it from the generic audio button, so an option-level `audioSrc` on
+ * the answer would leak it. For the same reason no `WRONG_*` distractor anywhere
+ * in this file carries a clip: audio that plays a form the item calls an error
+ * teaches the wrong thing out loud.
+ *
+ * The distractors are the ones Japanese makes cheap to author and hard to
+ * survive: a partner-particle swap (が/を), a plain form against its polite
+ * partner (行った/行きました), a class crossover (きれいくでした), a stem where
+ * an ending belongs (むずかしくと思います). Japanese is where a listening
+ * exercise earns its keep, because the marks that separate the options are
+ * audible: the ゛ of 雑誌, the ゜ of が, the っ of 学校, the ー of ビール, the
+ * ゃ of 自転車. Every one of those was confirmed in the IPA the acoustic model
+ * is handed, not assumed from the script.
+ *
+ * Two readings were deliberately left out. こうかい is 観光 "sightseeing" and
+ * 高 "expensive"; both synthesise to `koːkai`, so a LISTEN item on the pair
+ * would be unanswerable by ear and is a writing exercise, not a listening one.
  *
  * Id layout inside this file, disjoint from every other curriculum file:
  *   - units `40`, `41`          (Spanish has taken 30-31)
  *   - lessons `400`-`405`
- *   - challenges `60000`-`60043`
+ *   - challenges `60000`-`60043` plus the `LISTEN` block `61000`-`61008`
  *   - options `600001`-`600184` (600157 is not used; every id below it is taken)
+ *     plus the `LISTEN` block `6100001`-`6100027`
  *
  * The six held-out items are 60006, 60014, 60021, 60028, 60036 and 60043. They are
  * seeded like everything else and carry `heldOut = true`, so the lesson path skips
- * them and a checkpoint is the only thing that reaches them.
+ * them and a checkpoint is the only thing that reaches them. No `LISTEN` item is
+ * held out: the held-out pool exists to withhold a *taught form*, and a
+ * listening round is the one mechanic a checkpoint cannot substitute for.
  */
 object JapaneseN4CurriculumData {
 
@@ -142,6 +164,14 @@ object JapaneseN4CurriculumData {
                     grammaticalFocus = "ja.past_polite",
                     ruleText = "帰る is an ichidan verb: drop る, keep the ます-stem, and attach ました — 帰りました.\n帰ります is the polite present, 帰った the plain past, and 帰って the て-form.",
                 ),
+                ChallengeEntity(
+                    id = 61000, lessonId = 400, type = ChallengeType.LISTEN,
+                    question = "Tap what you hear",
+                    audioSrc = "asset:///audio/ja/kinou_zasshi_o_kaimashita.ogg",
+                    orderIndex = 7,
+                    grammaticalFocus = "ja.past_polite",
+                    ruleText = "The polite past adds ました to the ます form: 買う → 買います → 買いました.\nきのう、雑誌を買います is the polite present, so nothing in it says the buying is over, and きのう、雑誌を買おう is the volitional — 'I suppose I'll buy it' — a different ending on the same stem.",
+                ),
 
                 // --- Lesson 21: Plain and Polite (断定形 / 丁寧形) ----------------
                 ChallengeEntity(
@@ -190,7 +220,6 @@ object JapaneseN4CurriculumData {
                     audioSrc = "asset:///audio/ja/ashita_ame_ga_furimasen.ogg",
                     orderIndex = 5,
                     grammaticalFocus = "ja.negative",
-                    acceptedAnswers = "降りません|ふりません",
                     ruleText = "降ります is an ichidan verb: drop る and the polite negative is 降りません.\n降らない is the plain negative, 降ります the polite present, and 降って the て-form.",
                 ),
                 ChallengeEntity(
@@ -206,6 +235,22 @@ object JapaneseN4CurriculumData {
                     heldOut = true,
                     grammaticalFocus = "ja.plain_vs_polite",
                     ruleText = "A godan verb's plain negative drops the final う: 飲む → 飲まない.\n飲みません is the polite negative, 飲む the plain present, and 飲ません is not a form of this verb at all.",
+                ),
+                ChallengeEntity(
+                    id = 61001, lessonId = 401, type = ChallengeType.LISTEN,
+                    question = "Tap what you hear",
+                    audioSrc = "asset:///audio/ja/kyou_wa_ame_ga_furimasen.ogg",
+                    orderIndex = 8,
+                    grammaticalFocus = "ja.negative",
+                    ruleText = "A polite negative verb ends in ません: 降ります → 降りません, and が marks the rain as the thing that does not fall.\nきょうは、雨を降りません puts を on an intransitive verb — を marks an object, and 雨 is what falls — while きょうは、雨がふっていません builds the progressive ふって + いません, a て-form where this slot wants the plain negative ending.",
+                ),
+                ChallengeEntity(
+                    id = 61002, lessonId = 401, type = ChallengeType.LISTEN,
+                    question = "Tap what you hear",
+                    audioSrc = "asset:///audio/ja/ashita_gakko_ni_ikimasu.ogg",
+                    orderIndex = 9,
+                    grammaticalFocus = "ja.plain_vs_polite",
+                    ruleText = "The polite present (丁寧形) is the ます form as it already stands: 学校に行きます.\nあした、学校に行きました is the polite past, and あした、学校に行った is the plain past — the 断定形 drops ます altogether, so neither ending is polite *and* present at once.",
                 ),
 
                 // --- Lesson 22: How Was It? (adjectives) -------------------------
@@ -267,6 +312,22 @@ object JapaneseN4CurriculumData {
                     grammaticalFocus = "ja.i_adjective",
                     acceptedAnswers = "ビール|びーる",
                     ruleText = "An い-adjective makes the plain past with かった: 安い → 安かった.\nビールス is not a Japanese word and コーヒー is a different drink — the blank wants the drink that was cheap.",
+                ),
+                ChallengeEntity(
+                    id = 61003, lessonId = 402, type = ChallengeType.LISTEN,
+                    question = "Tap what you hear",
+                    audioSrc = "asset:///audio/ja/biiru_wa_yasukatta.ogg",
+                    orderIndex = 7,
+                    grammaticalFocus = "ja.i_adjective",
+                    ruleText = "An い-adjective makes the plain past on its own stem and stops there: 安い → 安かった, so nothing may follow the かった.\nビールは安いです keeps です and is saying the beer is cheap right now, and ビールは安くなかった adds なかった to a かった that already carries the past — なかった is the な-adjective and verb pattern an い-adjective never uses.",
+                ),
+                ChallengeEntity(
+                    id = 61004, lessonId = 402, type = ChallengeType.LISTEN,
+                    question = "Tap what you hear",
+                    audioSrc = "asset:///audio/ja/kyoushitsu_wa_kirei_deshita.ogg",
+                    orderIndex = 8,
+                    grammaticalFocus = "ja.na_adjective",
+                    ruleText = "A な-adjective never changes its stem, so きれい + でした is the whole polite past and the sentence ends there.\n教室はきれいだった swaps です for だ and drops the polite ending — that is the plain 断定形 — and 教室はきれいくでした bolts the い-adjective stem く onto the な-adjective ending, which is exactly the class mistake this unit exists to catch.",
                 ),
             ),
             options = listOf(
@@ -367,13 +428,14 @@ object JapaneseN4CurriculumData {
 
                 ChallengeOptionEntity(id = 600078, challengeId = 60018, text = "静かでした", romaji = "shizuka deshita", correct = true),
                 ChallengeOptionEntity(id = 600079, challengeId = 60018, text = "静かな", romaji = "shizuka na", correct = false, errorTag = "WRONG_FORM"),
-                ChallengeOptionEntity(id = 600080, challengeId = 60018, text = "静かです", romaji = "shizuka desu", correct = false, errorTag = "WRONG_TENSE"),
-                ChallengeOptionEntity(id = 600081, challengeId = 60018, text = "静かに", romaji = "shizuka ni", correct = false, errorTag = "WRONG_FORM"),
-
                 ChallengeOptionEntity(id = 600082, challengeId = 60019, text = "でした", romaji = "deshita", correct = true),
                 ChallengeOptionEntity(id = 600083, challengeId = 60019, text = "かった", romaji = "katta", correct = false, errorTag = "WRONG_FORM"),
                 ChallengeOptionEntity(id = 600084, challengeId = 60019, text = "かったでした", romaji = "katta deshita", correct = false, errorTag = "WRONG_FORM"),
                 ChallengeOptionEntity(id = 600085, challengeId = 60019, text = "くなかった", romaji = "ku nakatta", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 6100004, challengeId = 61001, text = "きょうは、雨が降りません", romaji = "kyou wa ame ga furimasen", correct = true),
+                ChallengeOptionEntity(id = 6100005, challengeId = 61001, text = "きょうは、雨を降りません", romaji = "kyou wa ame o furimasen", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 6100006, challengeId = 61001, text = "きょうは、雨がふっていません", romaji = "kyou wa ame ga futte imasen", correct = false, errorTag = "WRONG_FORM"),
 
                 ChallengeOptionEntity(id = 600086, challengeId = 60020, text = "本はおもしろくなかった", romaji = "hon wa omoshiroku nakatta", correct = true, audioSrc = "asset:///audio/ja/hon_wa_omoshiroku_nakatta.ogg"),
                 ChallengeOptionEntity(id = 600087, challengeId = 60020, text = "本はおもしろかった", romaji = "hon wa omoshirokatta", correct = false, errorTag = "WRONG_TENSE"),
@@ -383,6 +445,22 @@ object JapaneseN4CurriculumData {
                 ChallengeOptionEntity(id = 600090, challengeId = 60021, text = "ビール", romaji = "biiru", correct = true),
                 ChallengeOptionEntity(id = 600091, challengeId = 60021, text = "ビールス", romaji = "biirusu", correct = false, errorTag = "WRONG_FORM"),
                 ChallengeOptionEntity(id = 600092, challengeId = 60021, text = "コーヒー", romaji = "koohii", correct = false),
+
+                ChallengeOptionEntity(id = 6100001, challengeId = 61000, text = "きのう、雑誌を買いました", romaji = "kinou zasshi o kaimashita", correct = true),
+                ChallengeOptionEntity(id = 6100002, challengeId = 61000, text = "きのう、雑誌を買います", romaji = "kinou zasshi o kaimasu", correct = false, errorTag = "WRONG_TENSE"),
+                ChallengeOptionEntity(id = 6100003, challengeId = 61000, text = "きのう、雑誌を買おう", romaji = "kinou zasshi o kaou", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 6100007, challengeId = 61002, text = "あした、学校に行きます", romaji = "ashita gakko ni ikimasu", correct = true),
+                ChallengeOptionEntity(id = 6100008, challengeId = 61002, text = "あした、学校に行きました", romaji = "ashita gakko ni ikimashita", correct = false, errorTag = "WRONG_TENSE"),
+                ChallengeOptionEntity(id = 6100009, challengeId = 61002, text = "あした、学校に行った", romaji = "ashita gakko ni itta", correct = false, errorTag = "WRONG_REGISTER"),
+
+                ChallengeOptionEntity(id = 6100010, challengeId = 61003, text = "ビールは安かった", romaji = "biiru wa yasukatta", correct = true),
+                ChallengeOptionEntity(id = 6100011, challengeId = 61003, text = "ビールは安いです", romaji = "biiru wa yasui desu", correct = false, errorTag = "WRONG_TENSE"),
+                ChallengeOptionEntity(id = 6100012, challengeId = 61003, text = "ビールは安くなかった", romaji = "biiru wa yasuku nakatta", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 6100013, challengeId = 61004, text = "教室はきれいでした", romaji = "kyoushitsu wa kirei deshita", correct = true),
+                ChallengeOptionEntity(id = 6100014, challengeId = 61004, text = "教室はきれいだった", romaji = "kyoushitsu wa kirei datta", correct = false, errorTag = "WRONG_REGISTER"),
+                ChallengeOptionEntity(id = 6100015, challengeId = 61004, text = "教室はきれいくでした", romaji = "kyoushitsu wa kireiku deshita", correct = false, errorTag = "WRONG_FORM"),
             ),
         ),
 
@@ -456,6 +534,22 @@ object JapaneseN4CurriculumData {
                     grammaticalFocus = "ja.ability_polite",
                     ruleText = "Ability is the potential: 歌う → 歌える → 歌えます.\n歌います is the polite present, 歌う the dictionary form, 歌わない the plain negative, and 歌えました the polite past — only 歌えます says 'can' in one word.",
                 ),
+                ChallengeEntity(
+                    id = 61005, lessonId = 403, type = ChallengeType.LISTEN,
+                    question = "Tap what you hear",
+                    audioSrc = "asset:///audio/ja/jitensha_ni_noremasu.ogg",
+                    orderIndex = 7,
+                    grammaticalFocus = "ja.ability_polite",
+                    ruleText = "'Can ride' is the potential in its polite form, one word: 乗る → 乗れる → 乗れます.\n自転車に乗ります is the plain polite verb 'I ride', which says nothing at all about ability, and 自転車に乗れる is the plain potential — 'I can ride' in the 断定形, not the 丁寧形 this item is in.",
+                ),
+                ChallengeEntity(
+                    id = 61006, lessonId = 403, type = ChallengeType.LISTEN,
+                    question = "Tap what you hear",
+                    audioSrc = "asset:///audio/ja/unten_suru_koto_ga_dekimasu.ogg",
+                    orderIndex = 8,
+                    grammaticalFocus = "ja.ability_polite",
+                    ruleText = "One rule, two routes: ことができます is 「〜こと が できます」, こと is the する→す nominaliser, so the verb in front of it takes its *plain* form — 運転する ことが できます.\n運転しますことができます keeps ます exactly where こと needs a noun, and 運転ができました is the polite past 'I could drive' — a different tense on a different construction.",
+                ),
 
                 // --- Lesson 24: I Think (〜と思います) ---------------------------
                 ChallengeEntity(
@@ -519,6 +613,14 @@ object JapaneseN4CurriculumData {
                     acceptedAnswers = "あつい",
                     ruleText = "The plain clause goes straight in: あつい + と思います = きのうはあついと思います.\nあつかった is the past and あついです adds です — the opinion takes the uninflected adjective.",
                 ),
+                ChallengeEntity(
+                    id = 61007, lessonId = 404, type = ChallengeType.LISTEN,
+                    question = "Tap what you hear",
+                    audioSrc = "asset:///audio/ja/nihongo_wa_muzukashii_to_omoimasu.ogg",
+                    orderIndex = 8,
+                    grammaticalFocus = "ja.think",
+                    ruleText = "The word in front of と思います is the bare plain form, adjectives included: むずかしい + と思います.\n日本語はむずかしくと思います hands ます the い-adjective stem く, which belongs to むずかしいです and to nothing before と思います, and 日本語はむずかしかったと思います puts the past on the adjective, so the opinion is about a day already gone.",
+                ),
 
                 // --- Lesson 25: Gifts and Favours (あげる/くれる/もらう) ----------
                 ChallengeEntity(
@@ -579,6 +681,14 @@ object JapaneseN4CurriculumData {
                     heldOut = true,
                     grammaticalFocus = "ja.giving_receiving",
                     ruleText = "もらう makes the plain past with った: もらう → もらった.\nもらいます is the polite present, もらう the plain present, and もらって the て-form.",
+                ),
+                ChallengeEntity(
+                    id = 61008, lessonId = 405, type = ChallengeType.LISTEN,
+                    question = "Tap what you hear",
+                    audioSrc = "asset:///audio/ja/tomodachi_ga_hon_o_kuremashita.ogg",
+                    orderIndex = 7,
+                    grammaticalFocus = "ja.giving_receiving",
+                    ruleText = "くれる is the verb whose giver is somebody else, so the friend takes が and the thing takes を: the friend did something for me.\n友達が本をあげました reverses the direction — あげる needs its receiver under に, never が — and 友達が本をくれませんでした is the polite negative past, so the friend did not in fact give it.",
                 ),
             ),
             options = listOf(
@@ -694,6 +804,22 @@ object JapaneseN4CurriculumData {
                 ChallengeOptionEntity(id = 600182, challengeId = 60043, text = "もらいます", romaji = "moraimasu", correct = false, errorTag = "WRONG_TENSE"),
                 ChallengeOptionEntity(id = 600183, challengeId = 60043, text = "もらう", romaji = "morau", correct = false, errorTag = "WRONG_FORM"),
                 ChallengeOptionEntity(id = 600184, challengeId = 60043, text = "もらって", romaji = "moratte", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 6100016, challengeId = 61005, text = "自転車に乗れます", romaji = "jitensha ni noremasu", correct = true),
+                ChallengeOptionEntity(id = 6100017, challengeId = 61005, text = "自転車に乗ります", romaji = "jitensha ni norimasu", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 6100018, challengeId = 61005, text = "自転車に乗れる", romaji = "jitensha ni noreru", correct = false, errorTag = "WRONG_REGISTER"),
+
+                ChallengeOptionEntity(id = 6100019, challengeId = 61006, text = "運転することができます", romaji = "unten suru koto ga dekimasu", correct = true),
+                ChallengeOptionEntity(id = 6100020, challengeId = 61006, text = "運転しますことができます", romaji = "unten shimasu koto ga dekimasu", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 6100021, challengeId = 61006, text = "運転ができました", romaji = "unten ga dekimashita", correct = false, errorTag = "WRONG_TENSE"),
+
+                ChallengeOptionEntity(id = 6100022, challengeId = 61007, text = "日本語はむずかしいと思います", romaji = "nihongo wa muzukashii to omoimasu", correct = true),
+                ChallengeOptionEntity(id = 6100023, challengeId = 61007, text = "日本語はむずかしくと思います", romaji = "nihongo wa muzukashiku to omoimasu", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 6100024, challengeId = 61007, text = "日本語はむずかしかったと思います", romaji = "nihongo wa muzukashikatta to omoimasu", correct = false, errorTag = "WRONG_TENSE"),
+
+                ChallengeOptionEntity(id = 6100025, challengeId = 61008, text = "友達が本をくれました", romaji = "tomodachi ga hon o kuremashita", correct = true),
+                ChallengeOptionEntity(id = 6100026, challengeId = 61008, text = "友達が本をあげました", romaji = "tomodachi ga hon o agemashita", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 6100027, challengeId = 61008, text = "友達が本をくれませんでした", romaji = "tomodachi ga hon o kuremashimasen deshita", correct = false, errorTag = "WRONG_TENSE"),
             ),
         ),
     )
