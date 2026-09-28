@@ -3,7 +3,7 @@
 This document outlines the pedagogical scope, unit structure, and audio
 production requirements for expanding Duo into intermediate levels.
 
-**Status summary.** Units 9–16 of the Spanish course and 9–16 of the Japanese course
+**Status summary.** Units 9–18 of the Spanish course and 9–18 of the Japanese course
 have shipped. The Japanese units are genuinely at the level this roadmap names
 (JLPT N4: te-form, polite requests and potential forms, then the past, plain-vs-polite
 register, the い/な adjective classes, ability, opinion and the giving/receiving trio,
@@ -20,19 +20,21 @@ cause, result and concession (`para`, `porque`, `así que`, `entonces`, `aunque`
 `para que`, `a menos que`), the imperative in all three shapes (affirmative `tú`,
 affirmative `usted`, negative), the direct and indirect object pronouns, `gustar` and
 the reflexive verbs including impersonal `se` in units 13–14, the subjunctive perfect, the unreal past, reported speech and `por`/`para` in units 15–16. The A2 checkpoint draws
-units 18–19 and the **B1** checkpoint draws units 30–35.
+units 18–19 and the **B1** checkpoint draws units 30–37, which now includes the two
+themed vocabulary units 17–18 (ids 36–37).
 
-**Vocabulary coverage.** The corpus teaches **305 distinct Spanish and 281 distinct
-Japanese headwords**; units 1–8 contributed 76 / 62 of them and units 9–16 add the rest. A "headword" here is exactly what the app treats as
-one: a target-language string that at least one challenge marks as a **correct
-answer**, keyed `trim().lowercase()` — the same key `DictionaryIndex` indexes and
+**Vocabulary coverage.** The corpus teaches **690 distinct Spanish and 592 distinct
+Japanese headwords**; units 1–8 contributed 76 / 62 of them, units 9–16 added the
+grammar-driven rest, and the themed units 17–18 roughly doubled both totals. A
+"headword" here is exactly what the app treats as one: a string that at least one
+challenge marks as a **correct answer**, keyed `trim().lowercase()` — the same key `DictionaryIndex` indexes and
 `UnitVocabularyIndex` compares. Wrong answers are excluded, so a distractor never
 counts, and 9 Spanish / 10 Japanese headwords appear only in the held-out checkpoint
 pool, which tests rather than teaches. This is **not** a row count: the FSRS
 `vocab_schedule` table is a hand-seeded set of 14 review cards (6 `es`, 8 `ja`) that
 does not grow with the corpus, and it decides what is *due for review*, not what a unit
-may *list*. The per-unit vocabulary list therefore reads the corpus directly — 296
-Spanish and 271 Japanese headwords are on a lesson path and are all browsable — and
+may *list*. The per-unit vocabulary list therefore reads the corpus directly — 681
+Spanish and 582 Japanese headwords are on a lesson path and are all browsable — and
 excludes the held-out-only ones, because printing a checkpoint's unseen answer in a
 study list would hand over what the checkpoint exists to test.
 `docs/android-architecture.md` §2.1 tabulates all three surfaces.
@@ -54,9 +56,12 @@ is **breadth, not grammar** — verified against the corpus:
 - **The future and the imperfect subjunctive are untaught.** The subjunctive appears
   only where the corpus needs it; there is no `sea`, `tenga` or `vaya` paradigm, so the
   irregular subjunctive is entirely absent.
-- **Vocabulary.** 305 distinct Spanish headwords is a starter set, not a working
-  vocabulary, and the travel, work and health themes the roadmap originally sketched
-  for units 11–12 still exist only as the incidental nouns of the grammar items.
+- **Vocabulary is the remaining shortfall, and it is now a matter of degree rather
+  than of absence.** The travel, work, health, home and food themes the roadmap
+  sketched for units 11–12 are now taught as units 17–18 in their own right, taking
+  Spanish from 305 to 690 headwords. That is a working starter set, not a broad B1
+  vocabulary: a course at this level wants roughly **2,000** Spanish headwords, so the
+  course still carries about a third of the breadth it claims by level.
 
 **Still absent at N4.** Units 15–16 closed the four points this section used to name:
 the three conditionals (`〜たら`, `〜なら`, `〜ば`) are taught as three, the polite
@@ -65,14 +70,14 @@ with their everyday substitutions, and the られる disambiguation is now a rul
 own focus rather than four confrontations. What is still missing is **breadth**, and the
 following was checked by searching the corpus rather than assumed:
 
-- **〜なければなりません** ("must") appears zero times. It is a core N4 point and the
-  corpus has no obligation frame beyond `なければ`.
-- **〜てもいいです** appears zero times. The corpus teaches 〜なくていい (`来なくていいです`)
-  and nothing else of the permission family.
-- **〜たことがあります** ("have done") appears zero times — no experience frame at all,
-  so there is no past state the learner has ever *had*.
-- **〜ようにする / 〜ことにする** appear zero times, so the corpus never contrasts
-  intention with decision.
+- **〜なければなりません, 〜てもいい and 〜たことがあります now ship**, in units 17–18
+  with the themed vocabulary, each as a focus of its own (`ja.necessity`,
+  `ja.permission`, `ja.experience`) rather than as an incidental ending. What is still
+  thin is that each has one lesson's worth of material rather than a paradigm.
+- **〜ようにする / 〜ことにする** still appear zero times, so the corpus never contrasts
+  intention with decision. This was skipped deliberately rather than overlooked: the
+  frames belong to a grammar unit, not to a vocabulary one, and shipping them with a
+  single example each would claim coverage the corpus does not have.
 - **〜ましょうか** appears zero times, so the polite invitation with rising intonation
   is absent while the plain proposal is taught.
 - **Keigo is an introduction, not a system.** 尊敬語 here is 召し上がる / なさる /
@@ -81,10 +86,10 @@ following was checked by searching the corpus rather than assumed:
   a single item, no double honourific, and none of the 謙譲語I / 謙譲語II split a business
   course would need.
 
-The `LISTEN` mechanic is no longer a gap: the corpus files carry 49 `LISTEN` challenges
-(78 counting the ones seeded with the A1 and N5 units), sitting in Japanese units 9–16
-(1, 1, 5, 4, 3, 4, 3 and 3) and Spanish units 11–16 (6, 6, 3, 4, 3 and 3), not only in the
-A1 and A2 units.
+The `LISTEN` mechanic is no longer a gap: the corpus files carry 70 `LISTEN` challenges
+(100 counting the ones seeded with the A1 and N5 units), sitting in Japanese units 9–18
+(1, 1, 5, 4, 3, 4, 3, 3, 6 and 4) and Spanish units 11–18 (6, 6, 3, 4, 3, 3, 6 and 6),
+not only in the A1 and A2 units.
 
 ## Spanish (CEFR B1 Threshold)
 

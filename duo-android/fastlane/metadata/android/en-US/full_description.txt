@@ -3,19 +3,19 @@ OpenLingo is a 100% free, privacy-first, open-source language learning client fo
 Key Features:
 • 100% Free & Open-Source: zero ads, zero tracking, no subscriptions, no in-app purchases.
 • Full Offline Mode: every unit, lesson and word plays from your device — no internet connection, no INTERNET permission. All speech is pre-rendered Kokoro-82M audio bundled in the app, not on-demand text-to-speech.
-• Grammar Rule Cards: a challenge can carry a short rule, shown alongside it and repeated in the wrong-answer feedback.
+• Grammar Rule Cards: a challenge can carry a short rule, shown alongside it and repeated in wrong-answer feedback.
 • Error-Specific Hints: the app knows which grammar error the option you picked encodes, names it, then gives the rule and the form that fits.
-• Typed Production: Verb Conjugation asks for the right form from a paradigm, and Fill in the Blank has you type the missing word. Grading forgives a missing Spanish accent and a full-width Japanese character, not wrong word order.
-• Offline Tap-to-Lookup Dictionary: tap any word in a question, story line or option — or hold an answer — for its definition, audio and source sentence. No network, no bundled asset. It defines 305 Spanish and 281 Japanese headwords — every distinct string a challenge marks as the correct answer.
-• Mistake Reviews That Teach: mistakes come back with the rule attached, before you retry.
+• Typed Production: Verb Conjugation asks for the right form from a paradigm; Fill in the Blank has you type the missing word. Grading forgives a missing Spanish accent and a full-width Japanese character, not wrong word order.
+• Offline Tap-to-Lookup Dictionary: tap any word in a question, story line or option — or hold an answer — for its definition, audio and source sentence. No network, no bundled asset. It defines 690 Spanish and 592 Japanese headwords — every distinct string a challenge marks as the correct answer.
+• Mistake Reviews That Teach: mistakes return with the rule attached, before you retry.
 • Per-Unit Vocabulary List: every word a unit teaches as one browsable, listenable list, grouped by the lesson that teaches it — not capped by seeded review cards.
-• Structure Drills: conjugation tables generated from the lessons a unit already teaches; never touches your progress.
+• Structure Drills: conjugation tables generated from a unit's own lessons; never touches your progress.
 • Seven Exercise Types per lesson: Multiple Choice, Word Bank sentence builder, Verb Conjugation, Fill in the Blank, Match Pairs, Listen, and Story — with 0.5x / 0.75x / 1.0x playback speed. An eighth type, Vocabulary Assist, is wired in, but its two questions carry no blank to fill yet, so it plays as Multiple Choice.
 • Winding S-Curve Lesson Map: sequential lesson unlocking with golden crowns.
 • Level Checkpoint Assessments: test your mastery of CEFR A1/A2/B1 and JLPT N5/N4. A2, B1 and N4 sessions open with a held-out pool of unseen sentences — 4, 8 and 10 items — so early questions test generalisation, not recall. A1 and N5 are drawn entirely from taught items.
-• Coverage is partial, and breadth is the honest limit: the grammar arc — Spanish subjunctive perfect, reported speech, por/para; Japanese conditionals, polite volitional, keigo, the readings of られる — is complete, but 305 and 281 headwords is a starter vocabulary, not fluency, and Japanese keigo is a handful of everyday substitutions, not a full politeness system.
+• Coverage is partial, and breadth is the honest limit: the grammar arc — Spanish subjunctive perfect, reported speech, por/para; Japanese conditionals, polite volitional, keigo, られる, necessity, permission, experience — is complete at both ends, and 36 units now teach 690 Spanish and 592 Japanese headwords. A broad B1/N4 course wants roughly 2,000 Spanish and 800 Japanese, so breadth is the shortfall. Keigo is everyday substitutions, not a politeness system, and ようにする / ことにする is untaught.
 • FSRS-4.5 Spaced Repetition: the Free Spaced Repetition Scheduler algorithm for vocabulary review, with 4-rating intervals and due card tracking.
-• Adaptive Learning: tracks accuracy across challenge types and prioritizes your weakest areas in drills.
+• Adaptive Learning: tracks accuracy per challenge type and prioritises your weakest areas.
 • Story Mode: narrative reading challenges with dialogue, offline speech and comprehension questions.
 • Placement Test: skip ahead on day one with an assessment across all units.
 • Kana Mastery: full syllabaries for all 46 Hiragana and 46 Katakana with stroke tracing canvas, plus 60-second Kana Blitz.
