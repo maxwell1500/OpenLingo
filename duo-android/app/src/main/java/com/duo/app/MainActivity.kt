@@ -135,6 +135,7 @@ class MainActivity : ComponentActivity() {
             val allVocab by viewModel.allVocab.collectAsStateWithLifecycle()
             val dueVocabCount by viewModel.dueVocabCount.collectAsStateWithLifecycle()
             val unitVocabulary by viewModel.unitVocabulary.collectAsStateWithLifecycle()
+            val unlockedWords by viewModel.unlockedWords.collectAsStateWithLifecycle()
             val unitVocabCounts by viewModel.unitVocabCounts.collectAsStateWithLifecycle()
             val grammarDrills by viewModel.grammarDrills.collectAsStateWithLifecycle()
             val unitDrillCounts by viewModel.unitDrillCounts.collectAsStateWithLifecycle()
@@ -249,6 +250,8 @@ class MainActivity : ComponentActivity() {
                                             vocabList = allVocab,
                                             dueVocabCount = dueVocabCount,
                                             onReviewVocab = viewModel::reviewVocab,
+                                            unlockedWords = unlockedWords,
+                                            dictionary = dictionary,
                                         )
                                     }
                                     is MainTab.Profile -> {
@@ -976,22 +979,23 @@ private fun UnitSection(
 }
 
 /**
- * WI-12: every scheduled word this unit's exercises teach, grouped by the category the
- * word was filed under, with the audio that the rest of the app already plays.
+ * The words one unit teaches, grouped by the lesson that teaches them.
  *
- * Browse and listen only. Grading lives in the FSRS review in the Practice tab, and
- * duplicating it here would give the learner two schedules for one set of words.
+ * A study surface, like the grammar drills beside it: opening it reads the corpus and
+ * writes nothing. `dictionary` supplies the gloss and the clip, because the offline
+ * dictionary is the one place the app states a meaning outright — the unit list itself
+ * claims no translation for a word the corpus never glosses.
  */
 @Composable
 private fun UnitVocabularyScreen(
     unit: UnitEntity?,
-    words: List<com.duo.app.data.local.entities.VocabScheduleEntity>,
+    words: List<com.duo.app.ui.UnitWord>,
     dictionary: com.duo.app.dictionary.Dictionary,
     onLookup: (com.duo.app.dictionary.DictionaryEntry) -> Unit,
     onPlayVoice: (String) -> Unit,
     onBack: () -> Unit,
 ) {
-    val grouped = remember(words) { words.groupBy { it.category }.toList() }
+    val grouped = remember(words) { words.groupBy { it.lessonTitle } }
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -1025,15 +1029,15 @@ private fun UnitVocabularyScreen(
             ) {
                 Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(
-                        text = "📖 No vocabulary here yet",
+                        text = "📖 No vocabulary here",
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
                         color = Color(0xFF4B4B4B),
                     )
                     Text(
-                        text = "This unit's words have not been added to your vocabulary list " +
-                            "yet. The words you meet in the Practice tab will show up here " +
-                            "once they do.",
+                        text = "None of this unit's lessons give a correct answer in the language " +
+                            "you are learning, so there is nothing to list. This is what the unit " +
+                            "actually teaches — not a list still waiting to be filled in.",
                         style = MaterialTheme.typography.bodySmall,
                         color = Color(0xFF777777),
                     )
@@ -1041,18 +1045,18 @@ private fun UnitVocabularyScreen(
             }
         } else {
             Text(
-                text = "${words.size} ${if (words.size == 1) "word" else "words"} · tap a word for its definition, 🔊 to hear it",
+                text = "${words.size} ${if (words.size == 1) "word" else "words"} this unit teaches · tap a word for its definition, 🔊 to hear it",
                 style = MaterialTheme.typography.bodySmall,
                 color = Color(0xFF888888),
             )
-            grouped.forEach { (category, categoryWords) ->
+            grouped.forEach { (lessonTitle, lessonWords) ->
                 Text(
-                    text = category.uppercase(),
+                    text = lessonTitle.uppercase(),
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color(0xFF888888),
                 )
-                categoryWords.forEach { word ->
+                lessonWords.forEach { word ->
                     UnitVocabularyRow(
                         word = word,
                         dictionary = dictionary,
@@ -1068,11 +1072,12 @@ private fun UnitVocabularyScreen(
 
 @Composable
 private fun UnitVocabularyRow(
-    word: com.duo.app.data.local.entities.VocabScheduleEntity,
+    word: com.duo.app.ui.UnitWord,
     dictionary: com.duo.app.dictionary.Dictionary,
     onLookup: (com.duo.app.dictionary.DictionaryEntry) -> Unit,
     onPlayVoice: (String) -> Unit,
 ) {
+    val entry = remember(word, dictionary) { dictionary.lookup(word.term) }
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(14.dp),
@@ -1087,7 +1092,7 @@ private fun UnitVocabularyRow(
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 LookupText(
-                    text = word.foreign,
+                    text = word.term,
                     dictionary = dictionary,
                     onLookup = onLookup,
                     preferWholeTerm = true,
@@ -1095,21 +1100,27 @@ private fun UnitVocabularyRow(
                     fontWeight = FontWeight.Bold,
                     color = Color(0xFF4B4B4B),
                 )
-                if (!word.romaji.isNullOrBlank()) {
+                val romaji = word.romaji ?: entry?.romaji
+                if (!romaji.isNullOrBlank()) {
                     Text(
-                        text = word.romaji,
+                        text = romaji,
                         style = MaterialTheme.typography.bodySmall,
                         fontSize = 12.sp,
                         color = Color(0xFF1CB0F6),
                     )
                 }
-                Text(
-                    text = word.translation,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = Color(0xFF888888),
-                )
+                val gloss = entry?.gloss
+                if (!gloss.isNullOrBlank()) {
+                    Text(
+                        text = gloss,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color(0xFF888888),
+                    )
+                }
             }
-            val audioSrc = word.audioSrc
+            // The clip the teaching option carried, or the one the dictionary found. Never
+            // a generated path and never a URL: audio is a bundled asset or it is nothing.
+            val audioSrc = word.audioSrc ?: entry?.audioSrc
             if (audioSrc != null) {
                 Box(
                     modifier = Modifier

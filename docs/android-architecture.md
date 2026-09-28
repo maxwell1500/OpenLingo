@@ -42,7 +42,7 @@ State flows in one direction:
 | `mistakes` | `MistakeEntity` | Wrong answers awaiting review, one row per challenge |
 | `daily_activity` | `DailyActivityEntity` | XP per calendar date (`yyyy-MM-dd`), backs the daily quest |
 | `checkpoint_scores` | `CheckpointScoreEntity` | Per-level checkpoint results (`A1`/`A2`/`B1`/`N5`/`N4`) as `correct`/`total` pairs |
-| `vocab_schedule` | `VocabScheduleEntity` | Free Spaced Repetition Scheduler state per dictionary item, fully offline |
+| `vocab_schedule` | `VocabScheduleEntity` | Free Spaced Repetition Scheduler state per **seeded review card**, fully offline — a hand-written 14-row seed in `LocalProgressRepository.seedInitialVocabSchedule` (6 `es`, 8 `ja`), not a corpus table and not grown as units are added. It is the smallest of three vocabulary-ish tables; see §2.1 |
 | `exercise_type_stats` | `ExerciseTypeStatsEntity` | Aggregate attempts/correct per exercise type, used to prioritise weak areas |
 
 Migrations preserve user data (all additive — `ADD COLUMN` / `CREATE TABLE IF NOT EXISTS`):
@@ -58,6 +58,18 @@ Migrations preserve user data (all additive — `ADD COLUMN` / `CREATE TABLE IF 
 - `12 → 13` adds `grammaticalFocus`, `ruleText`, `acceptedAnswers` to `challenges` and `errorTag` to `challenge_options`
 - `13 → 14` adds `heldOut` to `challenges` (default `0`)
 - `14 → 15` adds `dailyQuestGoal` to `user_progress` (default `30`) — current version
+
+### 2.1 Which vocabulary count is which
+
+The app has no single hand-written vocabulary list, so "how many words does it teach?" has three defensible answers. They are:
+
+| Surface | What it counts | Count |
+|---|---|---|
+| Corpus headwords (`challenge_options` where `correct = 1`, keyed `text.trim().lowercase()`) | Every distinct target-language string at least one challenge marks as the correct answer. This is what `DictionaryIndex.build` indexes and what `UnitVocabularyIndex.key` compares against | **245 Spanish, 234 Japanese** (236 / 224 on a lesson path; 9 / 10 only in the held-out checkpoint pool) |
+| Offline dictionary at runtime (`LocalProgressRepository.loadDictionary`) | The corpus headwords **plus** the 14 `vocab_schedule` `foreign` terms, which contribute 3 Spanish words no challenge marks correct (`hola`, `gracias`, `la cuenta, por favor`) | **248 Spanish, 234 Japanese** |
+| Per-unit vocabulary list (`UnitVocabularyIndex.wordsByUnit`) | The distinct target-language strings the unit's own **lesson-path** correct options teach, grouped by the lesson that teaches each one. Deliberately **not** intersected with `vocab_schedule`: that table is a 14-row review seed and gating the list on it capped all 28 units at 3 Spanish and 8 Japanese words. Held-out checkpoint answers are excluded — a browsable study list must not print the answer the checkpoint exists to test | **236 Spanish, 224 Japanese** across the 28 units |
+
+The published figure in `README.md` is the first row. The distinction is load-bearing rather than pedantic: only a `correct` option becomes a headword, because the Spanish seed offers `gracias` as the wrong answer to "Sí por favor" and indexing every option would define, authoritatively, a word the unit is teaching the learner to reject.
 
 ## 3. Curriculum seeding
 

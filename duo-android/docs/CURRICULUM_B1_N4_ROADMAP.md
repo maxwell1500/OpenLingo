@@ -22,6 +22,22 @@ affirmative `usted`, negative), the direct and indirect object pronouns, `gustar
 the reflexive verbs including impersonal `se` in units 13–14. The A2 checkpoint draws
 units 18–19 and the **B1** checkpoint draws units 30–33.
 
+**Vocabulary coverage.** The corpus teaches **245 distinct Spanish and 234 distinct
+Japanese headwords**, of which units 1–8 contribute 76 / 62 and units 9–14 add 169 /
+172 that appear nowhere earlier. A "headword" here is exactly what the app treats as
+one: a target-language string that at least one challenge marks as a **correct
+answer**, keyed `trim().lowercase()` — the same key `DictionaryIndex` indexes and
+`UnitVocabularyIndex` compares. Wrong answers are excluded, so a distractor never
+counts, and 9 Spanish / 10 Japanese headwords appear only in the held-out checkpoint
+pool, which tests rather than teaches. This is **not** a row count: the FSRS
+`vocab_schedule` table is a hand-seeded set of 14 review cards (6 `es`, 8 `ja`) that
+does not grow with the corpus, and it decides what is *due for review*, not what a unit
+may *list*. The per-unit vocabulary list therefore reads the corpus directly — 236
+Spanish and 224 Japanese headwords are on a lesson path and are all browsable — and
+excludes the held-out-only ones, because printing a checkpoint's unseen answer in a
+study list would hand over what the checkpoint exists to test.
+`docs/android-architecture.md` §2.1 tabulates all three surfaces.
+
 **Still not authored in Spanish.** The subjunctive *perfect* (`hubiera`/`hubiese` +
 participle) appears nowhere in the corpus; only the indicative past perfect
 (`había comido`) is taught. Reported speech is likewise absent as a system — no

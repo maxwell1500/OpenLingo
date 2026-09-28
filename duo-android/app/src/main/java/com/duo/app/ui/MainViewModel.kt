@@ -217,10 +217,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         emit(repository.loadDictionary())
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), com.duo.app.dictionary.Dictionary.EMPTY)
 
-    /** Target-language strings each unit's own exercises offer, bucketed by unit. */
-    private val taughtTermsByUnit: StateFlow<Map<Int, Set<String>>> = unitsWithLessons
+    /** The headwords each unit teaches, keyed by unit id. */
+    private val wordsByUnit: StateFlow<Map<Int, List<UnitWord>>> = unitsWithLessons
         .flatMapLatest { units ->
-            flow { emit(UnitVocabularyIndex.taughtTermsByUnit(repository, units)) }
+            flow { emit(UnitVocabularyIndex.wordsByUnit(repository, units)) }
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
 
@@ -253,22 +253,33 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     /**
      * Words the open unit teaches. See [UnitVocabularyIndex] for why the unit grouping
-     * is derived rather than stored; a unit with nothing scheduled shows the empty state.
+     * is derived from the corpus rather than stored, and why the FSRS review schedule
+     * does not gate it; a unit that teaches no indexable term shows the empty state.
      */
-    val unitVocabulary: StateFlow<List<com.duo.app.data.local.entities.VocabScheduleEntity>> =
-        combine(openUnitId, allVocab, taughtTermsByUnit) { unitId, vocab, terms ->
-            if (unitId == null) {
-                emptyList()
-            } else {
-                UnitVocabularyIndex.wordsFor(vocab, terms[unitId].orEmpty())
-            }
+    val unitVocabulary: StateFlow<List<UnitWord>> =
+        combine(openUnitId, wordsByUnit) { unitId, words ->
+            if (unitId == null) emptyList() else words[unitId].orEmpty()
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     /** Word count per unit, for the unit header affordance. */
     val unitVocabCounts: StateFlow<Map<Int, Int>> =
-        combine(allVocab, taughtTermsByUnit) { vocab, terms ->
-            UnitVocabularyIndex.countsByUnit(vocab, terms)
-        }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
+        wordsByUnit
+            .map { UnitVocabularyIndex.countsByUnit(it) }
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyMap())
+
+    /**
+     * Words this learner has actually met, across the whole course.
+     *
+     * Drives the Practice tab's "words unlocked" count, which used to be a hardcoded
+     * 14-row list rendered before the learner had done anything. A fresh install has
+     * completed no challenge, so this is empty and the count is zero — the honest answer
+     * — and it grows one distinct headword at a time as challenges are completed. See
+     * [LearnerVocabulary]; reading progress to describe it writes nothing.
+     */
+    val unlockedWords: StateFlow<List<UnitWord>> =
+        combine(unitsWithLessons, completedChallengeIds) { units, completed ->
+            LearnerVocabulary.wordsMet(repository, units, completed.toSet())
+        }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     /**
      * Drillable forms per unit, for the unit header chip. Derived the same way the drill

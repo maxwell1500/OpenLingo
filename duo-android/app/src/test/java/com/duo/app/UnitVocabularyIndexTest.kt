@@ -4,14 +4,16 @@ import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import com.duo.app.data.local.DuoDatabase
 import com.duo.app.data.local.entities.UnitWithLessons
-import com.duo.app.data.local.entities.VocabScheduleEntity
 import com.duo.app.data.repository.LocalProgressRepository
+import com.duo.app.ui.LearnerVocabulary
 import com.duo.app.ui.UnitVocabularyIndex
+import com.duo.app.ui.UnitWord
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -20,14 +22,15 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
 /**
- * WI-12. The per-unit vocabulary list joins `vocab_schedule` to units by way of the
- * correct answers a unit's own challenges offer, so what is worth locking is the join:
- * that it never widens beyond the scheduled words a unit teaches, that a distractor does
- * not smuggle a word in, and that a unit with nothing scheduled says nothing.
+ * The per-unit vocabulary list and the Practice tab's unlocked count both read the same
+ * fact: the target-language strings a challenge marks as its **correct** answer.
  *
- * Assertions are on invariants computed from the database rather than on a snapshot of
- * the corpus, because the curriculum is content that changes; pinning word lists here
- * would only assert that the seed has not been edited.
+ * What is worth locking is the observable contract a learner can see. Before this was
+ * fixed the list was the intersection of a unit's taught words with the 14-row FSRS review
+ * seed, so across 28 units at most 3 Spanish and 8 Japanese words could ever be listed
+ * and most unit headers read `VOCABULARY · NOT YET ADDED`. Every test here therefore
+ * asserts against the corpus rather than against a snapshot of it, and the headline test
+ * asserts a *magnitude* — a unit that teaches words must list them, not three of them.
  */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34])
@@ -53,39 +56,66 @@ class UnitVocabularyIndexTest {
             UnitWithLessons(unit = unit, lessons = db.courseDao().getLessonsForUnit(unit.id).first())
         }
 
-    private suspend fun vocabOf(courseId: Int): List<VocabScheduleEntity> =
-        repository.getAllVocab(if (courseId == 1) "es" else "ja").first()
-
-    private suspend fun optionsOf(unit: UnitWithLessons) =
+    private suspend fun challengesOf(unit: UnitWithLessons) =
         db.lessonDao().getChallengesForUnits(listOf(unit.unit.id))
             .flatMap { db.lessonDao().getOptionsForChallenge(it.id) }
 
-    private fun vocab(
-        id: String,
-        foreign: String,
-        category: String = "C",
-    ) = VocabScheduleEntity(
-        id = id, language = "es", foreign = foreign, translation = "t-$id", category = category,
-    )
+    /** Marks a challenge complete the way an answered lesson does. */
+    private suspend fun complete(challengeId: Int) =
+        repository.submitAnswer(challengeId, isCorrect = true)
 
     @Test
-    fun `each unit lists exactly the scheduled words its own correct answers teach`() = runTest {
+    fun `each unit lists every distinct headword its own correct answers teach`() = runTest {
         repository.initializeIfNeeded()
         for (courseId in listOf(1, 2)) {
-            val scheduled = vocabOf(courseId)
             val units = unitsOf(courseId)
-            val index = UnitVocabularyIndex.taughtTermsByUnit(repository, units)
+            val byUnit = UnitVocabularyIndex.wordsByUnit(repository, units)
 
             for (unit in units) {
-                val taught = optionsOf(unit).filter { it.correct }
+                val taught = challengesOf(unit).filter { it.correct }
                     .mapTo(mutableSetOf()) { UnitVocabularyIndex.key(it.text) }
-                val expected = scheduled.filter { UnitVocabularyIndex.key(it.foreign) in taught }
-                val actual = UnitVocabularyIndex.wordsFor(scheduled, index[unit.unit.id].orEmpty())
+                val actual = byUnit[unit.unit.id].orEmpty()
+                    .mapTo(mutableSetOf()) { UnitVocabularyIndex.key(it.term) }
                 assertEquals(
                     "unit ${unit.unit.id} lists the wrong words",
-                    expected.map { it.id }.toSet(),
-                    actual.map { it.id }.toSet(),
+                    taught.map { it }.toSet(),
+                    actual.toSet(),
                 )
+            }
+        }
+    }
+
+    /**
+     * The defect itself. The FSRS review seed is 14 rows and never grows with the corpus,
+     * so a list gated on it could show at most 3 Spanish and 8 Japanese words in the whole
+     * course. Each course here teaches far more than that on its lesson path, and each
+     * unit must therefore list the words it teaches rather than the intersection.
+     */
+    @Test
+    fun `a unit lists its whole vocabulary rather than the fourteen-card review seed`() = runTest {
+        repository.initializeIfNeeded()
+        val scheduledRows = db.vocabScheduleDao().getTotalCount()
+        assertTrue("the review seed should be a small hand-written set", scheduledRows in 1..14)
+
+        for (courseId in listOf(1, 2)) {
+            val units = unitsOf(courseId)
+            val counts = UnitVocabularyIndex.countsByUnit(
+                UnitVocabularyIndex.wordsByUnit(repository, units),
+            )
+            val listed = counts.values.sum()
+            assertTrue(
+                "course $courseId listed only $listed words — the FSRS seed is gating the list again",
+                listed > scheduledRows * 4,
+            )
+            // No unit may be empty while its lessons teach answers in the target language.
+            for (unit in units) {
+                val teachesSomething = challengesOf(unit).any { it.correct }
+                if (teachesSomething) {
+                    assertTrue(
+                        "unit ${unit.unit.id} teaches words but advertises none",
+                        (counts[unit.unit.id] ?: 0) > 0,
+                    )
+                }
             }
         }
     }
@@ -93,72 +123,166 @@ class UnitVocabularyIndexTest {
     @Test
     fun `a word a unit only offers as a distractor is not that unit's vocabulary`() = runTest {
         repository.initializeIfNeeded()
-        val scheduled = vocabOf(1)
         val units = unitsOf(1)
-        val index = UnitVocabularyIndex.taughtTermsByUnit(repository, units)
+        val byUnit = UnitVocabularyIndex.wordsByUnit(repository, units)
         var checked = 0
 
         for (unit in units) {
-            val options = optionsOf(unit)
+            val options = challengesOf(unit)
             val taught = options.filter { it.correct }
                 .mapTo(mutableSetOf()) { UnitVocabularyIndex.key(it.text) }
             val distractors = options.filterNot { it.correct }
                 .mapTo(mutableSetOf()) { UnitVocabularyIndex.key(it.text) } - taught
             if (distractors.isEmpty()) continue
             checked++
-            val listed = UnitVocabularyIndex.wordsFor(scheduled, index[unit.unit.id].orEmpty())
-            val leaks = listed.map { UnitVocabularyIndex.key(it.foreign) }
+            val leaks = byUnit[unit.unit.id].orEmpty()
+                .mapTo(mutableSetOf()) { UnitVocabularyIndex.key(it.term) }
                 .filterTo(mutableSetOf()) { it in distractors }
             assertEquals("unit ${unit.unit.id} lists a distractor as vocabulary", emptySet<String>(), leaks.toSet())
         }
         assertTrue("no unit offered a distractor, so the check proved nothing", checked > 0)
     }
 
+    /**
+     * Held-out means "not on the lesson path". A browsable list of a unit's words is a
+     * study aid, so printing a checkpoint's unseen answer beside the taught ones would
+     * hand over the thing the checkpoint exists to test.
+     */
+    @Test
+    fun `no held-out checkpoint answer is listed by the unit that holds it`() = runTest {
+        repository.initializeIfNeeded()
+        for (courseId in listOf(1, 2)) {
+            val units = unitsOf(courseId)
+            val listed = UnitVocabularyIndex.wordsByUnit(repository, units).values.flatten()
+                .mapTo(mutableSetOf()) { UnitVocabularyIndex.key(it.term) }
+            val heldOut = repository
+                .getHeldOutChallengesForUnits(units.map { it.unit.id })
+                .flatMap { db.lessonDao().getOptionsForChallenge(it.challenge.id) }
+                .filter { it.correct }
+                .map { UnitVocabularyIndex.key(it.text) }
+                .filter { it.isNotEmpty() }
+                .toSet()
+            assertTrue("no held-out items to check against", heldOut.isNotEmpty())
+            // A word may legitimately be both taught and held out; only a word that is
+            // held out and taught nowhere may be listed.
+            val taughtSomewhere = units.flatMap { u ->
+                db.lessonDao().getChallengesForUnits(listOf(u.unit.id))
+                    .flatMap { db.lessonDao().getOptionsForChallenge(it.id) }
+            }.filter { it.correct }.mapTo(mutableSetOf()) { UnitVocabularyIndex.key(it.text) }
+            val leaks = heldOut - taughtSomewhere
+            assertTrue("a held-out-only headword is listed: $leaks", leaks.none { it in listed })
+        }
+    }
+
     @Test
     fun `counts agree with the lists and omit units with nothing to show`() = runTest {
         repository.initializeIfNeeded()
         for (courseId in listOf(1, 2)) {
-            val scheduled = vocabOf(courseId)
             val units = unitsOf(courseId)
-            val index = UnitVocabularyIndex.taughtTermsByUnit(repository, units)
-            val counts = UnitVocabularyIndex.countsByUnit(scheduled, index)
+            val byUnit = UnitVocabularyIndex.wordsByUnit(repository, units)
+            val counts = UnitVocabularyIndex.countsByUnit(byUnit)
 
             for (unit in units) {
-                val listed = UnitVocabularyIndex.wordsFor(scheduled, index[unit.unit.id].orEmpty())
-                if (listed.isEmpty()) {
+                val words = byUnit[unit.unit.id].orEmpty()
+                if (words.isEmpty()) {
                     assertFalse("empty unit ${unit.unit.id} is advertised", unit.unit.id in counts)
                 } else {
-                    assertEquals("wrong count for unit ${unit.unit.id}", listed.size, counts[unit.unit.id])
+                    assertEquals("wrong count for unit ${unit.unit.id}", words.size, counts[unit.unit.id])
                 }
             }
         }
     }
 
     @Test
-    fun `wordsFor intersects the schedule with what the unit teaches`() {
-        val table = listOf(vocab("es:hola", "Hola"), vocab("es:gracias", "Gracias"))
-
-        // No unit terms at all, and terms with nothing in common: both must yield nothing
-        // rather than falling back to the whole table.
-        assertEquals(emptyList<VocabScheduleEntity>(), UnitVocabularyIndex.wordsFor(table, emptySet()))
-        assertEquals(
-            emptyList<VocabScheduleEntity>(),
-            UnitVocabularyIndex.wordsFor(table, setOf("adios", "despedida")),
+    fun `countsByUnit leaves out a unit with no words`() {
+        val counts = UnitVocabularyIndex.countsByUnit(
+            mapOf(
+                10 to listOf(UnitWord("Hola", lessonTitle = "Greetings")),
+                11 to emptyList(),
+            ),
         )
+
+        assertEquals(mapOf(10 to 1), counts)
+    }
+
+    @Test
+    fun `no units means no vocabulary`() = runTest {
+        assertEquals(emptyMap<Int, List<UnitWord>>(), UnitVocabularyIndex.wordsByUnit(repository, emptyList()))
+    }
+
+    // --- the Practice tab's unlocked count -----------------------------------
+
+    /**
+     * A brand-new install has unlocked nothing, so the count the Practice tab renders is
+     * zero. It used to read 14 from a hardcoded list before the learner had done anything.
+     */
+    @Test
+    fun `a learner who has done nothing has unlocked no words`() = runTest {
+        repository.initializeIfNeeded()
+        val units = unitsOf(1)
+
         assertEquals(
-            listOf("Hola"),
-            UnitVocabularyIndex.wordsFor(table, setOf("hola")).map { it.foreign },
+            emptyList<UnitWord>(),
+            LearnerVocabulary.wordsMet(repository, units, completedChallengeIds = emptySet()),
         )
     }
 
     @Test
-    fun `countsByUnit leaves out a unit whose words are all outside the schedule`() {
-        val table = listOf(vocab("es:hola", "Hola"))
-        val counts = UnitVocabularyIndex.countsByUnit(
-            vocab = table,
-            taughtTermsByUnit = mapOf(10 to setOf("hola"), 11 to setOf("adios")),
-        )
+    fun `a completed challenge unlocks exactly the words it teaches as correct answers`() = runTest {
+        repository.initializeIfNeeded()
+        val unit = unitsOf(1).first()
+        val challenge = db.lessonDao().getChallengesForUnits(listOf(unit.unit.id)).first()
+        complete(challenge.id)
 
-        assertEquals(mapOf(10 to 1), counts)
+        val expected = db.lessonDao().getOptionsForChallenge(challenge.id)
+            .filter { it.correct }
+            .map { UnitVocabularyIndex.key(it.text) }
+            .toSet()
+        assertTrue("the challenge taught nothing to unlock", expected.isNotEmpty())
+
+        val met = LearnerVocabulary.wordsMet(repository, unitsOf(1), setOf(challenge.id))
+        assertEquals(expected, met.map { UnitVocabularyIndex.key(it.term) }.toSet())
+    }
+
+    /** Unlocking is idempotent: a word met in two challenges is still one word. */
+    @Test
+    fun `a word met in several challenges counts once`() = runTest {
+        repository.initializeIfNeeded()
+        val taught = db.lessonDao().getAllOptions().filter { it.correct }
+        assertNotNull(taught)
+        val repeated = taught.groupBy { UnitVocabularyIndex.key(it.text) }
+            .filterKeys { it.isNotEmpty() }
+            .filterValues { it.map { it.challengeId }.distinct().size > 1 }
+        assertTrue("no word is taught by two challenges, so the check proved nothing", repeated.isNotEmpty())
+
+        val (term, options) = repeated.entries.first()
+        val challengeIds = options.map { it.challengeId }.distinct()
+        challengeIds.forEach { complete(it) }
+
+        val met = LearnerVocabulary.wordsMet(repository, unitsOf(1), challengeIds.toSet())
+        assertEquals(
+            "a word met in ${challengeIds.size} challenges must be one unlocked word",
+            1,
+            met.count { UnitVocabularyIndex.key(it.term) == term },
+        )
+    }
+
+    /** The unlocked list is the unit lists flattened, so the two cannot drift apart. */
+    @Test
+    fun `unlocking every challenge in a course yields that course's taught headwords`() = runTest {
+        repository.initializeIfNeeded()
+        val units = unitsOf(2)
+        val everyChallenge = db.lessonDao().getChallengesForUnits(units.map { it.unit.id })
+        everyChallenge.forEach { complete(it.id) }
+
+        val met = LearnerVocabulary.wordsMet(
+            repository,
+            units,
+            everyChallenge.map { it.id }.toSet(),
+        ).mapTo(mutableSetOf()) { UnitVocabularyIndex.key(it.term) }
+        val taught = UnitVocabularyIndex.wordsByUnit(repository, units).values.flatten()
+            .mapTo(mutableSetOf()) { UnitVocabularyIndex.key(it.term) }
+
+        assertEquals(taught, met)
     }
 }

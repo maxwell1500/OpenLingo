@@ -40,30 +40,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.duo.app.grammar.GrammarFocus
 
-data class VocabWord(
-    val foreign: String,
-    val romaji: String? = null,
-    val translation: String,
-    val audioSrc: String? = null,
-    val category: String,
-)
-
-val practiceVocabBank: List<VocabWord> = listOf(
-    VocabWord("Hola", null, "Hello", "asset:///audio/es/hola.ogg", "Spanish Essentials"),
-    VocabWord("Buenos días", null, "Good morning", "asset:///audio/es/buenos_dias.ogg", "Spanish Essentials"),
-    VocabWord("Gracias", null, "Thank you", "asset:///audio/es/gracias.ogg", "Spanish Essentials"),
-    VocabWord("Un café, por favor", null, "A coffee, please", "asset:///audio/es/un_cafe_por_favor.ogg", "Food & Dining"),
-    VocabWord("La cuenta, por favor", null, "The bill, please", "asset:///audio/es/la_cuenta.ogg", "Food & Dining"),
-    VocabWord("Yo hablo español", null, "I speak Spanish", "asset:///audio/es/yo_hablo_espanol.ogg", "Action Verbs"),
-    VocabWord("こんにちは", "Konnichiwa", "Hello / Good day", "asset:///audio/ja/konnichiwa.ogg", "Japanese Greetings"),
-    VocabWord("おはようございます", "Ohayou gozaimasu", "Good morning", "asset:///audio/ja/ohayou.ogg", "Japanese Greetings"),
-    VocabWord("お水", "Mizu", "Water", "asset:///audio/ja/mizu.ogg", "Food & Refreshments"),
-    VocabWord("コーヒー", "Koohii", "Coffee", "asset:///audio/ja/koohii.ogg", "Katakana Loanwords"),
-    VocabWord("パン", "Pan", "Bread", "asset:///audio/ja/pan.ogg", "Katakana Loanwords"),
-    VocabWord("たべます", "Tabemasu", "To eat", "asset:///audio/ja/tabemasu.ogg", "Daily Verbs"),
-    VocabWord("のみます", "Nomimasu", "To drink", "asset:///audio/ja/nomimasu.ogg", "Daily Verbs"),
-    VocabWord("すみません", "Sumimasen", "Excuse me / Sorry", "asset:///audio/ja/sumimasen.ogg", "Polite Expressions"),
-)
 
 @Composable
 fun PracticeTabScreen(
@@ -75,6 +51,8 @@ fun PracticeTabScreen(
     vocabList: List<com.duo.app.data.local.entities.VocabScheduleEntity> = emptyList(),
     dueVocabCount: Int = 0,
     onReviewVocab: (com.duo.app.data.local.entities.VocabScheduleEntity, Int) -> Unit = { _, _ -> },
+    unlockedWords: List<com.duo.app.ui.UnitWord> = emptyList(),
+    dictionary: com.duo.app.dictionary.Dictionary = com.duo.app.dictionary.Dictionary.EMPTY,
     modifier: Modifier = Modifier,
 ) {
     var showFlashcards by remember { mutableStateOf(false) }
@@ -253,7 +231,7 @@ fun PracticeTabScreen(
             )
         }
 
-        // Section Title: Learned Vocabulary Bank
+        // Section: what this learner has actually met, and nothing else.
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -266,37 +244,58 @@ fun PracticeTabScreen(
                 color = Color(0xFF4B4B4B),
             )
             Text(
-                text = "${practiceVocabBank.size} words unlocked",
+                text = "${unlockedWords.size} ${if (unlockedWords.size == 1) "word" else "words"} unlocked",
                 fontSize = 12.sp,
                 fontWeight = FontWeight.SemiBold,
                 color = Color(0xFF58CC02),
             )
         }
 
-        // Vocabulary List
-        // Vocabulary List
-        val displayList = if (vocabList.isNotEmpty()) vocabList else practiceVocabBank.map {
-            com.duo.app.data.local.entities.VocabScheduleEntity(
-                id = it.foreign,
-                language = "es",
-                foreign = it.foreign,
-                romaji = it.romaji,
-                translation = it.translation,
-                audioSrc = it.audioSrc,
-                category = it.category,
-            )
-        }
-        LazyColumn(
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-            modifier = Modifier.fillMaxWidth(),
-        ) {
-            items(displayList) { item ->
-                VocabScheduleCard(item = item, onPlayVoice = onPlayVoice)
+        // The count above and the list below are the same derivation, so they cannot
+        // disagree: [com.duo.app.ui.LearnerVocabulary.wordsMet] over completed challenges.
+        // A fresh install has completed nothing, so both are empty and the section says so
+        // rather than claiming words the learner has not met.
+        if (unlockedWords.isEmpty()) {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(14.dp),
+                colors = CardDefaults.cardColors(containerColor = Color(0xFFF7F7F7)),
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(6.dp),
+                ) {
+                    Text(
+                        text = "No words unlocked yet",
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF4B4B4B),
+                    )
+                    Text(
+                        text = "Every word you answer correctly in a lesson lands here, so " +
+                            "this list starts empty and fills up as you learn.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color(0xFF777777),
+                    )
+                }
+            }
+        } else {
+            LazyColumn(
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                items(unlockedWords) { word ->
+                    UnlockedWordCard(
+                        word = word,
+                        dictionary = dictionary,
+                        onPlayVoice = onPlayVoice,
+                    )
+                }
             }
         }
         if (showFlashcards) {
             VocabFlashcardsDialog(
-                vocabList = displayList,
+                vocabList = vocabList,
                 onPlayVoice = onPlayVoice,
                 onReviewVocab = onReviewVocab,
                 onDismiss = { showFlashcards = false },
@@ -508,82 +507,18 @@ private fun VocabFlashcardsDialog(
     }
 }
 
+/**
+ * One word the learner has met, with the gloss and the clip the offline dictionary
+ * supplies. The dictionary is the only place the app states a meaning outright, so a
+ * word it cannot gloss renders without one rather than with a guess.
+ */
 @Composable
-private fun VocabScheduleCard(
-    item: com.duo.app.data.local.entities.VocabScheduleEntity,
+private fun UnlockedWordCard(
+    word: com.duo.app.ui.UnitWord,
+    dictionary: com.duo.app.dictionary.Dictionary,
     onPlayVoice: (String) -> Unit,
 ) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(14.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
-        border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFE5E5E5)),
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween,
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text(
-                        text = item.foreign,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFF4B4B4B),
-                    )
-                    if (item.reps > 0) {
-                        Box(
-                            modifier = Modifier
-                                .background(Color(0xFFE8F5E9), RoundedCornerShape(6.dp))
-                                .padding(horizontal = 6.dp, vertical = 2.dp),
-                        ) {
-                            Text(
-                                text = "${item.reps} reps",
-                                color = Color(0xFF2E7D32),
-                                fontSize = 10.sp,
-                                fontWeight = FontWeight.Bold,
-                            )
-                        }
-                    }
-                }
-                if (!item.romaji.isNullOrBlank()) {
-                    Text(
-                        text = item.romaji,
-                        style = MaterialTheme.typography.bodySmall,
-                        fontSize = 12.sp,
-                        color = Color(0xFF1CB0F6),
-                    )
-                }
-                Text(
-                    text = "${item.translation} • ${item.category}",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = Color(0xFF888888),
-                )
-            }
-
-            if (item.audioSrc != null) {
-                Box(
-                    modifier = Modifier
-                        .size(40.dp)
-                        .background(Color(0xFFE5F5FF), CircleShape)
-                        .clickable { onPlayVoice(item.audioSrc) },
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Text(text = "🔊", fontSize = 18.sp)
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun VocabCard(
-    item: VocabWord,
-    onPlayVoice: (String) -> Unit,
-) {
+    val entry = remember(word, dictionary) { dictionary.lookup(word.term) }
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(14.dp),
@@ -599,32 +534,42 @@ private fun VocabCard(
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = item.foreign,
+                    text = word.term,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = Color(0xFF4B4B4B),
                 )
-                if (!item.romaji.isNullOrBlank()) {
+                val romaji = word.romaji ?: entry?.romaji
+                if (!romaji.isNullOrBlank()) {
                     Text(
-                        text = item.romaji,
+                        text = romaji,
                         style = MaterialTheme.typography.bodySmall,
                         fontSize = 12.sp,
                         color = Color(0xFF1CB0F6),
                     )
                 }
+                val gloss = entry?.gloss
+                if (!gloss.isNullOrBlank()) {
+                    Text(
+                        text = gloss,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color(0xFF888888),
+                    )
+                }
                 Text(
-                    text = "${item.translation} • ${item.category}",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = Color(0xFF888888),
+                    text = word.lessonTitle,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = Color(0xFFAAAAAA),
                 )
             }
 
-            if (item.audioSrc != null) {
+            val audioSrc = word.audioSrc ?: entry?.audioSrc
+            if (audioSrc != null) {
                 Box(
                     modifier = Modifier
                         .size(40.dp)
                         .background(Color(0xFFE5F5FF), CircleShape)
-                        .clickable { onPlayVoice(item.audioSrc) },
+                        .clickable { onPlayVoice(audioSrc) },
                     contentAlignment = Alignment.Center,
                 ) {
                     Text(text = "🔊", fontSize = 18.sp)
