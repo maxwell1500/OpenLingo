@@ -213,6 +213,42 @@ class CurriculumIntegrityTest {
         }
     }
 
+    /**
+     * A `LISTEN` challenge with no clip is a dead exercise: the prompt says
+     * "Tap what you hear" and the learner is given nothing to tap.
+     *
+     * The test above proves every clip that *is* referenced exists on disk,
+     * which is the opposite direction — it passes silently over a `LISTEN`
+     * challenge whose `audioSrc` was simply never filled in. This asserts the
+     * missing half: the challenge must name a clip, and that clip must be one
+     * the assets actually carry.
+     */
+    @Test
+    fun `every LISTEN challenge carries a clip that exists in assets`() {
+        val available = File("src/main/assets/audio")
+            .walkTopDown()
+            .filter { it.isFile }
+            .map { it.name }
+            .toSet()
+        val dead = allPayloads.flatMap { it.challenges }
+            .filter { it.type == ChallengeType.LISTEN }
+            .mapNotNull { challenge ->
+                val src = challenge.audioSrc
+                when {
+                    src.isNullOrBlank() ->
+                        "LISTEN challenge ${challenge.id} has no audioSrc, so the learner is told to tap what they hear and hears nothing"
+                    src.substringAfterLast("/") !in available ->
+                        "LISTEN challenge ${challenge.id} points at $src, which is not in assets"
+                    else -> null
+                }
+            }
+        assertEquals(
+            "LISTEN challenges with no playable clip: $dead",
+            emptyList<String>(),
+            dead,
+        )
+    }
+
     @Test
     fun `kana syllabaries are complete and unique`() {
         val hiragana = KanaRepository.hiraganaList
