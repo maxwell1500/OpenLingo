@@ -3,11 +3,13 @@
 This document outlines the pedagogical scope, unit structure, and audio
 production requirements for expanding Duo into intermediate levels.
 
-**Status summary.** Units 9–12 of the Spanish course and 9–10 of the Japanese course
+**Status summary.** Units 9–12 of the Spanish course and 9–12 of the Japanese course
 have shipped. The Japanese units are genuinely at the level this roadmap names
-(JLPT N4: te-form, polite requests and potential forms). The Spanish course now
-spans two labelled levels: **units 9–10 are CEFR A2** — the regular preterite and the
-imperfecto only, no irregular stem anywhere — and **units 11–12 are the B1 material**:
+(JLPT N4: te-form, polite requests and potential forms, then the past, plain-vs-polite
+register, the い/な adjective classes, ability, opinion and the giving/receiving trio).
+The Spanish course now spans two labelled levels: **units 9–10 are CEFR A2** — the regular
+preterite and the imperfecto only, no irregular stem anywhere —
+and **units 11–12 are the B1 material**:
 the irregular and stem-changing preterite (`tuve`, `pude`, `hice`, `dije`, `estuve`,
 `quise`, `vino`, `dormí`, `pidió`), the past perfect frame (`había salido`,
 `había hecho`, `había dicho`), the regular and irregular conditional (`hablaría`,
@@ -21,12 +23,12 @@ label for the Spanish course is now **A2 → B1**, not B1 throughout.
 
 ## Spanish (CEFR B1 Threshold)
 
-Target: Units 9–12. Shipped: 10 lessons and 97 challenges.
+Target: Units 9–12. Shipped: 10 lessons and 109 challenges.
 
 Status: Units 9–10 have shipped in `B1CurriculumData.kt` (`spanishA2Units`, unit ids
 18–19) — 4 lessons and 31 challenges, and they are **A2-level content, not B1**
 (regular preterite and imperfecto only; see the summary above). Units 11–12 have
-also shipped (`spanishB1Units`, unit ids 30–31) — 6 lessons and 66 challenges, and
+also shipped (`spanishB1Units`, unit ids 30–31) — 6 lessons and 78 challenges, and
 they *are* the B1 material this roadmap asked for. Note that the unit themes the
 roadmap originally sketched for 11–12 (travel complaints, future plans) were not
 what the grammar gap needed: the shipped 11–12 teach the irregular preterite, the

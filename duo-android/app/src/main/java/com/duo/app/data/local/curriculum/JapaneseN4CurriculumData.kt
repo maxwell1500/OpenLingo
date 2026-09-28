@@ -429,6 +429,8 @@ object JapaneseN4CurriculumData {
 
                 ChallengeOptionEntity(id = 600078, challengeId = 60018, text = "静かでした", romaji = "shizuka deshita", correct = true),
                 ChallengeOptionEntity(id = 600079, challengeId = 60018, text = "静かな", romaji = "shizuka na", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 600080, challengeId = 60018, text = "静かです", romaji = "shizuka desu", correct = false, errorTag = "WRONG_TENSE"),
+                ChallengeOptionEntity(id = 600081, challengeId = 60018, text = "静かに", romaji = "shizuka ni", correct = false, errorTag = "WRONG_FORM"),
                 ChallengeOptionEntity(id = 600082, challengeId = 60019, text = "でした", romaji = "deshita", correct = true),
                 ChallengeOptionEntity(id = 600083, challengeId = 60019, text = "かった", romaji = "katta", correct = false, errorTag = "WRONG_FORM"),
                 ChallengeOptionEntity(id = 600084, challengeId = 60019, text = "かったでした", romaji = "katta deshita", correct = false, errorTag = "WRONG_FORM"),

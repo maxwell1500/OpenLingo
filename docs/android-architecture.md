@@ -120,7 +120,7 @@ All alarms are local `AlarmManager` `RTC_WAKEUP` intents — no FCM, no network:
 
 ## 10. Tests
 
-The test suite is pure JVM — Robolectric, so no emulator — across 13 classes and 133 tests. Most classes use `Room.inMemoryDatabaseBuilder`, which builds the current schema directly and never runs a migration; `MigrationTest` instead writes real on-disk v12 and v14 database files and opens them through Room, so the migrations are exercised against a real upgrade:
+The test suite is pure JVM — Robolectric, so no emulator — across 13 classes and 134 tests. Most classes use `Room.inMemoryDatabaseBuilder`, which builds the current schema directly and never runs a migration; `MigrationTest` instead writes real on-disk v12 and v14 database files and opens them through Room, so the migrations are exercised against a real upgrade:
 
 - `CurriculumIntegrityTest` — global ID uniqueness, foreign-key resolution, contiguous `orderIndex` per unit/lesson, answerability (every challenge solvable, choice challenges have distractors), every referenced audio file exists in assets, and kana syllabaries are complete.
 - `LocalProgressRepositoryTest` — seeding, day rollover, streaks/repair, hearts, and backup export/import round-trip.
