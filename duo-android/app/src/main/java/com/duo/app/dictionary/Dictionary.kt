@@ -104,6 +104,20 @@ class Dictionary internal constructor(
             return LookupHit(it, range.first, range.last + 1)
         }
 
+        // Japanese writes its sentence-final 。 as punctuation, so a taught term
+        // like `公園に行きましょう。` is one token plus a full stop, and the tap
+        // on the run stops one character short of the key. Retrying the run
+        // extended over the punctuation that follows reaches it. The lookup is
+        // still exact containment of a headword that exists, so this branch
+        // cannot invent a match any more than step 1 can.
+        var tail = range.last + 1
+        while (tail < text.length && !text[tail].isLetterOrDigit()) tail++
+        if (tail > range.last + 1) {
+            lookup(text.substring(range.first, tail))?.let {
+                return LookupHit(it, range.first, tail)
+            }
+        }
+
         DictionaryIndex.containedHeadword(byKey, text, range, offset)?.let { return it }
 
         for (width in 2..DictionaryIndex.MAX_SPAN_WORDS) {

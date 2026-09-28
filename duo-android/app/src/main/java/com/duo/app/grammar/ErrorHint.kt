@@ -105,6 +105,35 @@ object ErrorHint {
             "a polite Spanish request",
             "me gustaría, querría and podría plus an infinitive soften what is being asked for; the bare present wants the same thing but says so bluntly.",
         ),
+        // A past that did not happen: the subjunctive perfect, and the two
+        // conditions and the one factual counterpart that turn on it.
+        "es.subjunctive.past_perfect" to FocusProfile(
+            "the Spanish subjunctive past perfect",
+            "The pluscuamperfecto de subjuntivo is hubiera or hubiese plus a participle, and it states a past that did not happen: hubiera comido, como si lo hubiera sabido.",
+        ),
+        "es.unreal_past" to FocusProfile(
+            "the Spanish unreal past condition",
+            "A condition that did not happen takes hubiera plus a participle, and the open condition answers with the conditional: si hubiera sabido, habría venido.",
+        ),
+        "es.conditional.unreal_past" to FocusProfile(
+            "the Spanish unreal past against a real past",
+            "The subjunctive perfect is for what did not happen and the indicative past perfect for what did, so the form you need depends on which one the sentence means.",
+        ),
+        // Reported speech: one step back, and the two frames that do not take it.
+        "es.reported_speech.backshift" to FocusProfile(
+            "Spanish reported speech",
+            "A verb inside dijo que moves one step back — present to imperfect, future to conditional — while Spanish also allows the unshifted form.",
+        ),
+        "es.reported_speech.no_backshift" to FocusProfile(
+            "a Spanish report that keeps its verb",
+            "A verb that was already in the past keeps its past form inside dijo que, and a reported question takes si rather than que.",
+        ),
+        // por and para: the same two prepositions the connectives introduce,
+        // asked directly now that a learner is choosing between them.
+        "es.por_para" to FocusProfile(
+            "Spanish por and para",
+            "por marks a cause, an exchange and a result; para marks a purpose, a direction and a recipient.",
+        ),
         // Connectives: the choice is which relation the clause carries.
         "es.connectives" to FocusProfile(
             "the Spanish connectives",
@@ -165,6 +194,38 @@ object ErrorHint {
         "es.imperative.negative" to FocusProfile(
             "the Spanish negative imperative",
             "A negative command is no plus the subjunctive, never the indicative: no corras, no digas eso.",
+        ),
+        // The three conditions, the volitional and 敬語: the N4 block units
+        // 15-16 add on top of the passive, the causative and the relative clause.
+        "ja.conditional_tara" to FocusProfile(
+            "the Japanese 〜たら condition",
+            "〜たら is the plain past plus たら — 降る → 降った → 降ったら — and it is the one condition that can carry a request, which と will not: 明日、雨が降ったら、家にいてください.",
+        ),
+        "ja.conditional_nara" to FocusProfile(
+            "the Japanese 〜なら condition",
+            "〜なら takes the verb exactly as a dictionary lists it — 行く → 行くなら — and a なら clause carries no tense of its own: 雨が降るなら、旅行に行きましょう.",
+        ),
+        "ja.conditional_ba" to FocusProfile(
+            "the Japanese 〜ば condition",
+            "ば is the written and formal way of saying if: an い-adjective drops the final い and a う-verb takes the 音便 れば — 忙しい → 忙しければ, 買う → 買えば — and in speech 忙しければ gives way to 忙しかったら.",
+        ),
+        "ja.volition_polite" to FocusProfile(
+            "the Japanese polite volitional (〜ましょう)",
+            "The polite volitional is the ます-stem plus ましょう: 行く → 行きましょう, and it is a proposal the other person is free to refuse. 見よう is the plain 意向形, and でしょう is the speaker's guess rather than anything proposed.",
+        ),
+        // 敬語 here is an introduction, not the system a company teaches: a
+        // handful of everyday substitutions, told apart only by who they lift.
+        "ja.keigo_honorific" to FocusProfile(
+            "Japanese 尊敬語",
+            "尊敬語 lifts the other person's action, and it is a small set of everyday substitutions rather than a system: 食べる → 召し上がる, する → なさる, 来る → いらっしゃる. いただきます is 謙譲語, which lowers the speaker instead.",
+        ),
+        "ja.keigo_humble" to FocusProfile(
+            "Japanese 謙譲語",
+            "謙譲語 lowers the speaker's own action toward the other person, and it is the same small introduction: 行く → 伺う, 見る → 拝見する, する → いたす. なさいます is 尊敬語, and about your own action it would lift precisely what the humble form exists to lower.",
+        ),
+        "ja.rareru_readings" to FocusProfile(
+            "the three readings of Japanese られる",
+            "られる is potential, passive and — in a small closed set such as 得る, 求める, 採る — can get, so the ending alone never says which: 読める is can read or is read, while いい結果が得られます is the 得る reading on its own. What settles it is who stands in the subject slot.",
         ),
         // Japanese verbs change by form, not by tense.
         "ja.potential" to FocusProfile(

@@ -161,12 +161,19 @@ class DictionaryRepositoryTest {
                 }
                 // A word can be a tile of more than one bank; the entry keeps
                 // one of those sentences, and it has to be one of them.
+                //
+                // Membership is tested on `DictionaryIndex.key`, the same key
+                // the entry itself is filed under and the same key computed
+                // above. A case-sensitive test disagrees with that keying:
+                // the article tiles `El` (Unit 1, opening a sentence) and `el`
+                // (a word bank mid-sentence) are one headword, so the entry
+                // may legitimately keep the sentence built from either tile.
                 val sentences = allOptions
                     .filter { it.correct }
                     .groupBy { it.challengeId }
                     .mapNotNull { (_, options) ->
-                        val group = options.map { it.text.trim() }
-                        if (tile.text.trim() in group) group.joinToString(" ") else null
+                        val keys = options.map { DictionaryIndex.key(it.text) }
+                        if (key in keys) options.joinToString(" ") { it.text.trim() } else null
                     }
                 assertTrue(
                     "${tile.text} carries an example it is not part of: ${entry!!.example}",

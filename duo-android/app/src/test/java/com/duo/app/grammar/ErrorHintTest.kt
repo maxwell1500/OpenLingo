@@ -373,6 +373,138 @@ class ErrorHintTest {
         assertTrue("does not rule out は in the clause: $hint", hint.contains("は cannot head it"))
     }
 
+    // --- Spanish units 15-16 ----------------------------------------------
+
+    @Test
+    fun `the subjunctive perfect hint says what the tense is made of`() {
+        val hint = ErrorHint.forChoice("había comido", "hubiera comido", "WRONG_TENSE", "es.subjunctive.past_perfect")
+        require(hint != null)
+        assertTrue("does not state that the past did not happen: $hint", hint.contains("a past that did not happen"))
+        assertTrue("does not name the two spellings: $hint", hint.contains("hubiera or hubiese"))
+        assertTrue("does not name the grammar point: $hint", hint.contains("subjunctive past perfect"))
+        assertTrue("does not state the answer: $hint", hint.contains("“hubiera comido”"))
+    }
+
+    @Test
+    fun `the unreal past hint names both halves of the condition`() {
+        val hint = ErrorHint.forChoice("Si sabía, habría venido", "Si hubiera sabido, habría venido", "WRONG_TENSE", "es.unreal_past")
+        require(hint != null)
+        assertTrue("does not say the condition did not happen: $hint", hint.contains("condition that did not happen"))
+        assertTrue("does not say what answers it: $hint", hint.contains("answers with the conditional"))
+        assertTrue("does not name the grammar point: $hint", hint.contains("unreal past condition"))
+    }
+
+    @Test
+    fun `the unreal-past hint tells the indicative past perfect apart from the subjunctive one`() {
+        // The two halves of the corpus's porque and como si items: one states
+        // what did happen, the other what did not, and the two tenses differ
+        // only in the form of the auxiliary.
+        val factual = ErrorHint.forChoice("ya hubieran salido", "ya habían salido", "WRONG_TENSE", "es.conditional.unreal_past")
+        require(factual != null)
+        assertTrue("does not separate the two tenses: $factual", factual.contains("for what did not happen") && factual.contains("indicative past perfect for what did"))
+        assertTrue("does not name the grammar point: $factual", factual.contains("unreal past against a real past"))
+
+        val counterfactual = ErrorHint.forChoice("había perdido el tren", "hubiera perdido el tren", "WRONG_TENSE", "es.conditional.unreal_past")
+        require(counterfactual != null)
+        assertTrue("does not state the answer: $counterfactual", counterfactual.contains("“hubiera perdido el tren”"))
+    }
+
+    @Test
+    fun `the reported speech hint says the verb steps back and that it may not have to`() {
+        val shifted = ErrorHint.forChoice("Dijo que está cansado", "Dijo que estaba cansado", "WRONG_TENSE", "es.reported_speech.backshift")
+        require(shifted != null)
+        assertTrue("does not say the verb moves: $shifted", shifted.contains("moves one step back"))
+        assertTrue("does not say the shift is not compulsory: $shifted", shifted.contains("also allows the unshifted form"))
+        assertTrue("does not state the answer: $shifted", shifted.contains("“Dijo que estaba cansado”"))
+
+        val future = ErrorHint.forChoice("Dijo que llama", "Dijo que llamaría", "WRONG_TENSE", "es.reported_speech.backshift")
+        require(future != null)
+        assertTrue("does not say where a future goes: $future", future.contains("future to conditional"))
+    }
+
+    @Test
+    fun `the unshifted report hint covers the past that stays and the si question`() {
+        val past = ErrorHint.forChoice("Dijo que había salido", "Dijo que ya había salido", "WRONG_FORM", "es.reported_speech.no_backshift")
+        require(past != null)
+        assertTrue("does not say an already-past verb keeps its past: $past", past.contains("keeps its past form"))
+        assertTrue("does not name the grammar point: $past", past.contains("a Spanish report that keeps its verb"))
+
+        val question = ErrorHint.forChoice("Preguntó que podía sentarme", "Preguntó si podía sentarme", "WRONG_FORM", "es.reported_speech.no_backshift")
+        require(question != null)
+        assertTrue("does not say a reported question takes si: $question", question.contains("si rather than que"))
+        assertTrue("does not state the answer: $question", question.contains("“Preguntó si podía sentarme”"))
+    }
+
+    @Test
+    fun `the por and para hint states the division without claiming it is total`() {
+        val por = ErrorHint.forChoice("Gracias para tu ayuda", "Gracias por tu ayuda", "WRONG_FORM", "es.por_para")
+        require(por != null)
+        assertTrue("does not say what por marks: $por", por.contains("por marks a cause, an exchange and a result"))
+        assertTrue("does not say what para marks: $por", por.contains("para marks a purpose, a direction and a recipient"))
+        assertTrue("does not name the answer: $por", por.contains("“Gracias por tu ayuda”"))
+
+        val para = ErrorHint.forChoice("Salimos para la lluvia", "Salimos por la lluvia", "WRONG_FORM", "es.por_para")
+        require(para != null)
+        assertTrue("does not state the answer: $para", para.contains("“Salimos por la lluvia”"))
+    }
+
+    // --- Japanese units 15-16 ---------------------------------------------
+
+    @Test
+    fun `the three conditional hints name the shape each condition is built on`() {
+        val tara = ErrorHint.forChoice("雨が降りますと、家にいてください", "雨が降ったら、家にいてください", "WRONG_FORM", "ja.conditional_tara")
+        require(tara != null)
+        assertTrue("does not say たら is built on the plain past: $tara", tara.contains("plain past plus たら"))
+        assertTrue("does not say たら is the one that carries a request: $tara", tara.contains("can carry a request"))
+        assertTrue("does not name the grammar point: $tara", tara.contains("〜たら condition"))
+        assertTrue("does not state the answer: $tara", tara.contains("“雨が降ったら、家にいてください”"))
+
+        val nara = ErrorHint.forChoice("雨が降りますなら、旅行に行きましょう", "雨が降るなら、旅行に行きましょう", "WRONG_FORM", "ja.conditional_nara")
+        require(nara != null)
+        assertTrue("does not say なら takes the dictionary form: $nara", nara.contains("as a dictionary lists it"))
+        assertTrue("does not say a なら clause carries no tense: $nara", nara.contains("carries no tense of its own"))
+        assertTrue("does not name the grammar point: $nara", nara.contains("〜なら condition"))
+
+        val ba = ErrorHint.forChoice("忙ししかったら、来なくていいです", "忙しければ、来なくていいです", "WRONG_FORM", "ja.conditional_ba")
+        require(ba != null)
+        assertTrue("does not say ば is the written and formal way: $ba", ba.contains("written and formal"))
+        assertTrue("does not say what speech uses instead: $ba", ba.contains("gives way to 忙しかったら"))
+        assertTrue("does not name the grammar point: $ba", ba.contains("〜ば condition"))
+    }
+
+    @Test
+    fun `the volitional hint says ましょう proposes and でしょう only guesses`() {
+        val hint = ErrorHint.forChoice("見ましょう", "見ます", "WRONG_TENSE", "ja.volition_polite")
+        require(hint != null)
+        assertTrue("does not say it is a proposal: $hint", hint.contains("free to refuse"))
+        assertTrue("does not rule out でしょう: $hint", hint.contains("guess rather than anything proposed"))
+        assertTrue("does not name the grammar point: $hint", hint.contains("polite volitional"))
+    }
+
+    @Test
+    fun `the keigo hints keep 尊敬語 and 謙譲語 apart and call them an introduction`() {
+        val honorific = ErrorHint.forChoice("社長がお昼をいただきます", "社長がお昼を召し上がります", "WRONG_REGISTER", "ja.keigo_honorific")
+        require(honorific != null)
+        assertTrue("does not say who it lifts: $honorific", honorific.contains("lifts the other person's action"))
+        assertTrue("overstates what the course teaches: $honorific", honorific.contains("rather than a system"))
+        assertTrue("does not name the answer: $honorific", honorific.contains("“社長がお昼を召し上がります”"))
+
+        val humble = ErrorHint.forChoice("明日は行なさいます", "明日はうかがいます", "WRONG_REGISTER", "ja.keigo_humble")
+        require(humble != null)
+        assertTrue("does not say who it lowers: $humble", humble.contains("lowers the speaker's own action"))
+        assertTrue("does not say why なさいます is wrong here: $humble", humble.contains("なさいます is 尊敬語"))
+    }
+
+    @Test
+    fun `the られる hint refuses to pick a reading and agrees with the passive one`() {
+        val hint = ErrorHint.forChoice("いい結果が食べられます", "いい結果が得られます", "WRONG_FORM", "ja.rareru_readings")
+        require(hint != null)
+        assertTrue("does not say the ending alone is ambiguous: $hint", hint.contains("the ending alone never says which"))
+        assertTrue("does not name the three readings: $hint", hint.contains("potential, passive"))
+        assertTrue("does not name the 得る set: $hint", hint.contains("得る"))
+        assertTrue("does not say what settles it: $hint", hint.contains("subject slot"))
+    }
+
     // --- FILL_BLANK ---------------------------------------------------------
 
     @Test

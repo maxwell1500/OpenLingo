@@ -9,10 +9,6 @@ import com.duo.app.data.local.models.ChallengeType
 /**
  * The intermediate stage of the curriculum. The `B1` in this file's name is the
  * *roadmap workstream* — `docs/CURRICULUM_B1_N4_ROADMAP.md` — and not a claim about
- * the level of everything authored here. What has actually shipped is:
- *   Spanish: Units 9-10 (unit ids 18-19) — Pretérito Indefinido and Imperfecto,
- *     **regular only**, which is **CEFR A2**, so these units are labelled A2
- *     everywhere a learner can see them.
  *   Spanish: Units 11-12 (unit ids 30-31) — the irregular and stem-changing
  *     preterite, the past perfect frame, the regular and irregular conditional,
  *     the polite periphrasis and the connectives of purpose, cause, result and
@@ -21,18 +17,24 @@ import com.duo.app.data.local.models.ChallengeType
  *     after emotion/doubt/negation and after para que / a menos que, the
  *     imperative in its affirmative tú, affirmative usted and negative shapes, the
  *     direct and indirect object pronouns, gustar, the reflexive pronouns and
- *     impersonal se. These four units are the B1 material the roadmap asked for,
- *     so the whole of 30-33 is what a B1 checkpoint draws on.
+ *     impersonal se.
+ *   Spanish: Units 15-16 (unit ids 34-35) — the subjunctive perfect and the unreal
+ *     past condition (`hubiera` / `hubiese` + participle) across `ojalá`, `como si`
+ *     and `si`, reported speech with and without tense backshift, and `por` against
+ *     `para` by cause, exchange, result, purpose, direction and recipient. These
+ *     closed the last three gaps the roadmap named, so the whole of 30-35 is what a
+ *     B1 checkpoint draws on.
  *   Japanese: Units 9-10 (unit ids 28-29) — Te-form & Requests, Potential & Ability.
  *     These are genuinely JLPT N4 grammar points, so N4 is the honest label.
  *
  * All audio assets are bundled Kokoro-82M Ogg files. `spanishB1Units` carries
- * 110 distinct clips over its 123 challenges, covering SELECT, CONJUGATE,
- * FILL_BLANK, WORD_BANK, LISTEN and STORY alike. A SELECT challenge and its
- * correct option share the same clip; a CONJUGATE carries the target form on the
- * challenge alone, so the option grid never plays the answer for the learner. No
- * `WRONG_*` distractor anywhere in units 32-33 carries a clip: audio that speaks a
- * form the item calls an error teaches the wrong thing out loud.
+ * 148 distinct clips over its 164 challenges, covering SELECT, CONJUGATE,
+ * FILL_BLANK, WORD_BANK, LISTEN, MATCH_PAIRS and STORY alike. A SELECT challenge
+ * and its correct option share the same clip; a CONJUGATE carries the target form on
+ * the challenge alone, so the option grid never plays the answer for the learner; a
+ * STORY challenge speaks the whole passage. No `WRONG_*` distractor anywhere in
+ * units 32-35 carries a clip: audio that speaks a form the item calls an error
+ * teaches the wrong thing out loud.
  *
  * Id layout inside this file:
  *   - `1xxxx` / `2xxxx`  the originally authored taught items
@@ -45,11 +47,13 @@ import com.duo.app.data.local.models.ChallengeType
  *                       held-out checkpoint pools
  *   - `5xxxxx`          the options of units 30-31, at 500000 + (challengeId - 50100) * 10
  *   - `60xxx`           units 32-33 and lessons 600-606 (Spanish units 13-14)
- *   - `70xxx`           the challenges of units 32-33, `70000`-`70066`. Nothing
- *                       here is held out: the B1 pool stays fixed at 8, drawn
- *                       from units 30-31, so a held-out item in unit 32 would be
- *                       reachable by nothing.
+ *   - `70xxx`           the challenges of units 32-33, `70000`-`70066`
  *   - `70xxxx`          the options of units 32-33, from `700000` up
+ *   - `80xxx`           units 34-35 and lessons 700-705 (Spanish units 15-16)
+ *   - `80000`-`80056`   the challenges of units 34-35, and `800000` up the options.
+ *                       Nothing here is held out: the B1 pool stays fixed at 8, drawn
+ *                       from units 30-31, so a held-out item in unit 34 would be
+ *                       reachable by nothing.
  */
 object B1CurriculumData {
 
@@ -2272,6 +2276,651 @@ object B1CurriculumData {
                 ChallengeOptionEntity(id = 700661, challengeId = 70066, text = "No dices eso, por favor", correct = false, errorTag = "WRONG_FORM"),
                 ChallengeOptionEntity(id = 700662, challengeId = 70066, text = "No decir eso, por favor", correct = false, errorTag = "WRONG_FORM"),
                 ChallengeOptionEntity(id = 700663, challengeId = 70066, text = "No digo eso, por favor", correct = false, errorTag = "WRONG_PERSON"),
+            ),
+        ),
+
+    // =========================================================================
+    // SPANISH CEFR B1, ROUND 2 (Units 15 - 16)
+    // =========================================================================
+    // The three grammar areas the roadmap recorded as untaught in Spanish.
+    //
+    // Unit 15 (id 34) is the pluscuamperfecto de subjuntivo: hubiera / hubiese
+    // plus a participle, the unreal past condition Si hubiera ... habría, and
+    // the contrast that makes it worth a unit of its own — the subjunctive
+    // perfect for what did not happen against the indicative past perfect for
+    // what did.
+    //
+    // Unit 16 (id 35) is the dijo que frame and por / para. Reported speech is
+    // taught with the backshift this corpus drills (present -> imperfect,
+    // future -> conditional, third person for the speaker) *and* with the cases
+    // where Spanish leaves the verb alone, because a rule that claims backshift
+    // is always obligatory is not the rule. por / para is taught as a contrast
+    // rather than as a table: por marks the cause, the exchange and the result
+    // of what just happened, para marks a purpose, a destination or a recipient,
+    // and every rule text says that is what this course teaches rather than
+    // claiming the two words divide the language exactly down the middle.
+    //
+    // Id layout for this block:
+    //   - units 34-35, lessons 700-705
+    //   - challenges 80000-80056, options 800000 + (challengeId - 80000) * 10
+    //   - nothing here is held out: the B1 pool stays fixed at 8, drawn from
+    //     units 30-31, so a held-out item in unit 34 would be reachable by
+    //     nothing.
+    //
+    // Audio: 38 bundled Kokoro clips, one per challenge except the three
+    // MATCH_PAIRS grids, which have no sentence to speak. A SELECT challenge
+    // and its correct option share the clip; a CONJUGATE carries the target
+    // form on the challenge alone; FILL_BLANK and WORD_BANK speak the full
+    // target sentence and STORY speaks the story body. Every espeak Castilian
+    // /x/ was overridden to the palatal the model can render — see
+    // `.scratch/b1b_es_audio_manifest.json` for the per-clip record.
+        // ---------------------------------------------------------------------
+        // Unit 15: El Pluscuamperfecto de Subjuntivo
+        // ---------------------------------------------------------------------
+        UnitPayload(
+            unit = UnitEntity(
+                id = 34,
+                courseId = 1,
+                title = "Unit 15: El Pluscuamperfecto",
+                description = "hubiera, hubiese — what was not, and might have been",
+                orderIndex = 14,
+            ),
+            lessons = listOf(
+                LessonEntity(id = 700, unitId = 34, title = "Lesson 33: If I Had Known", orderIndex = 0),
+                LessonEntity(id = 701, unitId = 34, title = "Lesson 34: As If It Were So", orderIndex = 1),
+                LessonEntity(id = 702, unitId = 34, title = "Lesson 35: Two Had Clauses", orderIndex = 2),
+            ),
+            challenges = listOf(
+                // --- lesson 700: the unreal past condition --------------------
+                ChallengeEntity(
+                    id = 80000, lessonId = 700, type = ChallengeType.SELECT,
+                    question = "Which one means 'If I had known, I would have come'?",
+                    audioSrc = "asset:///audio/es/si_hubiera_sabido_habria_venido.ogg",
+                    orderIndex = 0,
+                    grammaticalFocus = "es.unreal_past",
+                    ruleText = "An if-clause that is not a fact takes the subjunctive perfect — hubiera + participle — and the open condition answers with the conditional: Si hubiera sabido, habría venido.\nSi sabía, habría venido states a fact instead: an imperfect si clause says the speaker did know. Si hubiera saber, habría venido puts the infinitive in the slot where the participle belongs. And Si hubieras sabido, habría venido is tú, not the yo the sentence is about.",
+                ),
+                ChallengeEntity(
+                    id = 80001, lessonId = 700, type = ChallengeType.CONJUGATE,
+                    question = "Which form of haber goes in 'Ojalá ___ venido antes' (said to one person)?",
+                    audioSrc = "asset:///audio/es/hubieras.ogg",
+                    orderIndex = 1,
+                    grammaticalFocus = "es.subjunctive.past_perfect",
+                    ruleText = "A wish about a past that did not happen is ojalá plus the subjunctive perfect, and the tú form is hubieras: ojalá hubieras venido antes.\nThe indicative past perfect is habías, which would say the person did come; haber is the infinitive, which cannot fill the slot; and hubiera is the subjunctive but the wrong person, because it is for él/ella/usted.",
+                ),
+                ChallengeEntity(
+                    id = 80002, lessonId = 700, type = ChallengeType.FILL_BLANK,
+                    question = "Si ___ estudiado más, habría conseguido el trabajo.",
+                    audioSrc = "asset:///audio/es/si_hubiera_estudiado_mas.ogg",
+                    orderIndex = 2,
+                    grammaticalFocus = "es.subjunctive.past_perfect",
+                    acceptedAnswers = "hubiera|hubiese",
+                    ruleText = "A condition that did not happen takes the subjunctive perfect: hubiera estudiado más, and the counterfactual itself is in the conditional, habría conseguido.\nThe indicative past perfect había would state a fact — the speaker did study, so the counterfactual collapses. The present estudio turns the condition into a habit, and estudiar is the infinitive, where the slot takes a tensed verb.",
+                ),
+                ChallengeEntity(
+                    id = 80003, lessonId = 700, type = ChallengeType.LISTEN,
+                    question = "Tap what you hear",
+                    audioSrc = "asset:///audio/es/ojala_hubieras_estudiado_mas.ogg",
+                    orderIndex = 3,
+                    grammaticalFocus = "es.subjunctive.past_perfect",
+                    ruleText = "The wish about a past that did not happen is ojalá plus the subjunctive perfect: Ojalá hubieras estudiado más.\nThe indicative past perfect in Ojalá habías estudiado más would say the person did study, and the conditional in Ojalá habrías estudiado más belongs in the result clause and not in the wish. Ojalá hubieras estudiar más puts the infinitive where the participle belongs.",
+                ),
+                ChallengeEntity(
+                    id = 80004, lessonId = 700, type = ChallengeType.WORD_BANK,
+                    question = "Assemble: 'If you had warned me, I wouldn't have come'",
+                    audioSrc = "asset:///audio/es/si_no_hubieras_avisado_no_hubiera_venido.ogg",
+                    orderIndex = 4,
+                    grammaticalFocus = "es.subjunctive.past_perfect",
+                    ruleText = "Both halves of a counterfactual are subjunctive perfect, and the conditional is not used at all, because neither half is a real event: Si no hubieras avisado, no hubiera venido.\nThe indicative past perfect habías would make the warning a fact, and avisé is the preterite of the whole verb; avisar is the infinitive, which cannot follow si no.",
+                ),
+                ChallengeEntity(
+                    id = 80005, lessonId = 700, type = ChallengeType.CONJUGATE,
+                    question = "Which form of haber goes in 'Si hubiera llovido, ___ salido' (said about two or more people)?",
+                    audioSrc = "asset:///audio/es/habriamos.ogg",
+                    orderIndex = 5,
+                    grammaticalFocus = "es.unreal_past",
+                    ruleText = "The open condition of a counterfactual is the conditional, and two or more people take habríamos: si hubiera llovido, habríamos salido.\nThe indicative past perfect habían states a fact; the infinitive haber cannot open a conditional; and the indicative había states a fact as well, and is singular besides.",
+                ),
+                ChallengeEntity(
+                    id = 80006, lessonId = 700, type = ChallengeType.STORY,
+                    question = "El tren perdido\n\nSi hubiera cogido el tren de las ocho, habría llegado antes.\nNo salí de casa hasta las diez.\nCuando por fin llegué, la reunión ya había empezado.\n\n❓ What would have happened if the speaker had caught the eight o'clock train?",
+                    audioSrc = "asset:///audio/es/el_tren_perdido.ogg",
+                    orderIndex = 6,
+                ),
+
+                // --- lesson 701: como si, ojalá, the -iese set ---------------
+                ChallengeEntity(
+                    id = 80010, lessonId = 701, type = ChallengeType.SELECT,
+                    question = "Which one means 'He talked as if he had known everything' (said about one man)?",
+                    audioSrc = "asset:///audio/es/hablo_como_si_lo_hubiera_sabido_todo.ogg",
+                    orderIndex = 0,
+                    grammaticalFocus = "es.subjunctive.past_perfect",
+                    ruleText = "Como si says the past is not really so, and what is not really so takes the subjunctive perfect: Habló como si lo hubiera sabido todo.\nThe imperfect in Habló como si lo sabía todo would make the knowing real; Habló como si lo saber todo puts the infinitive in a tensed slot; and Hablaste como si lo hubiera sabido todo is tú, not the él the sentence is about.",
+                ),
+                ChallengeEntity(
+                    id = 80011, lessonId = 701, type = ChallengeType.CONJUGATE,
+                    question = "Which form of haber goes in 'Como si ___ supieras todo' (said to one person)?",
+                    audioSrc = "asset:///audio/es/hubieses.ogg",
+                    orderIndex = 1,
+                    grammaticalFocus = "es.subjunctive.past_perfect",
+                    ruleText = "Como si puts the past in the subjunctive perfect, and the tú form of that tense is hubieses: como si hubieses supieras todo. Hubieses is the -iese spelling and hubieras is the -iera spelling of the same tense, so the two mean exactly the same.\nThe indicative past perfect habías would make the knowing real; haber is the infinitive; and hubiera is the subjunctive but the wrong person, because it is for él/ella/usted.",
+                ),
+                ChallengeEntity(
+                    id = 80012, lessonId = 701, type = ChallengeType.FILL_BLANK,
+                    question = "Ojalá ___ terminado antes.",
+                    audioSrc = "asset:///audio/es/ojala_hubiera_terminado_antes.ogg",
+                    orderIndex = 2,
+                    grammaticalFocus = "es.subjunctive.past_perfect",
+                    acceptedAnswers = "hubiera|hubiese",
+                    ruleText = "Ojalá plus the subjunctive perfect is a wish about a past that did not happen: ojalá hubiera terminado antes. Hubiese is the same tense spelled with -iese, so both are accepted here.\nThe indicative past perfect había states a fact, and terminó is the preterite of the whole verb, one finishing; terminar is the infinitive, which is the form ojalá never takes.",
+                ),
+                ChallengeEntity(
+                    id = 80013, lessonId = 701, type = ChallengeType.MATCH_PAIRS,
+                    question = "Match each opening to the past it asks for",
+                    orderIndex = 3,
+                ),
+                ChallengeEntity(
+                    id = 80014, lessonId = 701, type = ChallengeType.LISTEN,
+                    question = "Tap what you hear",
+                    audioSrc = "asset:///audio/es/sentia_como_si_hubiera_perdido_el_tren.ogg",
+                    orderIndex = 4,
+                    grammaticalFocus = "es.subjunctive.past_perfect",
+                    ruleText = "Sentía como si is a feeling about a past that was not really as it is described, so the second verb is the subjunctive perfect: Sentía como si hubiera perdido el tren.\nThe imperfect in Sentía como si perdía el tren would say the train really was being lost; Sentía como si hubiera perder el tren puts the infinitive in the slot; and Sentías como si hubiera perdido el tren is tú, not the él/ella the sentence is about.",
+                ),
+                ChallengeEntity(
+                    id = 80015, lessonId = 701, type = ChallengeType.WORD_BANK,
+                    question = "Assemble: 'It felt as if we had known that man all our lives'",
+                    audioSrc = "asset:///audio/es/nos_parecia_como_si_habieramos_conocido_a_ese_hombre.ogg",
+                    orderIndex = 5,
+                    grammaticalFocus = "es.subjunctive.past_perfect",
+                    ruleText = "A plural subject takes the nosotros form of the subjunctive perfect, and the participle follows it: Nos parecía como si hubiéramos conocido a ese hombre.\nThe imperfect conocíamos would make the knowing real; hubiera is the singular form, for él/ella/usted; and conocer is the infinitive, and the slot after como si takes a tensed verb.",
+                ),
+
+                // --- lesson 702: the two had-clauses -------------------------
+                ChallengeEntity(
+                    id = 80020, lessonId = 702, type = ChallengeType.SELECT,
+                    question = "Which one means 'My friends did not come because they had already left'?",
+                    audioSrc = "asset:///audio/es/mis_amigos_no_vinieron_porque_ya_habian_salido.ogg",
+                    orderIndex = 0,
+                    grammaticalFocus = "es.conditional.unreal_past",
+                    ruleText = "A reason that really happened is stated with the indicative past perfect, and the subject decides the ending: Mis amigos no vinieron porque ya habían salido.\nMis amigos no vinieron porque ya había salido is singular, and the friends are plural. The subjunctive perfect in Mis amigos no vinieron porque ya hubieran salido is not what a factual porque takes — that one is for what did not happen. And Mis amigos no vinieron porque ya habían salir puts the infinitive in the slot where the participle belongs.",
+                ),
+                ChallengeEntity(
+                    id = 80021, lessonId = 702, type = ChallengeType.FILL_BLANK,
+                    question = "Si no hubiera llovido, ___ a la piscina.",
+                    audioSrc = "asset:///audio/es/si_no_hubiera_llovido_habria_ido_a_la_piscina.ogg",
+                    orderIndex = 1,
+                    grammaticalFocus = "es.unreal_past",
+                    acceptedAnswers = "habría",
+                    ruleText = "The open condition of a counterfactual is the conditional, not another past: si no hubiera llovido, habría ido a la piscina.\nThe present perfect he and the imperfect íbamos both state the trip as real instead of imagined; ir is the infinitive, and the verb has to be tensed here.",
+                ),
+                ChallengeEntity(
+                    id = 80022, lessonId = 702, type = ChallengeType.FILL_BLANK,
+                    question = "Todo siguió como si ___ pasado.",
+                    audioSrc = "asset:///audio/es/todo_siguio_como_si_hubiera_pasado.ogg",
+                    orderIndex = 2,
+                    grammaticalFocus = "es.subjunctive.past_perfect",
+                    acceptedAnswers = "hubiera|hubiese",
+                    ruleText = "Como si makes an impersonal claim untrue for the sake of the comparison, so the verb is the subjunctive perfect: todo siguió como si hubiera pasado.\nThe indicative past perfect había states a fact, which is the opposite of what como si is doing; pasando is the -ndo form, which never fills the slot after como si; and pasó is the preterite, one happening.",
+                ),
+                ChallengeEntity(
+                    id = 80023, lessonId = 702, type = ChallengeType.LISTEN,
+                    question = "Tap what you hear",
+                    audioSrc = "asset:///audio/es/si_hubiera_tenido_dinero_no_habria_ido.ogg",
+                    orderIndex = 3,
+                    grammaticalFocus = "es.conditional.unreal_past",
+                    ruleText = "Both halves of an unreal past condition are subjunctive perfect plus conditional: Si hubiera tenido dinero, no habría ido.\nThe indicative past perfect on both sides, Si había tenido dinero, no había ido, states a fact instead; Si hubiera tener dinero, no habría ido puts the infinitive in the slot; and Si hubiera tenido dinero, no habríamos ido is the plural conditional, where this sentence is about one person.",
+                ),
+                ChallengeEntity(
+                    id = 80024, lessonId = 702, type = ChallengeType.CONJUGATE,
+                    question = "Which form of haber goes with 'vosotros' in 'Como si ___ sabido todo' (said to two or more people)?",
+                    audioSrc = "asset:///audio/es/hubieseis.ogg",
+                    orderIndex = 4,
+                    grammaticalFocus = "es.subjunctive.past_perfect",
+                    ruleText = "Como si takes the subjunctive perfect, and vosotros take the -iese spelling: como si hubieseis sabido todo. Hubierais is the -iera spelling of the same tense and means exactly the same.\nThe imperfect sabíais would make the knowing real; haber is the infinitive; and hubiese is singular, where the sentence is addressed to more than one person.",
+                ),
+                ChallengeEntity(
+                    id = 80025, lessonId = 702, type = ChallengeType.SELECT,
+                    question = "Which one means 'If she had asked, I would have helped her' (said about one woman)?",
+                    audioSrc = "asset:///audio/es/si_lo_hubiera_pedido_la_habria_ayudado.ogg",
+                    orderIndex = 5,
+                    grammaticalFocus = "es.conditional.unreal_past",
+                    ruleText = "The condition did not happen, so it is the subjunctive perfect, and the open condition that answers it is a conditional: Si lo hubiera pedido, la habría ayudado.\nThe indicative past perfect in Si lo había pedido, la habían ayudado states a fact; Si lo hubiera pedir, la habría ayudado puts the infinitive where the participle belongs; and Si lo hubiera pedido, la ayudarían is the plural conditional, where the sentence is about one woman.",
+                ),
+                ChallengeEntity(
+                    id = 80026, lessonId = 702, type = ChallengeType.STORY,
+                    question = "La carta que nunca envié\n\nSi hubiera tenido tu número, te la habría enviado.\nNo lo tenía. Nunca lo tuve.\n\n❓ Why was the letter never sent?",
+                    audioSrc = "asset:///audio/es/la_carta_nunca_enviada.ogg",
+                    orderIndex = 6,
+                ),
+            ),
+            options = listOf(
+                ChallengeOptionEntity(id = 800000, challengeId = 80000, text = "Si hubiera sabido, habría venido", correct = true, audioSrc = "asset:///audio/es/si_hubiera_sabido_habria_venido.ogg"),
+                ChallengeOptionEntity(id = 800001, challengeId = 80000, text = "Si sabía, habría venido", correct = false, errorTag = "WRONG_TENSE"),
+                ChallengeOptionEntity(id = 800002, challengeId = 80000, text = "Si hubiera saber, habría venido", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 800003, challengeId = 80000, text = "Si hubieras sabido, habría venido", correct = false, errorTag = "WRONG_PERSON"),
+
+                ChallengeOptionEntity(id = 800010, challengeId = 80001, text = "hubieras", correct = true),
+                ChallengeOptionEntity(id = 800011, challengeId = 80001, text = "habías", correct = false, errorTag = "WRONG_TENSE"),
+                ChallengeOptionEntity(id = 800012, challengeId = 80001, text = "hubiera", correct = false, errorTag = "WRONG_PERSON"),
+                ChallengeOptionEntity(id = 800013, challengeId = 80001, text = "haber", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 800020, challengeId = 80002, text = "hubiera", correct = true),
+                ChallengeOptionEntity(id = 800021, challengeId = 80002, text = "había", correct = false, errorTag = "WRONG_TENSE"),
+                ChallengeOptionEntity(id = 800022, challengeId = 80002, text = "estudio", correct = false, errorTag = "WRONG_TENSE"),
+                ChallengeOptionEntity(id = 800023, challengeId = 80002, text = "estudiar", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 800030, challengeId = 80003, text = "Ojalá hubieras estudiado más", correct = true),
+                ChallengeOptionEntity(id = 800031, challengeId = 80003, text = "Ojalá habías estudiado más", correct = false, errorTag = "WRONG_TENSE"),
+                ChallengeOptionEntity(id = 800032, challengeId = 80003, text = "Ojalá habrías estudiado más", correct = false, errorTag = "WRONG_TENSE"),
+                ChallengeOptionEntity(id = 800033, challengeId = 80003, text = "Ojalá hubieras estudiar más", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 800040, challengeId = 80004, text = "Si no", correct = true),
+                ChallengeOptionEntity(id = 800041, challengeId = 80004, text = "hubieras", correct = true),
+                ChallengeOptionEntity(id = 800042, challengeId = 80004, text = "avisado", correct = true),
+                ChallengeOptionEntity(id = 800043, challengeId = 80004, text = "no", correct = true),
+                ChallengeOptionEntity(id = 800044, challengeId = 80004, text = "hubiera", correct = true),
+                ChallengeOptionEntity(id = 800045, challengeId = 80004, text = "venido", correct = true),
+                ChallengeOptionEntity(id = 800046, challengeId = 80004, text = "habías", correct = false, errorTag = "WRONG_TENSE"),
+                ChallengeOptionEntity(id = 800047, challengeId = 80004, text = "avisé", correct = false, errorTag = "WRONG_TENSE"),
+                ChallengeOptionEntity(id = 800048, challengeId = 80004, text = "avisar", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 800050, challengeId = 80005, text = "habríamos", correct = true),
+                ChallengeOptionEntity(id = 800051, challengeId = 80005, text = "habían", correct = false, errorTag = "WRONG_PERSON"),
+                ChallengeOptionEntity(id = 800052, challengeId = 80005, text = "había", correct = false, errorTag = "WRONG_TENSE"),
+                ChallengeOptionEntity(id = 800053, challengeId = 80005, text = "haber", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 800060, challengeId = 80006, text = "He would have arrived earlier", correct = true),
+                ChallengeOptionEntity(id = 800061, challengeId = 80006, text = "He did catch the eight o'clock train", correct = false),
+                ChallengeOptionEntity(id = 800062, challengeId = 80006, text = "He got to the meeting on time", correct = false),
+                ChallengeOptionEntity(id = 800063, challengeId = 80006, text = "The eight o'clock train was cancelled", correct = false),
+
+                ChallengeOptionEntity(id = 800100, challengeId = 80010, text = "Habló como si lo hubiera sabido todo", correct = true, audioSrc = "asset:///audio/es/hablo_como_si_lo_hubiera_sabido_todo.ogg"),
+                ChallengeOptionEntity(id = 800101, challengeId = 80010, text = "Habló como si lo sabía todo", correct = false, errorTag = "WRONG_TENSE"),
+                ChallengeOptionEntity(id = 800102, challengeId = 80010, text = "Habló como si lo saber todo", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 800103, challengeId = 80010, text = "Hablaste como si lo hubiera sabido todo", correct = false, errorTag = "WRONG_PERSON"),
+
+                ChallengeOptionEntity(id = 800110, challengeId = 80011, text = "hubieses", correct = true),
+                ChallengeOptionEntity(id = 800111, challengeId = 80011, text = "habías", correct = false, errorTag = "WRONG_TENSE"),
+                ChallengeOptionEntity(id = 800112, challengeId = 80011, text = "hubiera", correct = false, errorTag = "WRONG_PERSON"),
+                ChallengeOptionEntity(id = 800113, challengeId = 80011, text = "haber", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 800120, challengeId = 80012, text = "hubiera", correct = true),
+                ChallengeOptionEntity(id = 800121, challengeId = 80012, text = "había", correct = false, errorTag = "WRONG_TENSE"),
+                ChallengeOptionEntity(id = 800122, challengeId = 80012, text = "terminó", correct = false, errorTag = "WRONG_TENSE"),
+                ChallengeOptionEntity(id = 800123, challengeId = 80012, text = "terminar", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 800130, challengeId = 80013, text = "Ojalá", correct = true),
+                ChallengeOptionEntity(id = 800131, challengeId = 80013, text = "a wish that did not happen", correct = true),
+                ChallengeOptionEntity(id = 800132, challengeId = 80013, text = "Como si", correct = true),
+                ChallengeOptionEntity(id = 800133, challengeId = 80013, text = "something that is not really so", correct = true),
+                ChallengeOptionEntity(id = 800134, challengeId = 80013, text = "Si ... habría", correct = true),
+                ChallengeOptionEntity(id = 800135, challengeId = 80013, text = "a condition that did not hold", correct = true),
+
+                ChallengeOptionEntity(id = 800140, challengeId = 80014, text = "Sentía como si hubiera perdido el tren", correct = true),
+                ChallengeOptionEntity(id = 800141, challengeId = 80014, text = "Sentía como si perdía el tren", correct = false, errorTag = "WRONG_TENSE"),
+                ChallengeOptionEntity(id = 800142, challengeId = 80014, text = "Sentía como si hubiera perder el tren", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 800143, challengeId = 80014, text = "Sentías como si hubiera perdido el tren", correct = false, errorTag = "WRONG_PERSON"),
+
+                ChallengeOptionEntity(id = 800150, challengeId = 80015, text = "Nos", correct = true),
+                ChallengeOptionEntity(id = 800151, challengeId = 80015, text = "parecía", correct = true),
+                ChallengeOptionEntity(id = 800152, challengeId = 80015, text = "como si", correct = true),
+                ChallengeOptionEntity(id = 800153, challengeId = 80015, text = "hubiéramos", correct = true),
+                ChallengeOptionEntity(id = 800154, challengeId = 80015, text = "conocido", correct = true),
+                ChallengeOptionEntity(id = 800155, challengeId = 80015, text = "a ese", correct = true),
+                ChallengeOptionEntity(id = 800156, challengeId = 80015, text = "hombre", correct = true),
+                ChallengeOptionEntity(id = 800157, challengeId = 80015, text = "conocíamos", correct = false, errorTag = "WRONG_TENSE"),
+                ChallengeOptionEntity(id = 800158, challengeId = 80015, text = "hubiera", correct = false, errorTag = "WRONG_PERSON"),
+                ChallengeOptionEntity(id = 800159, challengeId = 80015, text = "conocer", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 800200, challengeId = 80020, text = "Mis amigos no vinieron porque ya habían salido", correct = true, audioSrc = "asset:///audio/es/mis_amigos_no_vinieron_porque_ya_habian_salido.ogg"),
+                ChallengeOptionEntity(id = 800201, challengeId = 80020, text = "Mis amigos no vinieron porque ya había salido", correct = false, errorTag = "WRONG_PERSON"),
+                ChallengeOptionEntity(id = 800202, challengeId = 80020, text = "Mis amigos no vinieron porque ya hubieran salido", correct = false, errorTag = "WRONG_TENSE"),
+                ChallengeOptionEntity(id = 800203, challengeId = 80020, text = "Mis amigos no vinieron porque ya habían salir", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 800210, challengeId = 80021, text = "habría", correct = true),
+                ChallengeOptionEntity(id = 800211, challengeId = 80021, text = "he", correct = false, errorTag = "WRONG_TENSE"),
+                ChallengeOptionEntity(id = 800212, challengeId = 80021, text = "íbamos", correct = false, errorTag = "WRONG_TENSE"),
+                ChallengeOptionEntity(id = 800213, challengeId = 80021, text = "ir", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 800220, challengeId = 80022, text = "hubiera", correct = true),
+                ChallengeOptionEntity(id = 800221, challengeId = 80022, text = "había", correct = false, errorTag = "WRONG_TENSE"),
+                ChallengeOptionEntity(id = 800222, challengeId = 80022, text = "pasando", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 800223, challengeId = 80022, text = "pasó", correct = false, errorTag = "WRONG_TENSE"),
+
+                ChallengeOptionEntity(id = 800230, challengeId = 80023, text = "Si hubiera tenido dinero, no habría ido", correct = true),
+                ChallengeOptionEntity(id = 800231, challengeId = 80023, text = "Si había tenido dinero, no había ido", correct = false, errorTag = "WRONG_TENSE"),
+                ChallengeOptionEntity(id = 800232, challengeId = 80023, text = "Si hubiera tener dinero, no habría ido", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 800233, challengeId = 80023, text = "Si hubiera tenido dinero, no habríamos ido", correct = false, errorTag = "WRONG_PERSON"),
+
+                ChallengeOptionEntity(id = 800240, challengeId = 80024, text = "hubieseis", correct = true),
+                ChallengeOptionEntity(id = 800241, challengeId = 80024, text = "sabíais", correct = false, errorTag = "WRONG_TENSE"),
+                ChallengeOptionEntity(id = 800242, challengeId = 80024, text = "hubiese", correct = false, errorTag = "WRONG_PERSON"),
+                ChallengeOptionEntity(id = 800243, challengeId = 80024, text = "haber", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 800250, challengeId = 80025, text = "Si lo hubiera pedido, la habría ayudado", correct = true, audioSrc = "asset:///audio/es/si_lo_hubiera_pedido_la_habria_ayudado.ogg"),
+                ChallengeOptionEntity(id = 800251, challengeId = 80025, text = "Si lo había pedido, la habían ayudado", correct = false, errorTag = "WRONG_TENSE"),
+                ChallengeOptionEntity(id = 800252, challengeId = 80025, text = "Si lo hubiera pedir, la habría ayudado", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 800253, challengeId = 80025, text = "Si lo hubiera pedido, la ayudarían", correct = false, errorTag = "WRONG_PERSON"),
+
+                ChallengeOptionEntity(id = 800260, challengeId = 80026, text = "Because the writer did not have the recipient's number", correct = true),
+                ChallengeOptionEntity(id = 800261, challengeId = 80026, text = "Because the recipient lost the letter", correct = false),
+                ChallengeOptionEntity(id = 800262, challengeId = 80026, text = "Because the writer sent it to the wrong address", correct = false),
+                ChallengeOptionEntity(id = 800263, challengeId = 80026, text = "Because the recipient refused to answer", correct = false),
+            ),
+        ),
+        // ---------------------------------------------------------------------
+        // Unit 16: Reported Speech and por / para
+        // ---------------------------------------------------------------------
+        UnitPayload(
+            unit = UnitEntity(
+                id = 35,
+                courseId = 1,
+                title = "Unit 16: Reported Speech and por/para",
+                description = "dijo que — and the two prepositions that never mean the same thing",
+                orderIndex = 15,
+            ),
+            lessons = listOf(
+                LessonEntity(id = 703, unitId = 35, title = "Lesson 36: What He Told Me", orderIndex = 0),
+                LessonEntity(id = 704, unitId = 35, title = "Lesson 37: When the Tense Stays Put", orderIndex = 1),
+                LessonEntity(id = 705, unitId = 35, title = "Lesson 38: por and para", orderIndex = 2),
+            ),
+            challenges = listOf(
+                // --- lesson 703: the tense moving back inside dijo que --------
+                ChallengeEntity(
+                    id = 80030, lessonId = 703, type = ChallengeType.SELECT,
+                    question = "He said: 'I am tired.' Which Spanish reports it with the tense moved back?",
+                    audioSrc = "asset:///audio/es/dijo_que_estaba_cansado.ogg",
+                    orderIndex = 0,
+                    grammaticalFocus = "es.reported_speech.backshift",
+                    ruleText = "This course reports what someone said by moving the verb one step back in time, so the present inside dijo que becomes the imperfect: Dijo que estaba cansado. Spanish also lets the present stay there, and that is normal — the shifted form is simply the one this course drills.\nThe present in Dijo que está cansado is also acceptable Spanish, but it is not the form this item asks for; Dijeron que estaba cansado is 'they said', and the report is of one speaker; and Dijo que estar cansado puts the infinitive in the slot after que.",
+                ),
+                ChallengeEntity(
+                    id = 80031, lessonId = 703, type = ChallengeType.CONJUGATE,
+                    question = "He said: 'I will call you.' Which form goes in 'Dijo que ___'?",
+                    audioSrc = "asset:///audio/es/llamaria.ogg",
+                    orderIndex = 1,
+                    grammaticalFocus = "es.reported_speech.backshift",
+                    ruleText = "A future verb inside dijo que is reported as the conditional: dijo que llamaría. Spanish also allows the unshifted dijo que llama; the conditional is what this item asks for.\nThe present llama is that unshifted version, which is acceptable but not the form this item drills; llamemos is nosotros, and the speaker is one man; and llamar is the infinitive, which cannot fill the slot after que.",
+                ),
+                ChallengeEntity(
+                    id = 80032, lessonId = 703, type = ChallengeType.FILL_BLANK,
+                    question = "Me dijo que ___ en un hospital.",
+                    audioSrc = "asset:///audio/es/me_dijo_que_trabajaba_en_un_hospital.ogg",
+                    orderIndex = 2,
+                    grammaticalFocus = "es.reported_speech.backshift",
+                    acceptedAnswers = "trabajaba",
+                    ruleText = "A present verb inside dijo que is reported as the imperfect: me dijo que trabajaba en un hospital.\nThe preterite trabajó fixes one finished job rather than the ongoing work, and the future trabajarán says the opposite of 'was working'; trabajar is the infinitive, which cannot fill the slot after que.",
+                ),
+                ChallengeEntity(
+                    id = 80033, lessonId = 703, type = ChallengeType.MATCH_PAIRS,
+                    question = "Match each tense to the form it takes inside dijo que",
+                    orderIndex = 3,
+                ),
+                ChallengeEntity(
+                    id = 80034, lessonId = 703, type = ChallengeType.LISTEN,
+                    question = "Tap what you hear",
+                    audioSrc = "asset:///audio/es/me_dijo_que_venia_manana.ogg",
+                    orderIndex = 4,
+                    grammaticalFocus = "es.reported_speech.backshift",
+                    ruleText = "A present verb inside dijo que is reported as the imperfect: Me dijo que venía mañana. Me dijo que viene mañana is also normal Spanish — the unshifted version — but the shifted one is what this item drills.\nThe present in Me dijo que viene mañana is the unshifted form; Me dijo que venir mañana puts the infinitive in the slot; and Me dijimos que venía mañana is the preterite nosotros, and the report is of one person.",
+                ),
+                ChallengeEntity(
+                    id = 80035, lessonId = 703, type = ChallengeType.WORD_BANK,
+                    question = "Assemble: 'He told us we had missed the train'",
+                    audioSrc = "asset:///audio/es/nos_dijo_que_habiamos_perdido_el_tren.ogg",
+                    orderIndex = 5,
+                    grammaticalFocus = "es.reported_speech.backshift",
+                    ruleText = "The tiles assemble into Nos dijo que habíamos perdido el tren: the speaker and everyone with him are the subject of había, so the plural habíamos is right, and dijo stays singular because one person is speaking.\nThe imperfect perdíamos would say they used to lose it; dijeron is 'they said', and only one person is speaking here; and perder is the infinitive, which cannot follow the auxiliary.",
+                ),
+                ChallengeEntity(
+                    id = 80036, lessonId = 703, type = ChallengeType.SELECT,
+                    question = "She said: 'I am ready.' Which Spanish reports it with the tense moved back?",
+                    audioSrc = "asset:///audio/es/ella_dijo_que_estaba_lista.ogg",
+                    orderIndex = 6,
+                    grammaticalFocus = "es.reported_speech.backshift",
+                    ruleText = "The present moves to the imperfect inside dijo que, and the person becomes the one who was speaking: Ella dijo que estaba lista.\nThe unshifted present in Ella dijo que está lista is also acceptable Spanish, but it is not the shifted form this item asks for; Ella dijo que estoy lista is yo, and the speaker is ella; and Ella dijo que estar lista puts the infinitive in the slot.",
+                ),
+
+                // --- lesson 704: when the tense stays put ---------------------
+                ChallengeEntity(
+                    id = 80040, lessonId = 704, type = ChallengeType.SELECT,
+                    question = "He said: 'I had already left.' Which Spanish reports it with the verb exactly as it was?",
+                    audioSrc = "asset:///audio/es/dijo_que_ya_habia_salido.ogg",
+                    orderIndex = 0,
+                    grammaticalFocus = "es.reported_speech.no_backshift",
+                    ruleText = "A verb that was already in the past keeps its past form inside dijo que, so this course reports it as it stood: Dijo que ya había salido. (Había salido is what is written here; hubiera salido is the subjunctive perfect, and that one is for what did not happen.)\nDijo que ya había salir puts the infinitive in the slot after the auxiliary; Dijeron que ya había salido is 'they said', and only one man is speaking; and Dijo que ya sale drags a past claim into the present.",
+                ),
+                ChallengeEntity(
+                    id = 80041, lessonId = 704, type = ChallengeType.CONJUGATE,
+                    question = "He said: 'I took the metro.' Which form goes in 'Dijo que ___ el metro'?",
+                    audioSrc = "asset:///audio/es/tomo.ogg",
+                    orderIndex = 1,
+                    grammaticalFocus = "es.reported_speech.no_backshift",
+                    ruleText = "A preterite inside dijo que is reported as it stood, so this course keeps the preterite: dijo que tomó el metro. (Había tomado is the other form Spanish allows after a preterite trigger; neither is a mistake, and tomó is the one this item asks for.)\nThe conditional tomaría belongs to a future report; the subjunctive tomara is not what a factual dijo que takes; and tomaron is 'they took', and one man is speaking.",
+                ),
+                ChallengeEntity(
+                    id = 80042, lessonId = 704, type = ChallengeType.FILL_BLANK,
+                    question = "Dijo que ___ el primer tren.",
+                    audioSrc = "asset:///audio/es/dijo_que_cogio_el_primer_tren.ogg",
+                    orderIndex = 2,
+                    grammaticalFocus = "es.reported_speech.no_backshift",
+                    acceptedAnswers = "cogió|cogio",
+                    ruleText = "He said he caught the first train, and a preterite inside dijo que is reported as it stood, so the form is cogió: dijo que cogió el primer tren.\nThe conditional cogería belongs to a future report; the subjunctive cogiera is not what a factual dijo que takes; and cogieron is 'they caught', and one man is speaking.",
+                ),
+                ChallengeEntity(
+                    id = 80043, lessonId = 704, type = ChallengeType.LISTEN,
+                    question = "Tap what you hear",
+                    audioSrc = "asset:///audio/es/la_maestra_dijo_que_habia_terminado.ogg",
+                    orderIndex = 3,
+                    grammaticalFocus = "es.reported_speech.no_backshift",
+                    ruleText = "A verb that was already in the past keeps its past form inside dijo que: La maestra dijo que había terminado.\nLa maestra dijo que había terminar puts the infinitive in the slot after the auxiliary; Las maestras dijeron que había terminado is plural, and one teacher is speaking; and La maestra dijo que había terminados does not agree with the singular subject la maestra.",
+                ),
+                ChallengeEntity(
+                    id = 80044, lessonId = 704, type = ChallengeType.SELECT,
+                    question = "He asked: 'Can I sit down?' Which Spanish reports it?",
+                    audioSrc = "asset:///audio/es/pregunto_si_podia_sentarme.ogg",
+                    orderIndex = 4,
+                    grammaticalFocus = "es.reported_speech.no_backshift",
+                    ruleText = "A reported question becomes an indirect question: it opens with si, loses the question mark, and the verb steps back: Preguntó si podía sentarme. (The original was already a polite present, so the imperfect is as far back as this form steps.)\nPreguntó que podía sentarme opens with que, which an indirect question cannot do; Preguntó si podían sentarme is plural, and the person asking is one; and Preguntó si poder sentarme puts the infinitive after si.",
+                ),
+                ChallengeEntity(
+                    id = 80045, lessonId = 704, type = ChallengeType.WORD_BANK,
+                    question = "Assemble: 'He told her he took the breakfast'",
+                    audioSrc = "asset:///audio/es/le_dijo_que_tomo_el_desayuno.ogg",
+                    orderIndex = 5,
+                    grammaticalFocus = "es.reported_speech.no_backshift",
+                    ruleText = "The tiles assemble into Le dijo que tomó el desayuno: a preterite inside dijo que is reported as it stood, so the auxiliary drops out and the preterite stands on its own.\nThe imperfect tomaba would describe a habit rather than one finished breakfast; tomar is the infinitive, which cannot follow dijo que; and tomaron is plural, and he is one person.",
+                ),
+                ChallengeEntity(
+                    id = 80046, lessonId = 704, type = ChallengeType.STORY,
+                    question = "La llamada que nunca hice\n\nAyer le dije que había terminado el informe.\nLa verdad es que no lo había terminado.\nLe prometí que mañana se lo entregaría.\n\n❓ What had and had not happened?",
+                    audioSrc = "asset:///audio/es/la_llamada_que_nunca_hizo.ogg",
+                    orderIndex = 6,
+                ),
+
+                // --- lesson 705: por and para -------------------------------
+                ChallengeEntity(
+                    id = 80050, lessonId = 705, type = ChallengeType.SELECT,
+                    question = "Which one means 'Thank you for your help'?",
+                    audioSrc = "asset:///audio/es/gracias_por_tu_ayuda.ogg",
+                    orderIndex = 0,
+                    grammaticalFocus = "es.por_para",
+                    ruleText = "Gracias states a reason, and the reason a thing is given is marked with por: Gracias por tu ayuda. That is the rule this course teaches for por, not a claim that por and para divide the language exactly down the middle.\nGracias para tu ayuda points at a purpose or a recipient, which is not what gracias is thanking for; de is not the preposition this frame takes; and Gracias por tu ayudas is plural, and the phrase is about one thing of help.",
+                ),
+                ChallengeEntity(
+                    id = 80051, lessonId = 705, type = ChallengeType.FILL_BLANK,
+                    question = "Salimos ___ la lluvia.",
+                    audioSrc = "asset:///audio/es/salimos_por_la_lluvia.ogg",
+                    orderIndex = 1,
+                    grammaticalFocus = "es.por_para",
+                    acceptedAnswers = "por",
+                    ruleText = "The rain is the cause of the leaving, and a cause is marked with por: salimos por la lluvia.\nThe preposition para marks a purpose, a direction or a recipient, and the rain is none of those; durante would time the leaving rather than give its cause, and de does not carry one at all.",
+                ),
+                ChallengeEntity(
+                    id = 80052, lessonId = 705, type = ChallengeType.SELECT,
+                    question = "Which one means 'I bought it for your present'?",
+                    audioSrc = "asset:///audio/es/lo_compre_para_tu_regalo.ogg",
+                    orderIndex = 2,
+                    grammaticalFocus = "es.por_para",
+                    ruleText = "The present is what the purchase is for — its purpose and its recipient — and this course marks that with para: Lo compré para tu regalo.\nLo compré por tu regalo would say the present is the reason for buying, and de does not take a gift this way; Lo compré para tus regalo does not agree with the singular regalo.",
+                ),
+                ChallengeEntity(
+                    id = 80053, lessonId = 705, type = ChallengeType.MATCH_PAIRS,
+                    question = "Match each relation to the preposition this course marks it with",
+                    orderIndex = 3,
+                ),
+                ChallengeEntity(
+                    id = 80054, lessonId = 705, type = ChallengeType.LISTEN,
+                    question = "Tap what you hear",
+                    audioSrc = "asset:///audio/es/lo_hice_por_mi.ogg",
+                    orderIndex = 4,
+                    grammaticalFocus = "es.por_para",
+                    ruleText = "Doing it for someone's sake is an exchange between the two of them, and this course marks that with por: Lo hice por mí.\nLo hice para mí points at a purpose — lo hice para pasar el examen is the sentence that would mean that; Lo hice por ti names tú, and the person in question is the speaker; and Lo hice por hacer puts the infinitive in the slot, which names no reason at all.",
+                ),
+                ChallengeEntity(
+                    id = 80055, lessonId = 705, type = ChallengeType.WORD_BANK,
+                    question = "Assemble: 'I didn't go because I had no money'",
+                    audioSrc = "asset:///audio/es/no_fui_por_que_no_tenia_dinero.ogg",
+                    orderIndex = 5,
+                    grammaticalFocus = "es.por_para",
+                    ruleText = "The money is the cause of the not going, and a cause after a verb goes in por que, which is two words: No fui por que no tenía dinero.\nThe tile para with que would mark a purpose, and no purpose is stated here; sin would make it a negation rather than a reason; and durante would time the not going, and no time is given.",
+                ),
+                ChallengeEntity(
+                    id = 80056, lessonId = 705, type = ChallengeType.SELECT,
+                    question = "Which one means 'That's why I couldn't come'?",
+                    audioSrc = "asset:///audio/es/por_eso_no_pude_venir.ogg",
+                    orderIndex = 6,
+                    grammaticalFocus = "es.por_para",
+                    ruleText = "A result is stated with por eso, and para eso would be pointing at a purpose — a different relation entirely: Por eso no pude venir.\nPara eso no pude venir points at a purpose, and Por esos no pude venir points at those people or things rather than at the result; Por eso no pudimos venir is nosotros, and the reason is being given for one person.",
+                ),
+            ),
+            options = listOf(
+                ChallengeOptionEntity(id = 800300, challengeId = 80030, text = "Dijo que estaba cansado", correct = true, audioSrc = "asset:///audio/es/dijo_que_estaba_cansado.ogg"),
+                ChallengeOptionEntity(id = 800301, challengeId = 80030, text = "Dijo que está cansado", correct = false, errorTag = "WRONG_TENSE"),
+                ChallengeOptionEntity(id = 800302, challengeId = 80030, text = "Dijeron que estaba cansado", correct = false, errorTag = "WRONG_PERSON"),
+                ChallengeOptionEntity(id = 800303, challengeId = 80030, text = "Dijo que estar cansado", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 800310, challengeId = 80031, text = "llamaría", correct = true),
+                ChallengeOptionEntity(id = 800311, challengeId = 80031, text = "llama", correct = false, errorTag = "WRONG_TENSE"),
+                ChallengeOptionEntity(id = 800312, challengeId = 80031, text = "llamemos", correct = false, errorTag = "WRONG_PERSON"),
+                ChallengeOptionEntity(id = 800313, challengeId = 80031, text = "llamar", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 800320, challengeId = 80032, text = "trabajaba", correct = true),
+                ChallengeOptionEntity(id = 800321, challengeId = 80032, text = "trabajó", correct = false, errorTag = "WRONG_TENSE"),
+                ChallengeOptionEntity(id = 800322, challengeId = 80032, text = "trabajarán", correct = false, errorTag = "WRONG_TENSE"),
+                ChallengeOptionEntity(id = 800323, challengeId = 80032, text = "trabajar", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 800330, challengeId = 80033, text = "hablo", correct = true),
+                ChallengeOptionEntity(id = 800331, challengeId = 80033, text = "hablaba", correct = true),
+                ChallengeOptionEntity(id = 800332, challengeId = 80033, text = "hablaré", correct = true),
+                ChallengeOptionEntity(id = 800333, challengeId = 80033, text = "hablaría", correct = true),
+                ChallengeOptionEntity(id = 800334, challengeId = 80033, text = "comí", correct = true),
+                ChallengeOptionEntity(id = 800335, challengeId = 80033, text = "comía", correct = true),
+
+                ChallengeOptionEntity(id = 800340, challengeId = 80034, text = "Me dijo que venía mañana", correct = true),
+                ChallengeOptionEntity(id = 800341, challengeId = 80034, text = "Me dijo que viene mañana", correct = false, errorTag = "WRONG_TENSE"),
+                ChallengeOptionEntity(id = 800342, challengeId = 80034, text = "Me dijo que venir mañana", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 800343, challengeId = 80034, text = "Me dijimos que venía mañana", correct = false, errorTag = "WRONG_PERSON"),
+
+                ChallengeOptionEntity(id = 800350, challengeId = 80035, text = "Nos", correct = true),
+                ChallengeOptionEntity(id = 800351, challengeId = 80035, text = "dijo", correct = true),
+                ChallengeOptionEntity(id = 800352, challengeId = 80035, text = "que", correct = true),
+                ChallengeOptionEntity(id = 800353, challengeId = 80035, text = "habíamos", correct = true),
+                ChallengeOptionEntity(id = 800354, challengeId = 80035, text = "perdido", correct = true),
+                ChallengeOptionEntity(id = 800355, challengeId = 80035, text = "el", correct = true),
+                ChallengeOptionEntity(id = 800356, challengeId = 80035, text = "tren", correct = true),
+                ChallengeOptionEntity(id = 800357, challengeId = 80035, text = "perdíamos", correct = false, errorTag = "WRONG_TENSE"),
+                ChallengeOptionEntity(id = 800358, challengeId = 80035, text = "dijeron", correct = false, errorTag = "WRONG_PERSON"),
+                ChallengeOptionEntity(id = 800359, challengeId = 80035, text = "perder", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 800360, challengeId = 80036, text = "Ella dijo que estaba lista", correct = true, audioSrc = "asset:///audio/es/ella_dijo_que_estaba_lista.ogg"),
+                ChallengeOptionEntity(id = 800361, challengeId = 80036, text = "Ella dijo que está lista", correct = false, errorTag = "WRONG_TENSE"),
+                ChallengeOptionEntity(id = 800362, challengeId = 80036, text = "Ella dijo que estoy lista", correct = false, errorTag = "WRONG_PERSON"),
+                ChallengeOptionEntity(id = 800363, challengeId = 80036, text = "Ella dijo que estar lista", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 800400, challengeId = 80040, text = "Dijo que ya había salido", correct = true, audioSrc = "asset:///audio/es/dijo_que_ya_habia_salido.ogg"),
+                ChallengeOptionEntity(id = 800401, challengeId = 80040, text = "Dijo que ya había salir", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 800402, challengeId = 80040, text = "Dijeron que ya había salido", correct = false, errorTag = "WRONG_PERSON"),
+                ChallengeOptionEntity(id = 800403, challengeId = 80040, text = "Dijo que ya sale", correct = false, errorTag = "WRONG_TENSE"),
+
+                ChallengeOptionEntity(id = 800410, challengeId = 80041, text = "tomó", correct = true),
+                ChallengeOptionEntity(id = 800411, challengeId = 80041, text = "tomaría", correct = false, errorTag = "WRONG_TENSE"),
+                ChallengeOptionEntity(id = 800412, challengeId = 80041, text = "tomara", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 800413, challengeId = 80041, text = "tomaron", correct = false, errorTag = "WRONG_PERSON"),
+
+                ChallengeOptionEntity(id = 800420, challengeId = 80042, text = "cogió", correct = true),
+                ChallengeOptionEntity(id = 800421, challengeId = 80042, text = "cogería", correct = false, errorTag = "WRONG_TENSE"),
+                ChallengeOptionEntity(id = 800422, challengeId = 80042, text = "cogiera", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 800423, challengeId = 80042, text = "cogieron", correct = false, errorTag = "WRONG_PERSON"),
+
+                ChallengeOptionEntity(id = 800430, challengeId = 80043, text = "La maestra dijo que había terminado", correct = true),
+                ChallengeOptionEntity(id = 800431, challengeId = 80043, text = "La maestra dijo que había terminar", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 800432, challengeId = 80043, text = "Las maestras dijeron que había terminado", correct = false, errorTag = "WRONG_PERSON"),
+                ChallengeOptionEntity(id = 800433, challengeId = 80043, text = "La maestra dijo que había terminados", correct = false, errorTag = "WRONG_PERSON"),
+
+                ChallengeOptionEntity(id = 800440, challengeId = 80044, text = "Preguntó si podía sentarme", correct = true, audioSrc = "asset:///audio/es/pregunto_si_podia_sentarme.ogg"),
+                ChallengeOptionEntity(id = 800441, challengeId = 80044, text = "Preguntó que podía sentarme", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 800442, challengeId = 80044, text = "Preguntó si podían sentarme", correct = false, errorTag = "WRONG_PERSON"),
+                ChallengeOptionEntity(id = 800443, challengeId = 80044, text = "Preguntó si poder sentarme", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 800450, challengeId = 80045, text = "Le", correct = true),
+                ChallengeOptionEntity(id = 800451, challengeId = 80045, text = "dijo", correct = true),
+                ChallengeOptionEntity(id = 800452, challengeId = 80045, text = "que", correct = true),
+                ChallengeOptionEntity(id = 800453, challengeId = 80045, text = "tomó", correct = true),
+                ChallengeOptionEntity(id = 800454, challengeId = 80045, text = "el", correct = true),
+                ChallengeOptionEntity(id = 800455, challengeId = 80045, text = "desayuno", correct = true),
+                ChallengeOptionEntity(id = 800456, challengeId = 80045, text = "tomaba", correct = false, errorTag = "WRONG_TENSE"),
+                ChallengeOptionEntity(id = 800457, challengeId = 80045, text = "tomar", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 800458, challengeId = 80045, text = "tomaron", correct = false, errorTag = "WRONG_PERSON"),
+
+                ChallengeOptionEntity(id = 800460, challengeId = 80046, text = "He lied: he had not finished the report", correct = true),
+                ChallengeOptionEntity(id = 800461, challengeId = 80046, text = "He had already finished the report before he spoke", correct = false),
+                ChallengeOptionEntity(id = 800462, challengeId = 80046, text = "She was the one who finished the report", correct = false),
+                ChallengeOptionEntity(id = 800463, challengeId = 80046, text = "He delivered the report the next morning", correct = false),
+
+                ChallengeOptionEntity(id = 800500, challengeId = 80050, text = "Gracias por tu ayuda", correct = true, audioSrc = "asset:///audio/es/gracias_por_tu_ayuda.ogg"),
+                ChallengeOptionEntity(id = 800501, challengeId = 80050, text = "Gracias para tu ayuda", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 800502, challengeId = 80050, text = "Gracias de tu ayuda", correct = false),
+                ChallengeOptionEntity(id = 800503, challengeId = 80050, text = "Gracias por tu ayudas", correct = false, errorTag = "WRONG_PERSON"),
+
+                ChallengeOptionEntity(id = 800510, challengeId = 80051, text = "por", correct = true),
+                ChallengeOptionEntity(id = 800511, challengeId = 80051, text = "para", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 800512, challengeId = 80051, text = "de", correct = false),
+                ChallengeOptionEntity(id = 800513, challengeId = 80051, text = "durante", correct = false),
+
+                ChallengeOptionEntity(id = 800520, challengeId = 80052, text = "Lo compré para tu regalo", correct = true, audioSrc = "asset:///audio/es/lo_compre_para_tu_regalo.ogg"),
+                ChallengeOptionEntity(id = 800521, challengeId = 80052, text = "Lo compré por tu regalo", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 800522, challengeId = 80052, text = "Lo compré de tu regalo", correct = false),
+                ChallengeOptionEntity(id = 800523, challengeId = 80052, text = "Lo compré para tus regalo", correct = false, errorTag = "WRONG_PERSON"),
+
+                ChallengeOptionEntity(id = 800530, challengeId = 80053, text = "a cause", correct = true),
+                ChallengeOptionEntity(id = 800531, challengeId = 80053, text = "por", correct = true),
+                ChallengeOptionEntity(id = 800532, challengeId = 80053, text = "a purpose or a recipient", correct = true),
+                ChallengeOptionEntity(id = 800533, challengeId = 80053, text = "para", correct = true),
+                ChallengeOptionEntity(id = 800534, challengeId = 80053, text = "an exchange", correct = true),
+                ChallengeOptionEntity(id = 800535, challengeId = 80053, text = "por", correct = true),
+
+                ChallengeOptionEntity(id = 800540, challengeId = 80054, text = "Lo hice por mí", correct = true),
+                ChallengeOptionEntity(id = 800541, challengeId = 80054, text = "Lo hice para mí", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 800542, challengeId = 80054, text = "Lo hice por ti", correct = false, errorTag = "WRONG_PERSON"),
+                ChallengeOptionEntity(id = 800543, challengeId = 80054, text = "Lo hice por hacer", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 800550, challengeId = 80055, text = "No", correct = true),
+                ChallengeOptionEntity(id = 800551, challengeId = 80055, text = "fui", correct = true),
+                ChallengeOptionEntity(id = 800552, challengeId = 80055, text = "por", correct = true),
+                ChallengeOptionEntity(id = 800553, challengeId = 80055, text = "que", correct = true),
+                ChallengeOptionEntity(id = 800554, challengeId = 80055, text = "no", correct = true),
+                ChallengeOptionEntity(id = 800555, challengeId = 80055, text = "tenía", correct = true),
+                ChallengeOptionEntity(id = 800556, challengeId = 80055, text = "dinero", correct = true),
+                ChallengeOptionEntity(id = 800557, challengeId = 80055, text = "para", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 800558, challengeId = 80055, text = "sin", correct = false),
+                ChallengeOptionEntity(id = 800559, challengeId = 80055, text = "durante", correct = false),
+
+                ChallengeOptionEntity(id = 800560, challengeId = 80056, text = "Por eso no pude venir", correct = true, audioSrc = "asset:///audio/es/por_eso_no_pude_venir.ogg"),
+                ChallengeOptionEntity(id = 800561, challengeId = 80056, text = "Para eso no pude venir", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 800562, challengeId = 80056, text = "Por esos no pude venir", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 800563, challengeId = 80056, text = "Por eso no pudimos venir", correct = false, errorTag = "WRONG_PERSON"),
             ),
         ),
     )

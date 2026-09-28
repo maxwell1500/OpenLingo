@@ -7,7 +7,7 @@ import com.duo.app.data.local.entities.UnitEntity
 import com.duo.app.data.local.models.ChallengeType
 
 /**
- * Units 11-14 of the Japanese course, the N4 grammar the roadmap names and
+ * Units 11-16 of the Japanese course, the N4 grammar the roadmap names and
  * `B1CurriculumData.japaneseN4Units` (units 28-29) never reached.
  *
  * Where the shipped Japanese corpus stops at N5-complete plus N4-entry, these four
@@ -38,14 +38,12 @@ import com.duo.app.data.local.models.ChallengeType
  * Both units are everyday, transactional and high-frequency, which is the register
  * the rest of the Japanese corpus already uses. Nothing literary is introduced.
  *
- * **Audio.** 89 distinct clips are wired from these units: 74 on a challenge and 57 on
- * the option that speaks the same text (forty-two clips do both, so the two counts are
- * not disjoint). Units 11-12 alone account for 46 of them, and units 13-14 for the other
- * 43. A SELECT challenge and its correct option share a clip; a CONJUGATE speaks the target
- * form on the challenge alone, so the option grid never plays the answer. A
- * MATCH_PAIRS challenge gets no challenge clip — its prompt is the instruction
- * "Match the ...", not a sentence — so its clips hang off the paired options
- * instead.
+ * **Audio.** 132 distinct clips are wired from these units, 46 from units 11-12,
+ * 43 from units 13-14 and 43 from units 15-16. A SELECT challenge and its correct
+ * option share a clip; a CONJUGATE speaks the target form on the challenge alone, so
+ * the option grid never plays the answer. A MATCH_PAIRS challenge gets no challenge
+ * clip — its prompt is the instruction "Match the ...", not a sentence — so its clips
+ * hang off the paired options instead.
  *
  * Challenge 60025 is the one item whose scaffold names the whole target
  * sentence, so it carries the sentence clip rather than a form clip — the same
@@ -74,17 +72,20 @@ import com.duo.app.data.local.models.ChallengeType
  * would be unanswerable by ear and is a writing exercise, not a listening one.
  *
  * Id layout inside this file, disjoint from every other curriculum file:
- *   - units `40`-`43`        (Spanish has taken 30-33)
- *   - lessons `400`-`405` for units 40-41, `406`-`412` for units 42-43
+ *   - units `40`-`45`        (Spanish has taken 30-35)
+ *   - lessons `400`-`405` for units 40-41, `406`-`412` for units 42-43,
+ *     `800`-`805` for units 44-45
  *   - challenges `60000`-`60043` plus the `LISTEN` block `61000`-`61008` (units 40-41),
- *     then `62000`-`62040` plus the `LISTEN` block `61100`-`61106` (units 42-43)
+ *     then `62000`-`62040` plus the `LISTEN` block `61100`-`61106` (units 42-43), then
+ *     `64000`-`64026` plus the `LISTEN` block `64100`-`64105` (units 44-45)
  *   - options `600001`-`600184` (600157 is not used; every id below it is taken)
  *     plus the `LISTEN` block `6100001`-`6100027`, then options `6300001`-`6300803`
- *     plus the `LISTEN` block `6310001`-`6310063`
+ *     plus the `LISTEN` block `6310001`-`6310063`, then options `6400001` up and the
+ *     `LISTEN` block `6410001` up (units 44-45)
  *
  * The six held-out items are 60006, 60014, 60021, 60028, 60036 and 60043, all in
- * units 40-41. Units 42-43 hold nothing out: the N4 pool is fixed at 10 and a held-out
- * item in unit 42 would be selected by no checkpoint. They are
+ * units 40-41. Units 42-45 hold nothing out: the N4 pool is fixed at 10 and a held-out
+ * item in unit 42 or later would be selected by no checkpoint. They are
  * seeded like everything else and carry `heldOut = true`, so the lesson path skips
  * them and a checkpoint is the only thing that reaches them. No `LISTEN` item is
  * held out: the held-out pool exists to withhold a *taught form*, and a
@@ -92,8 +93,7 @@ import com.duo.app.data.local.models.ChallengeType
  */
 object JapaneseN4CurriculumData {
 
-    // =========================================================================
-    // JAPANESE JLPT N4 (Units 11 - 14)
+    // JAPANESE JLPT N4 (Units 11 - 16)
     // =========================================================================
     val japaneseN4ExtensionUnits: List<UnitPayload> = listOf(
         // Unit 11: Past Tense, Register & Adjectives
@@ -1469,6 +1469,587 @@ object JapaneseN4CurriculumData {
                 ChallengeOptionEntity(id = 6310061, challengeId = 61106, text = "あそこにいる人は留学生です", romaji = "asoko ni iru hito wa ryugakusei desu", correct = true),
                 ChallengeOptionEntity(id = 6310062, challengeId = 61106, text = "あそこにいた人は留学生です", romaji = "asoko ni ita hito wa ryugakusei desu", correct = false, errorTag = "WRONG_TENSE"),
                 ChallengeOptionEntity(id = 6310063, challengeId = 61106, text = "あそこにいます人は留学生です", romaji = "asoko ni imasu hito wa ryugakusei desu", correct = false, errorTag = "WRONG_FORM"),
+            ),
+        ),
+        // =====================================================================
+        // Units 15-16: the four areas the roadmap said the Japanese corpus
+        // never reached — 条件, 意向形, 敬語, and られる as a system rather
+        // than as four confrontations.
+        //
+        // Id layout for this appended block, disjoint from units 11-14 above
+        // and from every other curriculum file:
+        //   - units `44`, `45`
+        //   - lessons `800`-`802` (unit 44), `803`-`805` (unit 45)
+        //   - challenges `64000`-`64026` plus the `LISTEN` round `64100`-`64102`
+        //     at the end of lesson 802, and `64103`-`64105` at the end of 805
+        //   - options `6400001`-`6400123` plus the `LISTEN` block
+        //     `6410001`-`6410018`
+        //
+        // **A conditional is a choice between four forms, not a rule, and this
+        // block does not pretend it is one.** They are not interchangeable:
+        //   - 〜と states a general or inevitable outcome — 猫が魚を食べると、
+        //     猫が魚を食べる — and that is why it will not carry a 意志 or a
+        //     依頼 in the consequent. と is named as the rejected distractor in
+        //     64000 and 64002 and is not given a focus of its own: the roadmap's
+        //     gap was たら, なら and ば, which appeared zero times.
+        //   - 〜たら is the plain past plus たら, and it is the most versatile
+        //     and by far the most frequent of the three taught here — it carries
+        //     a request, a proposal and a 意志 without trouble. Its た is the
+        //     仮定形 and not a past: 明日雨が降ったら is a condition about
+        //     tomorrow, and 64000's rule text says so.
+        //   - 〜なら is the 辞書形 plus なら, so the clause carries no tense at
+        //     all — 行くなら, never 行ったなら — and it supposes a case, which
+        //     is why the 依頼 or 提案 after it is what the speaker wants done.
+        //   - 〜ば is the written and formal one. う-verbs and る-verbs drop
+        //     the る, う-verbs take the 音便, and ば never takes ます, so ばます
+        //     is not a shape. 64009 names 買らば, which is a real ending for
+        //     来れば and すれば and is wrong for 買う.
+        // **And what this block does not claim.** It is not the whole system:
+        // 〜と's 一方 and 発見 uses, たら's 一方 and 逆接 uses, と's 過去形 and
+        // れば's restriction on a negative consequent are all outside it, and
+        // 64005 and 64008 say out loud that たら and なら can say the same
+        // thing about the same case — what separates them there is the tense
+        // of the clause and the register, not the meaning. Where the textbook
+        // rule is a restriction rather than a form, the rule text gives the
+        // register and leaves the restriction unstated instead of inventing it.
+        //
+        // **Volition is 意向形 in the plain form and ましょう in polite.** What
+        // a learner builds is the ます-stem plus ましょう, and 64013 keeps
+        // でしょう away from it on purpose: でしょう is 推量, the speaker's
+        // guess, and it attaches to a plain form, so 彼は来るでしょう and
+        // 彼は来ましょう are different sentences and only one is about
+        // probability.
+        //
+        // **Keigo is opened here, not taught.** The corpus had no honorific or
+        // humble register anywhere, so this block adds one small set of each
+        // plus the ascript お〜になる, which is the part a learner meets first
+        // in real Japanese. 64015 states the direction — 尊敬語 lifts the other
+        // person's action, 謙譲語 lowers the speaker's own — and 64018, 64019
+        // and 64103 are built on the two ways to get that backwards. What is
+        // deliberately absent: the split of 謙譲語 into the ます humble and the
+        // plain いたす humble, 尊敬 and 謙譲 used together the way business
+        // correspondence uses them, and 二重謙譲. 敬語 sits above what most
+        // JLPT syllabuses place at N4, so this is a recognition set and the
+        // rule texts say as much rather than implying the course teaches
+        // business Japanese. It is two lessons, not a system.
+        //
+        // **られる as a rule, not four confrontations.** Units 13-14 pited two
+        // readings against each other in four items; this block states the
+        // system those four sit inside. A godan verb never collides — 読める
+        // against 読まれる (64021) and 作られる against 作れる (64022). An
+        // ichidan verb always does, because られる is built the same way for
+        // both, so 見られる and 食べられる are one string with two meanings
+        // and only the subject slot and the particles tell them apart (64023,
+        // 64105). The third reading, 得る, is a small closed set — 得る, 求める,
+        // 採る — and 64024 gives it one item rather than a lesson. And する is
+        // the one verb whose potential is not られる at all: できる (64026).
+        //
+        // **Audio.** 43 new clips, all wired and all referenced: 28 on a
+        // challenge and 38 on the option that speaks the same text, and the two
+        // counts overlap because a clip can do both. A `MATCH_PAIRS` challenge
+        // gets no challenge clip — its prompt is the instruction, not a
+        // sentence — so its clips hang off the derived half of each pair. Every
+        // `LISTEN` challenge carries a clip and none of its options does, the
+        // way `ExerciseScreen` needs, and no `WRONG_*` distractor anywhere in
+        // this block carries one.
+        //
+        // **Nothing here is unanswerable by ear.** Every LISTEN contrast was
+        // measured rather than assumed, and each one differs from the correct
+        // answer in at least two morae: 64100's 降るなら sits 4 morae from
+        // 降ると and 8 from 降りましたら, 64103's お帰りになりました is 8 morae
+        // from 帰りました and 17 from お帰りください, and 64105's されています
+        // is 3 morae from されます and 6 from していません. The られる pair is
+        // the real risk and it is excluded the way unit 13 excluded it: 64105
+        // contrasts the passive progressive with a plain form and a negative,
+        // never される against させる, and 書かれる and 書ける sit one mora apart,
+        // so 64021 puts them in front of the learner as text to be read rather
+        // than as audio to be told apart, exactly as unit 13 did with 書かれる.
+        // The dakuten, handakuten, long-vowel and geminate marks were read in
+        // the IPA the acoustic model is actually handed: ɸɯʔtaɾa for 降った,
+        // ɾeba for れば, naɾa for なら, kaeba for 買えば, maɕoː and deɕoː for
+        // ましょう and でしょう, keːjakɯɕo for 契約, ɯkaɡai for 伺, moːɕiaɡeɾɯ
+        // for 申し上げる, eːɡa for 映画, soːʥi for 掃除, and a bare e for 得 in
+        // 得られる.
+        //
+        // No item in this block is held out: the held-out pool is fixed at
+        // A2 4, B1 8, N4 10 and `held-out items are reachable by a checkpoint`
+        // scopes the checkpoints to units 10-33 plus 40-43, so a held-out item
+        // in unit 44 would be filtered out of every lesson and reachable by
+        // nothing.
+        UnitPayload(
+            unit = UnitEntity(
+                id = 44,
+                courseId = 2,
+                title = "Unit 15: Conditionals & Proposals",
+                description = "Say 'if' the way Japanese actually divides it: 〜たら, 〜なら and 〜ば, what 〜と refuses to do, and propose a plan with 〜ましょう",
+                orderIndex = 14,
+            ),
+            lessons = listOf(
+                LessonEntity(id = 800, unitId = 44, title = "Lesson 33: If It Happens", orderIndex = 0),
+                LessonEntity(id = 801, unitId = 44, title = "Lesson 34: If That's The Case", orderIndex = 1),
+                LessonEntity(id = 802, unitId = 44, title = "Lesson 35: Let's", orderIndex = 2),
+            ),
+            challenges = listOf(
+                // --- Lesson 33: 〜たら ------------------------------------------
+                ChallengeEntity(
+                    id = 64000, lessonId = 800, type = ChallengeType.SELECT,
+                    question = "How do you say 'If it rains, please stay at home'?",
+                    audioSrc = "asset:///audio/ja/ja_cond_ame_ga_futtara_ie_tekudasai.ogg",
+                    orderIndex = 0,
+                    grammaticalFocus = "ja.conditional_tara",
+                    ruleText = "〜たら is the plain past plus たら — 降る → 降った → 降ったら — and it is the one condition that can carry a request, so 明日、雨が降ったら、家にいてください is a condition about tomorrow even though the た is the shape of a past.\n雨が降ると、家にいてください is the と condition, which states a general outcome and never takes a 依頼. 雨が降るたら is 辞書形 + たら, but たら is built on the た and not on the 辞書形. 雨が降りましたら is a real form, though ましたら is the formal business conditional and is the wrong register here.",
+                ),
+                ChallengeEntity(
+                    id = 64001, lessonId = 800, type = ChallengeType.CONJUGATE,
+                    question = "Which たら condition of 飲む means 'if (you) drink it'?",
+                    audioSrc = "asset:///audio/ja/ja_cond_nondattara.ogg",
+                    orderIndex = 1,
+                    grammaticalFocus = "ja.conditional_tara",
+                    ruleText = "A godan verb takes its plain past in front of たら: 飲む → 飲んだ → 飲んだら.\n飲むなら is 辞書形 + なら, so it is the なら condition and not たら. 飲めば is 飲む → 飲め + ば, the ば condition, which belongs to the written and formal register. 飲みたら puts a ます-stem in front of たら, and a ます form never carries a conditional ending.",
+                ),
+                ChallengeEntity(
+                    id = 64002, lessonId = 800, type = ChallengeType.FILL_BLANK,
+                    question = "雨が___、出かけません。",
+                    audioSrc = "asset:///audio/ja/ja_cond_ame_ga_futtara_dekakemasen.ogg",
+                    orderIndex = 2,
+                    grammaticalFocus = "ja.conditional_tara",
+                    acceptedAnswers = "降ったら|ふったら",
+                    ruleText = "〜たら is the plain past of the verb, so 降る → 降った → 降ったら, and 出かけません is the result that follows it.\n雨が降ります is the polite present, so the rain is already falling. 雨が降ると is the と condition, which states a general outcome rather than one case. 雨が降るなら is the なら condition, and it is a different condition from the たら this item asks for.",
+                ),
+                ChallengeEntity(
+                    id = 64003, lessonId = 800, type = ChallengeType.WORD_BANK,
+                    question = "Assemble: 'If the work is finished, let's go home'",
+                    orderIndex = 3,
+                    grammaticalFocus = "ja.conditional_tara",
+                    ruleText = "〜たら is the plain past of the verb, so 終わる → 終わった → 終わったら, and 帰りましょう is a proposal the finished work makes possible.\n仕事が変わるなら、帰りましょう is the なら condition, which puts the 辞書形 終わる in front of なら. 仕事が終われば、帰りましょう is the ば condition, which is the written and formal register. 仕事が終わって、帰りましょう is the て-form, a connective that links two actions rather than a condition that opens one.",
+                ),
+                ChallengeEntity(
+                    id = 64004, lessonId = 800, type = ChallengeType.MATCH_PAIRS,
+                    question = "Match the verb with its たら condition",
+                    orderIndex = 4,
+                ),
+
+                // --- Lesson 34: 〜なら and 〜ば --------------------------------
+                ChallengeEntity(
+                    id = 64005, lessonId = 801, type = ChallengeType.SELECT,
+                    question = "How do you say 'If you understand it, please tell me'?",
+                    audioSrc = "asset:///audio/ja/ja_cond_wakaru_nara_oshietekudasai.ogg",
+                    orderIndex = 0,
+                    grammaticalFocus = "ja.conditional_nara",
+                    ruleText = "〜なら is the 辞書形 plus なら — 分かる → 分かるなら — and it supposes a case rather than predicting one, so the 依頼 after it is what the speaker wants done.\n分かったなら、教えてください is the plain past in front of なら, but なら takes the 辞書形 and never the past. 分かるたびに、教えてください is たびに, which means every time and states a habit rather than a condition. 分かるなら、教えください hangs ください off the noun 教え, and ください takes the て-form, so the noun has to become 教えて.",
+                ),
+                ChallengeEntity(
+                    id = 64006, lessonId = 801, type = ChallengeType.CONJUGATE,
+                    question = "Which なら condition of 行く means 'if (you) go'?",
+                    audioSrc = "asset:///audio/ja/ja_cond_iku_nara.ogg",
+                    orderIndex = 1,
+                    grammaticalFocus = "ja.conditional_nara",
+                    ruleText = "〜なら takes the verb exactly as a dictionary lists it: 行く → 行くなら, and a なら clause carries no tense of its own.\n行ったら is the たら condition, which is built on the plain past 行った. 行きなら puts the ます-stem in the 辞書形 slot, but 行く ends in く, so its ます-stem is 行きます while its dictionary form is 行く. 行けば is 行く → 行け + ば, the ば condition, and ば is the written and formal register.",
+                ),
+                ChallengeEntity(
+                    id = 64007, lessonId = 801, type = ChallengeType.FILL_BLANK,
+                    question = "もし病気が___、学校を休みます。",
+                    audioSrc = "asset:///audio/ja/ja_cond_byoki_ga_naorunara_gakkou_o_yasumimasu.ogg",
+                    orderIndex = 2,
+                    grammaticalFocus = "ja.conditional_nara",
+                    acceptedAnswers = "治るなら|なおるなら",
+                    ruleText = "〜なら takes the 辞書形, so 治る → 治るなら is the whole condition, and 学校を休みます is what the speaker will do if that turns out to be the case.\n治ったなら、学校を休みます is the plain past in front of なら, but なら takes the 辞書形 and never the past. 治りますなら、学校を休みます is a ます form in the 辞書形 slot, and a なら clause carries no tense of its own. 治るたびに、学校を休みます is たびに, which means every time and states a habit rather than a condition.",
+                ),
+                ChallengeEntity(
+                    id = 64008, lessonId = 801, type = ChallengeType.SELECT,
+                    question = "How do you say 'If you are busy, you don't have to come'?",
+                    audioSrc = "asset:///audio/ja/ja_cond_isogashikereba_konakuteiidesu.ogg",
+                    orderIndex = 3,
+                    grammaticalFocus = "ja.conditional_ba",
+                    ruleText = "An い-adjective makes ば by dropping the final い and adding れば: 忙しい → 忙しければ, and ば is the written and formal way of saying if.\n忙ししかったら、来なくていいです is たら, which says exactly the same thing and is what people actually use when they speak — the difference is register, not meaning. 忙しけら、来なくていいです has ら where the れば needs れば. 忙しいれば、来なくていいです keeps the い of 忙しい in front of れば, and the ば form is built without that い.",
+                ),
+                ChallengeEntity(
+                    id = 64009, lessonId = 801, type = ChallengeType.CONJUGATE,
+                    question = "Which ば condition of 買う means 'if (you) buy'?",
+                    audioSrc = "asset:///audio/ja/ja_cond_kau_ba.ogg",
+                    orderIndex = 4,
+                    grammaticalFocus = "ja.conditional_ba",
+                    ruleText = "A う-verb makes ば from its ます-stem plus れば, and that change from う to え is the 音便 the e-row verbs have: 買う → 買えば, 話す → 話せば, 待つ → 待てば.\n買たら keeps the た of たら where the れば belongs. 買らば is the shape every る-verb takes — 食べれば, 来れば, すれば — but 買う is a う-verb, so it takes the 音便 and comes out as 買えば. 買わなければ negates the condition and says if you don't buy, which is the other side of the question.",
+                ),
+
+                // --- Lesson 35: 〜ましょう and the LISTEN round ----------------
+                ChallengeEntity(
+                    id = 64010, lessonId = 802, type = ChallengeType.SELECT,
+                    question = "How do you say 'Let's go to the park'?",
+                    audioSrc = "asset:///audio/ja/ja_vol_koen_ni_ikimashou.ogg",
+                    orderIndex = 0,
+                    grammaticalFocus = "ja.volition_polite",
+                    ruleText = "The polite volitional is the ます-stem plus ましょう: 行く → 行きます → 行きましょう, and it is a proposal, something the other person is free to refuse.\n公園に行こう is the plain 意向形, which is grammatical but the wrong register beside a group. 公園に行きました is the polite past, so the visit is already over. 公園に行こうましょう is the plain 意向形 行こう with the polite ましょう stuck onto it, and the polite form is the ます-stem 行き plus ましょう.",
+                ),
+                ChallengeEntity(
+                    id = 64011, lessonId = 802, type = ChallengeType.CONJUGATE,
+                    question = "Which polite volitional of 勉強する means 'let's study'?",
+                    audioSrc = "asset:///audio/ja/ja_vol_benkyou_shimashou.ogg",
+                    orderIndex = 1,
+                    grammaticalFocus = "ja.volition_polite",
+                    ruleText = "する is irregular here: its volitional is しよう, the し of する plus ょう, and the polite shape is the ます-stem of 勉強します plus ましょう, 勉強しましょう.\n勉強しよう is the plain 意向形, so it is the wrong register here. 勉強しますましょう has the whole ます form in front of ましょう, and ましょう already stands on a ます-stem — the stem is 勉強し. 勉強したましょう puts the plain past した in front of ましょう, and ましょう is not built on the past.",
+                ),
+                ChallengeEntity(
+                    id = 64012, lessonId = 802, type = ChallengeType.FILL_BLANK,
+                    question = "いっしょに映画を___。",
+                    audioSrc = "asset:///audio/ja/ja_vol_eiga_o_mimashou.ogg",
+                    orderIndex = 2,
+                    grammaticalFocus = "ja.volition_polite",
+                    acceptedAnswers = "見ましょう|みましょう",
+                    ruleText = "〜ましょう is the ます-stem plus ましょう — 見ます → 見ましょう — and いっしょに marks the people the proposal is made to.\n見ます is the polite present, so it states what you do instead of proposing anything. 見よう is the plain 意向形, which is the wrong level for a suggestion made to another person. 見た is the plain past, so the film is already over.",
+                ),
+                ChallengeEntity(
+                    id = 64013, lessonId = 802, type = ChallengeType.SELECT,
+                    question = "How do you say 'He will probably come'?",
+                    audioSrc = "asset:///audio/ja/ja_vol_kare_ga_kuru_deshou.ogg",
+                    orderIndex = 3,
+                    grammaticalFocus = "ja.volition_polite",
+                    ruleText = "でしょう is 推量, the speaker's guess, and it attaches to the plain form 来る; it says nothing about wanting or proposing anything.\n彼は来ましょう is ましょう, a proposal the speaker is making, and you do not propose on someone else's behalf. 彼は来ます is a flat statement of what he will do, with no guess in it and no でしょう to hold the guess. 彼は来ませんでした is the polite past negative, so he did not come and that is settled.",
+                ),
+                ChallengeEntity(
+                    id = 64014, lessonId = 802, type = ChallengeType.WORD_BANK,
+                    question = "Assemble: 'Let's all take the train'",
+                    orderIndex = 4,
+                    grammaticalFocus = "ja.volition_polite",
+                    ruleText = "〜ましょう is the ます-stem of 乗る plus ましょう — 乗ります → 乗りましょう — and みんなで marks the group the proposal is made to.\nみんなで電車に乗ります states what the group does. みんなで電車に乗りません is the polite negative, so the group is not riding. みんなで電車に乗った is the plain past, so the ride is already over.",
+                ),
+                ChallengeEntity(
+                    id = 64100, lessonId = 802, type = ChallengeType.LISTEN,
+                    question = "Tap what you hear",
+                    audioSrc = "asset:///audio/ja/ja_cond_ashita_ame_ga_furunara_ryokou_ni_ikimashou.ogg",
+                    orderIndex = 5,
+                    grammaticalFocus = "ja.conditional_nara",
+                    ruleText = "明日は雨が降るなら、旅行に行きましょう is 雨が降るなら + 旅行に行きましょう: a なら condition with a ましょう proposal on the end of it.\n明日は雨が降りましたら、旅行に行きましょう is ましたら, the formal business conditional, and ましたら is built on the polite past 降りました where なら is built on the 辞書形 降る. 明日は雨が降ると、旅行に行きましょう is the と condition, which states a general outcome and will not carry the 意志 that ましょう is.",
+                ),
+                ChallengeEntity(
+                    id = 64101, lessonId = 802, type = ChallengeType.LISTEN,
+                    question = "Tap what you hear",
+                    audioSrc = "asset:///audio/ja/ja_cond_jikan_ga_areba_oshietekudasai.ogg",
+                    orderIndex = 6,
+                    grammaticalFocus = "ja.conditional_ba",
+                    ruleText = "時間があれば、教えてください is ある → あれば for the condition, and a 依頼 is one of the things a ば condition carries.\n時間がなければ、教えてください is なければ, if there is no time, so the request is made on the other side of the condition. 時間があれば、教えください hangs ください off the noun 教え, and ください takes the て-form, so the noun has to become 教えて.",
+                ),
+                ChallengeEntity(
+                    id = 64102, lessonId = 802, type = ChallengeType.LISTEN,
+                    question = "Tap what you hear",
+                    audioSrc = "asset:///audio/ja/ja_vol_ashita_wa_isshoni_eiga_o_mimashou.ogg",
+                    orderIndex = 7,
+                    grammaticalFocus = "ja.volition_polite",
+                    ruleText = "あしたは一緒に映画を見ましょう is 一緒に + 見ましょう, the ます-stem 見ます plus ましょう, proposing the film to whoever 一緒に names.\nあしたは一緒に映画を見ません is the polite negative, so the film is not being watched at all. あしたは一緒に映画を見た is the plain past, so the film has already been seen.",
+                ),
+            ),
+            options = listOf(
+                ChallengeOptionEntity(id = 6400001, challengeId = 64000, text = "雨が降ったら、家にいてください。", romaji = "ame ga futtara, ie ni te kudasai", correct = true, audioSrc = "asset:///audio/ja/ja_cond_ame_ga_futtara_ie_tekudasai.ogg"),
+                ChallengeOptionEntity(id = 6400002, challengeId = 64000, text = "雨が降ると、家にいてください。", romaji = "ame ga furuto, ie ni te kudasai", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 6400003, challengeId = 64000, text = "雨が降るたら、家にいてください。", romaji = "ame ga furutara, ie ni te kudasai", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 6400004, challengeId = 64000, text = "雨が降りましたら、家にいてください。", romaji = "ame ga furimashitara, ie ni te kudasai", correct = false, errorTag = "WRONG_REGISTER"),
+
+                ChallengeOptionEntity(id = 6400005, challengeId = 64001, text = "飲んだら", romaji = "nondattara", correct = true, audioSrc = "asset:///audio/ja/ja_cond_nondattara.ogg"),
+                ChallengeOptionEntity(id = 6400006, challengeId = 64001, text = "飲むなら", romaji = "nomunara", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 6400007, challengeId = 64001, text = "飲めば", romaji = "nomereba", correct = false, errorTag = "WRONG_REGISTER"),
+                ChallengeOptionEntity(id = 6400008, challengeId = 64001, text = "飲みたら", romaji = "nomitara", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 6400009, challengeId = 64002, text = "降ったら", romaji = "futtara", correct = true, audioSrc = "asset:///audio/ja/ja_cond_ame_ga_futtara_dekakemasen.ogg"),
+                ChallengeOptionEntity(id = 6400010, challengeId = 64002, text = "降ります", romaji = "furimasu", correct = false, errorTag = "WRONG_TENSE"),
+                ChallengeOptionEntity(id = 6400011, challengeId = 64002, text = "降ると", romaji = "furuto", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 6400012, challengeId = 64002, text = "降るなら", romaji = "furunara", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 6400013, challengeId = 64003, text = "仕事が終わったら、帰りましょう。", romaji = "shigato ga owattara, kaerimashou", correct = true, audioSrc = "asset:///audio/ja/ja_cond_shigato_ga_owattara_kaerimashou.ogg"),
+                ChallengeOptionEntity(id = 6400014, challengeId = 64003, text = "仕事が変わるなら、帰りましょう。", romaji = "shigato ga kawarunara, kaerimashou", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 6400015, challengeId = 64003, text = "仕事が終われば、帰りましょう。", romaji = "shigato ga owareba, kaerimashou", correct = false, errorTag = "WRONG_REGISTER"),
+                ChallengeOptionEntity(id = 6400016, challengeId = 64003, text = "仕事が終わって、帰りましょう。", romaji = "shigato ga owatte, kaerimashou", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 6400017, challengeId = 64004, text = "読む", romaji = "yomu", correct = true),
+                ChallengeOptionEntity(id = 6400018, challengeId = 64004, text = "読んだら", romaji = "yondattara", correct = true, audioSrc = "asset:///audio/ja/ja_tara_yondattara.ogg"),
+                ChallengeOptionEntity(id = 6400019, challengeId = 64004, text = "行く", romaji = "iku", correct = true),
+                ChallengeOptionEntity(id = 6400020, challengeId = 64004, text = "行ったら", romaji = "ittara", correct = true, audioSrc = "asset:///audio/ja/ja_tara_ittara.ogg"),
+                ChallengeOptionEntity(id = 6400021, challengeId = 64004, text = "食べる", romaji = "taberu", correct = true),
+                ChallengeOptionEntity(id = 6400022, challengeId = 64004, text = "食べたら", romaji = "tabetara", correct = true, audioSrc = "asset:///audio/ja/ja_tara_tabetara.ogg"),
+                ChallengeOptionEntity(id = 6400023, challengeId = 64004, text = "飲む", romaji = "nomu", correct = true),
+                ChallengeOptionEntity(id = 6400024, challengeId = 64004, text = "飲んだら", romaji = "nondattara", correct = true, audioSrc = "asset:///audio/ja/ja_cond_nondattara.ogg"),
+
+                ChallengeOptionEntity(id = 6400025, challengeId = 64005, text = "分かるなら、教えてください。", romaji = "wakaru nara, oshiete kudasai", correct = true, audioSrc = "asset:///audio/ja/ja_cond_wakaru_nara_oshietekudasai.ogg"),
+                ChallengeOptionEntity(id = 6400026, challengeId = 64005, text = "分かったなら、教えてください。", romaji = "wakatta nara, oshiete kudasai", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 6400027, challengeId = 64005, text = "分かるたびに、教えてください。", romaji = "wakaru tabi ni, oshiete kudasai", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 6400028, challengeId = 64005, text = "分かるなら、教えください。", romaji = "wakaru nara, oshie kudasai", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 6400029, challengeId = 64006, text = "行くなら", romaji = "iku nara", correct = true, audioSrc = "asset:///audio/ja/ja_cond_iku_nara.ogg"),
+                ChallengeOptionEntity(id = 6400030, challengeId = 64006, text = "行ったら", romaji = "ittara", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 6400031, challengeId = 64006, text = "行きなら", romaji = "iki nara", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 6400032, challengeId = 64006, text = "行けば", romaji = "ikeba", correct = false, errorTag = "WRONG_REGISTER"),
+
+                ChallengeOptionEntity(id = 6400033, challengeId = 64007, text = "治るなら", romaji = "naoru nara", correct = true, audioSrc = "asset:///audio/ja/ja_cond_byoki_ga_naorunara_gakkou_o_yasumimasu.ogg"),
+                ChallengeOptionEntity(id = 6400034, challengeId = 64007, text = "治ったなら", romaji = "naotta nara", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 6400035, challengeId = 64007, text = "治りますなら", romaji = "naorimasu nara", correct = false, errorTag = "WRONG_TENSE"),
+                ChallengeOptionEntity(id = 6400036, challengeId = 64007, text = "治るたびに", romaji = "naoru tabi ni", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 6400037, challengeId = 64008, text = "忙しければ、来なくていいです。", romaji = "isogashikereba, konakuteiidesu", correct = true, audioSrc = "asset:///audio/ja/ja_cond_isogashikereba_konakuteiidesu.ogg"),
+                ChallengeOptionEntity(id = 6400038, challengeId = 64008, text = "忙ししかったら、来なくていいです。", romaji = "isogashikattara, konakuteiidesu", correct = false, errorTag = "WRONG_REGISTER"),
+                ChallengeOptionEntity(id = 6400039, challengeId = 64008, text = "忙しけら、来なくていいです。", romaji = "isogashikera, konakuteiidesu", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 6400040, challengeId = 64008, text = "忙しいれば、来なくていいです。", romaji = "isogashiireba, konakuteiidesu", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 6400041, challengeId = 64009, text = "買えば", romaji = "kaeba", correct = true, audioSrc = "asset:///audio/ja/ja_cond_kau_ba.ogg"),
+                ChallengeOptionEntity(id = 6400042, challengeId = 64009, text = "買たら", romaji = "kaitara", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 6400043, challengeId = 64009, text = "買らば", romaji = "kairaba", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 6400044, challengeId = 64009, text = "買わなければ", romaji = "kawanakereba", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 6400045, challengeId = 64010, text = "公園に行きましょう。", romaji = "koen ni ikimashou", correct = true, audioSrc = "asset:///audio/ja/ja_vol_koen_ni_ikimashou.ogg"),
+                ChallengeOptionEntity(id = 6400046, challengeId = 64010, text = "公園に行こう。", romaji = "koen ni ikou", correct = false, errorTag = "WRONG_REGISTER"),
+                ChallengeOptionEntity(id = 6400047, challengeId = 64010, text = "公園に行きました。", romaji = "koen ni ikimashita", correct = false, errorTag = "WRONG_TENSE"),
+                ChallengeOptionEntity(id = 6400048, challengeId = 64010, text = "公園に行こうましょう。", romaji = "koen ni ikou mashou", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 6400049, challengeId = 64011, text = "勉強しましょう。", romaji = "benkyou shimashou", correct = true, audioSrc = "asset:///audio/ja/ja_vol_benkyou_shimashou.ogg"),
+                ChallengeOptionEntity(id = 6400050, challengeId = 64011, text = "勉強しよう。", romaji = "benkyou shiyou", correct = false, errorTag = "WRONG_REGISTER"),
+                ChallengeOptionEntity(id = 6400051, challengeId = 64011, text = "勉強しますましょう。", romaji = "benkyou shimasu mashou", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 6400052, challengeId = 64011, text = "勉強したましょう。", romaji = "benkyou shita mashou", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 6400053, challengeId = 64012, text = "見ましょう", romaji = "mimashou", correct = true, audioSrc = "asset:///audio/ja/ja_vol_eiga_o_mimashou.ogg"),
+                ChallengeOptionEntity(id = 6400054, challengeId = 64012, text = "見ます", romaji = "mimasu", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 6400055, challengeId = 64012, text = "見よう", romaji = "miyou", correct = false, errorTag = "WRONG_REGISTER"),
+                ChallengeOptionEntity(id = 6400056, challengeId = 64012, text = "見た", romaji = "mita", correct = false, errorTag = "WRONG_TENSE"),
+
+                ChallengeOptionEntity(id = 6400057, challengeId = 64013, text = "彼は来るでしょう。", romaji = "kare wa kuru deshou", correct = true, audioSrc = "asset:///audio/ja/ja_vol_kare_ga_kuru_deshou.ogg"),
+                ChallengeOptionEntity(id = 6400058, challengeId = 64013, text = "彼は来ましょう。", romaji = "kare wa kimashou", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 6400059, challengeId = 64013, text = "彼は来ます。", romaji = "kare wa kimasu", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 6400060, challengeId = 64013, text = "彼は来ませんでした。", romaji = "kare wa kimasen deshita", correct = false, errorTag = "WRONG_TENSE"),
+
+                ChallengeOptionEntity(id = 6400061, challengeId = 64014, text = "みんなで電車に乗りましょう。", romaji = "minna de densha ni norimashou", correct = true, audioSrc = "asset:///audio/ja/ja_vol_minna_de_densha_ni_norimashou.ogg"),
+                ChallengeOptionEntity(id = 6400062, challengeId = 64014, text = "みんなで電車に乗ります。", romaji = "minna de densha ni norimasu", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 6400063, challengeId = 64014, text = "みんなで電車に乗りません。", romaji = "minna de densha ni norimasen", correct = false, errorTag = "WRONG_TENSE"),
+                ChallengeOptionEntity(id = 6400064, challengeId = 64014, text = "みんなで電車に乗った。", romaji = "minna de densha ni notta", correct = false, errorTag = "WRONG_TENSE"),
+
+                ChallengeOptionEntity(id = 6410001, challengeId = 64100, text = "明日は雨が降るなら、旅行に行きましょう。", romaji = "ashita wa ame ga furunara, ryokou ni ikimashou", correct = true),
+                ChallengeOptionEntity(id = 6410002, challengeId = 64100, text = "明日は雨が降りましたら、旅行に行きましょう。", romaji = "ashita wa ame ga furimashitara, ryokou ni ikimashou", correct = false, errorTag = "WRONG_REGISTER"),
+                ChallengeOptionEntity(id = 6410003, challengeId = 64100, text = "明日は雨が降ると、旅行に行きましょう。", romaji = "ashita wa ame ga furuto, ryokou ni ikimashou", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 6410004, challengeId = 64101, text = "時間があれば、教えてください。", romaji = "jikan ga areba, oshiete kudasai", correct = true),
+                ChallengeOptionEntity(id = 6410005, challengeId = 64101, text = "時間がなければ、教えてください。", romaji = "jikan ga nakereba, oshiete kudasai", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 6410006, challengeId = 64101, text = "時間があれば、教えください。", romaji = "jikan ga areba, oshie kudasai", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 6410007, challengeId = 64102, text = "あしたは一緒に映画を見ましょう。", romaji = "ashita wa isshoni eiga o mimashou", correct = true),
+                ChallengeOptionEntity(id = 6410008, challengeId = 64102, text = "あしたは一緒に映画を見ません。", romaji = "ashita wa isshoni eiga o mimasen", correct = false, errorTag = "WRONG_TENSE"),
+                ChallengeOptionEntity(id = 6410009, challengeId = 64102, text = "あしたは一緒に映画を見た。", romaji = "ashita wa isshoni eiga o mita", correct = false, errorTag = "WRONG_TENSE"),
+            ),
+        ),
+        // =====================================================================
+        UnitPayload(
+            unit = UnitEntity(
+                id = 45,
+                courseId = 2,
+                title = "Unit 16: Keigo & Three られる",
+                description = "A first, small set of 尊敬語 and 謙譲語 with the ascript お〜になる, and the rule that tells the passive, the potential and 得る apart",
+                orderIndex = 15,
+            ),
+            lessons = listOf(
+                LessonEntity(id = 803, unitId = 45, title = "Lesson 36: Lifting the Other Person", orderIndex = 0),
+                LessonEntity(id = 804, unitId = 45, title = "Lesson 37: Lowering Yourself", orderIndex = 1),
+                LessonEntity(id = 805, unitId = 45, title = "Lesson 38: られる, Three Times Over", orderIndex = 2),
+            ),
+            challenges = listOf(
+                // --- Lesson 36: 尊敬語 ------------------------------------------
+                ChallengeEntity(
+                    id = 64015, lessonId = 803, type = ChallengeType.SELECT,
+                    question = "The president is having lunch. Which one uses 尊敬語?",
+                    audioSrc = "asset:///audio/ja/ja_keigo_shachou_ga_hirougohan_o_meshimasu.ogg",
+                    orderIndex = 0,
+                    grammaticalFocus = "ja.keigo_honorific",
+                    ruleText = "尊敬語 lifts the other person's action, and 食べる → 召し上がる is one of the everyday substitutions, so 社長がお昼を召し上がります is a sentence about the president.\nお昼をいただきます is 謙譲語: it lowers the speaker's own action, so used here it makes the speaker the one eating and the president's lunch an eavesdropped one. 社長がお昼を食べます is 丁寧語, which is neutral — it neither lifts the president nor lowers the speaker, and neutral is the level this course already speaks at. 社長がお昼を食べなさいます is なさる, which is the honorific of する and never of 食べる.",
+                ),
+                ChallengeEntity(
+                    id = 64016, lessonId = 803, type = ChallengeType.SELECT,
+                    question = "The manager is reading the contract. How do you say it with 尊敬語?",
+                    audioSrc = "asset:///audio/ja/ja_keigo_bucho_ga_keiyakusho_o_okomi_ni_narimasu.ogg",
+                    orderIndex = 1,
+                    grammaticalFocus = "ja.keigo_honorific",
+                    ruleText = "お〜になる is the ascript honorific: お + the verb's ます-stem + になる, so 読みます → お読みになります.\n部長が契約書を読みます is 丁寧語, which leaves the manager at the neutral level where this sentence needs him lifted. 部長が契約書をお読みます glues the お onto a ます form, and the honorific is お + ます-stem + になる, so お読みます is not a shape Japanese has. 部長が契約書をお書きになります is the honorific of 書く and not of 読む, so it puts a different verb in the slot.",
+                ),
+                ChallengeEntity(
+                    id = 64017, lessonId = 803, type = ChallengeType.MATCH_PAIRS,
+                    question = "Match the plain verb to its 尊敬語",
+                    orderIndex = 2,
+                ),
+
+                // --- Lesson 37: 謙譲語 ------------------------------------------
+                ChallengeEntity(
+                    id = 64018, lessonId = 804, type = ChallengeType.SELECT,
+                    question = "You are visiting a client. How do you say 'I will come to see you tomorrow'?",
+                    audioSrc = "asset:///audio/ja/ja_keigo_ashita_wa_ukagaimasu.ogg",
+                    orderIndex = 0,
+                    grammaticalFocus = "ja.keigo_humble",
+                    ruleText = "謙譲語 lowers the speaker's own action toward the other person, and 行く → 伺う is the substitution that carries a visit, so 明日はうかがいます is I will come to you said modestly.\n明日は行きます is 丁寧語: polite, but neutral, and neutral is what you say to a friend rather than to someone whose guest you are about to be. 明日は行なさいます is なさる, which is 尊敬語 — it would lift your own coming to the rank the humble form exists to avoid. 明日はいただきます is いただく, which humbles 食べる and 飲む and not 来る.",
+                ),
+                ChallengeEntity(
+                    id = 64019, lessonId = 804, type = ChallengeType.CONJUGATE,
+                    question = "Which humble form of する means 'I will do it'?",
+                    audioSrc = "asset:///audio/ja/ja_keigo_itashimasu.ogg",
+                    orderIndex = 1,
+                    grammaticalFocus = "ja.keigo_humble",
+                    ruleText = "いたす is the 謙譲語 of する, and the ます form in its own right is いたします — いたす + ます — so the humble of する never loses the ます.\nなさいます is the 尊敬語 of する: it lifts whoever is doing it, and said about your own action it means the opposite of what the humble form is for. うかがいます is the humble of 行く, a different verb. したします puts the plain past した in front of します, and a する-verb does not take た that way outside the plain past しました.",
+                ),
+                ChallengeEntity(
+                    id = 64020, lessonId = 804, type = ChallengeType.MATCH_PAIRS,
+                    question = "Match the plain verb to its 謙譲語",
+                    orderIndex = 2,
+                ),
+
+                // --- Lesson 38: られる and the LISTEN round --------------------
+                ChallengeEntity(
+                    id = 64021, lessonId = 805, type = ChallengeType.SELECT,
+                    question = "書く makes two different forms here. Which one is the potential, 'can write'?",
+                    audioSrc = "asset:///audio/ja/ja_rareru_kakeru.ogg",
+                    orderIndex = 0,
+                    grammaticalFocus = "ja.rareru_readings",
+                    ruleText = "A godan verb never collides: 書く makes 書ける for the potential and 書かれる for the passive, and ける against られる is the whole difference.\n書かれる is the 受身 of unit 13 — the letter is the one being written, not the writer. 書きます is the polite present of the plain verb, which says nothing about ability. 書きました is the polite past, so the writing is over rather than possible.",
+                ),
+                ChallengeEntity(
+                    id = 64022, lessonId = 805, type = ChallengeType.CONJUGATE,
+                    question = "Which plain passive form of 作る means 'is made'?",
+                    audioSrc = "asset:///audio/ja/ja_rareru_tsukurareru.ogg",
+                    orderIndex = 1,
+                    grammaticalFocus = "ja.rareru_readings",
+                    ruleText = "作る is a godan verb, so the passive is う → れる and the potential is う → える, which means the two never look alike: 作られる against 作れる.\n作れる is the potential, can make, and its subject is the one doing the making. 作られます is the polite passive present, and this item asks for the plain form. 作られた is the plain passive past, so the thing has already been made.",
+                ),
+                ChallengeEntity(
+                    id = 64023, lessonId = 805, type = ChallengeType.SELECT,
+                    question = "見る makes 見られる, which reads as can see and as is seen at the same time. Which sentence is the potential?",
+                    audioSrc = "asset:///audio/ja/ja_rareru_watashi_wa_sono_eiga_o_mireraremasu.ogg",
+                    orderIndex = 2,
+                    grammaticalFocus = "ja.rareru_readings",
+                    ruleText = "An ichidan verb builds られる the same way for the potential and for the passive — 見る can 見られる either way — so the ending alone never says which one you are reading. What settles it is who stands in the subject slot: 私は…を見られます puts the doer there, which is the potential, while その映画は私に見られます puts the film in the topic slot and me under に, which is the 受身.\n私はその映画を見ませんでした is the polite past negative, so the seeing is over and did not happen. 私はその映画を見させられる carries the causative せ inside, so it is I am made to watch the film — and the same string said by an agent is I make someone watch it.",
+                ),
+                ChallengeEntity(
+                    id = 64024, lessonId = 805, type = ChallengeType.SELECT,
+                    question = "Which sentence uses られる as 得る, 'can get / can obtain'?",
+                    audioSrc = "asset:///audio/ja/ja_rareru_ii_kekka_ga_eraremasu.ogg",
+                    orderIndex = 3,
+                    grammaticalFocus = "ja.rareru_readings",
+                    ruleText = "One reading of られる is 得る, can get, and it is a small closed set — 得る, 求める, 採る and a few more — so いい結果が得られます says that the results can be obtained. In 得られる and 求められる the 得る reading and the plain potential of 得る and 求める come to nearly the same thing, which is why dictionaries list both.\nいい結果が食べられます is 食べられる, the potential and the passive in one string, can eat or is eaten, and neither of those is 得る. いい結果が見られます is 見られる, the same collision for 見る. いい結果が読まれます is the plain 受身 of 読む, so somebody is reading the results.",
+                ),
+                ChallengeEntity(
+                    id = 64025, lessonId = 805, type = ChallengeType.FILL_BLANK,
+                    question = "この本は、ともだちに___ました。",
+                    audioSrc = "asset:///audio/ja/ja_rareru_kono_hon_wa_tomodachi_ni_yomaremasu.ogg",
+                    orderIndex = 4,
+                    grammaticalFocus = "ja.rareru_readings",
+                    acceptedAnswers = "読まれました|よまれました",
+                    ruleText = "ともだちに puts に in front of the one who did it, and that is the slot 受身 uses, so 読む takes the passive: 読まれました.\nこの本は、ともだちに読みました is the active polite past, and its に is the 受身's agent slot with an active verb standing in it, which is not a sentence Japanese builds. 読ませました is the causative, so the friend made somebody read it. 読まれませんでした is the polite past negative, so the book was not read at all.",
+                ),
+                ChallengeEntity(
+                    id = 64026, lessonId = 805, type = ChallengeType.SELECT,
+                    question = "する is the one verb whose potential is not られる. Which form means 'can do'?",
+                    audioSrc = "asset:///audio/ja/ja_rareru_dekiru.ogg",
+                    orderIndex = 5,
+                    grammaticalFocus = "ja.rareru_readings",
+                    ruleText = "する's potential is irregular: する → できる, with no られる in it at all, and できる keeps its own れば and なければ — できれば, できなければ.\nされる is the passive of する, is done, with the one who does it under に. すられる hangs られる straight onto the plain する, and neither the potential nor the passive is built that way. できた is the plain past of できる, so the doing is already over.",
+                ),
+                ChallengeEntity(
+                    id = 64103, lessonId = 805, type = ChallengeType.LISTEN,
+                    question = "Tap what you hear",
+                    audioSrc = "asset:///audio/ja/ja_keigo_shachou_wa_mou_okaeri_ni_narimashita.ogg",
+                    orderIndex = 6,
+                    grammaticalFocus = "ja.keigo_honorific",
+                    ruleText = "社長はもうお帰りになりました is お + 帰ります + になる + ました, the ascript honorific in the polite past.\n社長はもう帰りました is the 丁寧 past, which leaves the president at the neutral level this sentence is supposed to lift him above. 社長はもうお帰りください hangs ください off the noun お帰り, and ください attaches to the て-form rather than to a noun.",
+                ),
+                ChallengeEntity(
+                    id = 64104, lessonId = 805, type = ChallengeType.LISTEN,
+                    question = "Tap what you hear",
+                    audioSrc = "asset:///audio/ja/ja_keigo_shiryo_o_haiken_itashimasu.ogg",
+                    orderIndex = 7,
+                    grammaticalFocus = "ja.keigo_humble",
+                    ruleText = "この資料を拝見いたします is 拝見する, the 謙譲語 of 見る, with the ます form of いたす on the end.\nこの資料を見ます is the 丁寧 form of the same verb, which neither lifts the other person nor lowers the speaker. この資料を拝見しません is the polite negative, so the material is not being looked at at all.",
+                ),
+                ChallengeEntity(
+                    id = 64105, lessonId = 805, type = ChallengeType.LISTEN,
+                    question = "Tap what you hear",
+                    audioSrc = "asset:///audio/ja/ja_rareru_kono_heya_wa_mainichi_souji_sareteimasu.ogg",
+                    orderIndex = 8,
+                    grammaticalFocus = "ja.rareru_readings",
+                    ruleText = "この部屋は毎日掃除されています is 掃除される + ています, and は makes the room the thing acted on, which is what settles the reading as 受身.\nこの部屋は毎日掃除されます is the plain 受身 with no ている on it, so it names the state rather than saying it is going on right now. この部屋は毎日掃除していません is the polite negative, so the room is not being swept.",
+                ),
+            ),
+            options = listOf(
+                ChallengeOptionEntity(id = 6400065, challengeId = 64015, text = "社長がお昼を召し上がります。", romaji = "shachou ga hirougohan o meshimasu", correct = true, audioSrc = "asset:///audio/ja/ja_keigo_shachou_ga_hirougohan_o_meshimasu.ogg"),
+                ChallengeOptionEntity(id = 6400066, challengeId = 64015, text = "お昼をいただきます。", romaji = "hirougohan o itadakimasu", correct = false, errorTag = "WRONG_REGISTER"),
+                ChallengeOptionEntity(id = 6400067, challengeId = 64015, text = "社長がお昼を食べます。", romaji = "shachou ga hirougohan o tabemasu", correct = false, errorTag = "WRONG_REGISTER"),
+                ChallengeOptionEntity(id = 6400068, challengeId = 64015, text = "社長がお昼を食べなさいます。", romaji = "shachou ga hirougohan o tabenasaimasu", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 6400069, challengeId = 64016, text = "部長が契約書を お読みになります。", romaji = "bucho ga keiyakusho o okomi ni narimasu", correct = true, audioSrc = "asset:///audio/ja/ja_keigo_bucho_ga_keiyakusho_o_okomi_ni_narimasu.ogg"),
+                ChallengeOptionEntity(id = 6400070, challengeId = 64016, text = "部長が契約書を読みます。", romaji = "bucho ga keiyakusho o yomimasu", correct = false, errorTag = "WRONG_REGISTER"),
+                ChallengeOptionEntity(id = 6400071, challengeId = 64016, text = "部長が契約書をお読みます。", romaji = "bucho ga keiyakusho o okomimasu", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 6400072, challengeId = 64016, text = "部長が契約書をお書きになります。", romaji = "bucho ga keiyakusho o okaki ni narimasu", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 6400073, challengeId = 64017, text = "食べる", romaji = "taberu", correct = true),
+                ChallengeOptionEntity(id = 6400074, challengeId = 64017, text = "召し上がる", romaji = "meshiagaru", correct = true, audioSrc = "asset:///audio/ja/ja_keigo_meshiagaru.ogg"),
+                ChallengeOptionEntity(id = 6400075, challengeId = 64017, text = "見る", romaji = "miru", correct = true),
+                ChallengeOptionEntity(id = 6400076, challengeId = 64017, text = "ご覧になる", romaji = "gomiru ni naru", correct = true, audioSrc = "asset:///audio/ja/ja_keigo_gomiruninaru.ogg"),
+                ChallengeOptionEntity(id = 6400077, challengeId = 64017, text = "する", romaji = "suru", correct = true),
+                ChallengeOptionEntity(id = 6400078, challengeId = 64017, text = "なさる", romaji = "nasaru", correct = true, audioSrc = "asset:///audio/ja/ja_keigo_nasaru.ogg"),
+                ChallengeOptionEntity(id = 6400079, challengeId = 64017, text = "言う", romaji = "iu", correct = true),
+                ChallengeOptionEntity(id = 6400080, challengeId = 64017, text = "おっしゃる", romaji = "ossyaru", correct = true, audioSrc = "asset:///audio/ja/ja_keigo_ossyaru.ogg"),
+                ChallengeOptionEntity(id = 6400081, challengeId = 64017, text = "いる", romaji = "iru", correct = true),
+                ChallengeOptionEntity(id = 6400082, challengeId = 64017, text = "いらっしゃる", romaji = "irassharu", correct = true, audioSrc = "asset:///audio/ja/ja_keigo_irassharu.ogg"),
+
+                ChallengeOptionEntity(id = 6400083, challengeId = 64018, text = "明日はうかがいます。", romaji = "ashita wa ukagaimasu", correct = true, audioSrc = "asset:///audio/ja/ja_keigo_ashita_wa_ukagaimasu.ogg"),
+                ChallengeOptionEntity(id = 6400084, challengeId = 64018, text = "明日は行きます。", romaji = "ashita wa ikimasu", correct = false, errorTag = "WRONG_REGISTER"),
+                ChallengeOptionEntity(id = 6400085, challengeId = 64018, text = "明日は行なさいます。", romaji = "ashita wa ikinasaimasu", correct = false, errorTag = "WRONG_REGISTER"),
+                ChallengeOptionEntity(id = 6400086, challengeId = 64018, text = "明日はいただきます。", romaji = "ashita wa itadakimasu", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 6400087, challengeId = 64019, text = "いたします", romaji = "itashimasu", correct = true, audioSrc = "asset:///audio/ja/ja_keigo_itashimasu.ogg"),
+                ChallengeOptionEntity(id = 6400088, challengeId = 64019, text = "なさいます", romaji = "nasaimasu", correct = false, errorTag = "WRONG_REGISTER"),
+                ChallengeOptionEntity(id = 6400089, challengeId = 64019, text = "うかがいます", romaji = "ukagaimasu", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 6400090, challengeId = 64019, text = "したします", romaji = "shitashimasu", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 6400091, challengeId = 64020, text = "食べる", romaji = "taberu", correct = true),
+                ChallengeOptionEntity(id = 6400092, challengeId = 64020, text = "いただく", romaji = "itadaku", correct = true, audioSrc = "asset:///audio/ja/ja_keigo_itadaku.ogg"),
+                ChallengeOptionEntity(id = 6400093, challengeId = 64020, text = "見る", romaji = "miru", correct = true),
+                ChallengeOptionEntity(id = 6400094, challengeId = 64020, text = "拝見する", romaji = "haiken suru", correct = true, audioSrc = "asset:///audio/ja/ja_keigo_haiken_suru.ogg"),
+                ChallengeOptionEntity(id = 6400095, challengeId = 64020, text = "言う", romaji = "iu", correct = true),
+                ChallengeOptionEntity(id = 6400096, challengeId = 64020, text = "申し上げる", romaji = "moshiageru", correct = true, audioSrc = "asset:///audio/ja/ja_keigo_moshiageru.ogg"),
+                ChallengeOptionEntity(id = 6400097, challengeId = 64020, text = "行く", romaji = "iku", correct = true),
+                ChallengeOptionEntity(id = 6400098, challengeId = 64020, text = "伺う", romaji = "ukagau", correct = true, audioSrc = "asset:///audio/ja/ja_keigo_ukagau.ogg"),
+                ChallengeOptionEntity(id = 6400099, challengeId = 64020, text = "する", romaji = "suru", correct = true),
+                ChallengeOptionEntity(id = 6400100, challengeId = 64020, text = "いたす", romaji = "itasu", correct = true, audioSrc = "asset:///audio/ja/ja_keigo_itasu.ogg"),
+
+                ChallengeOptionEntity(id = 6400101, challengeId = 64021, text = "書ける", romaji = "kakeru", correct = true, audioSrc = "asset:///audio/ja/ja_rareru_kakeru.ogg"),
+                ChallengeOptionEntity(id = 6400102, challengeId = 64021, text = "書かれる", romaji = "kakareru", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 6400103, challengeId = 64021, text = "書きます", romaji = "kakimasu", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 6400104, challengeId = 64021, text = "書きました", romaji = "kakimashita", correct = false, errorTag = "WRONG_TENSE"),
+
+                ChallengeOptionEntity(id = 6400105, challengeId = 64022, text = "作られる", romaji = "tsukurareru", correct = true, audioSrc = "asset:///audio/ja/ja_rareru_tsukurareru.ogg"),
+                ChallengeOptionEntity(id = 6400106, challengeId = 64022, text = "作れる", romaji = "tsukureru", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 6400107, challengeId = 64022, text = "作られます", romaji = "tsukurarerumasu", correct = false, errorTag = "WRONG_REGISTER"),
+                ChallengeOptionEntity(id = 6400108, challengeId = 64022, text = "作られた", romaji = "tsukurarerutta", correct = false, errorTag = "WRONG_TENSE"),
+
+                ChallengeOptionEntity(id = 6400109, challengeId = 64023, text = "私はその映画を見られます。", romaji = "watashi wa sono eiga o mireraremasu", correct = true, audioSrc = "asset:///audio/ja/ja_rareru_watashi_wa_sono_eiga_o_mireraremasu.ogg"),
+                ChallengeOptionEntity(id = 6400110, challengeId = 64023, text = "私はその映画を見ませんでした。", romaji = "watashi wa sono eiga o mirimasen deshita", correct = false, errorTag = "WRONG_TENSE"),
+                ChallengeOptionEntity(id = 6400111, challengeId = 64023, text = "私はその映画を見させられる。", romaji = "watashi wa sono eiga o miraserareru", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 6400112, challengeId = 64024, text = "いい結果が得られます。", romaji = "ii kekka ga eraremasu", correct = true, audioSrc = "asset:///audio/ja/ja_rareru_ii_kekka_ga_eraremasu.ogg"),
+                ChallengeOptionEntity(id = 6400113, challengeId = 64024, text = "いい結果が食べられます。", romaji = "ii kekka ga taberaremasu", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 6400114, challengeId = 64024, text = "いい結果が見られます。", romaji = "ii kekka ga mireraremasu", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 6400115, challengeId = 64024, text = "いい結果が読まれます。", romaji = "ii kekka ga yomaremasu", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 6400116, challengeId = 64025, text = "読まれました", romaji = "yomaremashita", correct = true, audioSrc = "asset:///audio/ja/ja_rareru_kono_hon_wa_tomodachi_ni_yomaremasu.ogg"),
+                ChallengeOptionEntity(id = 6400117, challengeId = 64025, text = "読みました", romaji = "yomimashita", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 6400118, challengeId = 64025, text = "読ませました", romaji = "yomasesemashita", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 6400119, challengeId = 64025, text = "読まれませんでした", romaji = "yomaremasen deshita", correct = false, errorTag = "WRONG_TENSE"),
+
+                ChallengeOptionEntity(id = 6400120, challengeId = 64026, text = "できる", romaji = "dekiru", correct = true, audioSrc = "asset:///audio/ja/ja_rareru_dekiru.ogg"),
+                ChallengeOptionEntity(id = 6400121, challengeId = 64026, text = "される", romaji = "sareru", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 6400122, challengeId = 64026, text = "すられる", romaji = "sureraru", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 6400123, challengeId = 64026, text = "できた", romaji = "dekita", correct = false, errorTag = "WRONG_TENSE"),
+
+                ChallengeOptionEntity(id = 6410010, challengeId = 64103, text = "社長はもうお帰りになりました。", romaji = "shachou wa mou okaeri ni narimashita", correct = true),
+                ChallengeOptionEntity(id = 6410011, challengeId = 64103, text = "社長はもう帰りました。", romaji = "shachou wa mou kaerimashita", correct = false, errorTag = "WRONG_REGISTER"),
+                ChallengeOptionEntity(id = 6410012, challengeId = 64103, text = "社長はもうお帰りください。", romaji = "shachou wa mou okaeri kudasai", correct = false, errorTag = "WRONG_FORM"),
+
+                ChallengeOptionEntity(id = 6410013, challengeId = 64104, text = "この資料を拝見いたします。", romaji = "kono shiryo o haiken itashimasu", correct = true),
+                ChallengeOptionEntity(id = 6410014, challengeId = 64104, text = "この資料を見ます。", romaji = "kono shiryo o mimasu", correct = false, errorTag = "WRONG_REGISTER"),
+                ChallengeOptionEntity(id = 6410015, challengeId = 64104, text = "この資料を拝見しません。", romaji = "kono shiryo o haikenimasen", correct = false, errorTag = "WRONG_TENSE"),
+
+                ChallengeOptionEntity(id = 6410016, challengeId = 64105, text = "この部屋は毎日掃除されています。", romaji = "kono heya wa mainichi souji sareteimasu", correct = true),
+                ChallengeOptionEntity(id = 6410017, challengeId = 64105, text = "この部屋は毎日掃除されます。", romaji = "kono heya wa mainichi souji saremasu", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 6410018, challengeId = 64105, text = "この部屋は毎日掃除していません。", romaji = "kono heya wa mainichi souji shiteimasen", correct = false, errorTag = "WRONG_TENSE"),
             ),
         ),
     )

@@ -93,6 +93,20 @@ class CurriculumIntegrityTest {
         "es.subjunctive.wants" to setOf("WRONG_FORM", "WRONG_PERSON"),
         "es.subjunctive.emotion_doubt" to setOf("WRONG_FORM", "WRONG_PERSON"),
         "es.subjunctive.purpose_concession" to setOf("WRONG_FORM", "WRONG_PERSON"),
+        // Spanish units 15-16. The subjunctive perfect and the unreal past
+        // are a tense choice (había against hubiera), a person choice (hubiera
+        // against hubieras) and a form choice wherever a distractor leaves the
+        // infinitive or a bare participle in the slot. The same three are
+        // honest for reported speech, where the shifted and the unshifted tense
+        // are both right and only the frame says which belongs. por/para is a
+        // preposition in a slot that wants a preposition, so only the form and
+        // the agreement of the noun behind it can miss.
+        "es.subjunctive.past_perfect" to setOf("WRONG_TENSE", "WRONG_FORM", "WRONG_PERSON"),
+        "es.unreal_past" to setOf("WRONG_TENSE", "WRONG_FORM", "WRONG_PERSON"),
+        "es.conditional.unreal_past" to setOf("WRONG_TENSE", "WRONG_FORM", "WRONG_PERSON"),
+        "es.reported_speech.backshift" to setOf("WRONG_TENSE", "WRONG_FORM", "WRONG_PERSON"),
+        "es.reported_speech.no_backshift" to setOf("WRONG_TENSE", "WRONG_FORM", "WRONG_PERSON"),
+        "es.por_para" to setOf("WRONG_FORM", "WRONG_PERSON"),
         "es.object_pronoun.direct" to setOf("WRONG_FORM", "WRONG_PERSON"),
         "es.object_pronoun.indirect" to setOf("WRONG_FORM", "WRONG_PERSON"),
         "es.gustar" to setOf("WRONG_FORM", "WRONG_PERSON"),
@@ -139,6 +153,21 @@ class CurriculumIntegrityTest {
         "ja.causative_formation" to setOf("WRONG_FORM", "WRONG_TENSE", "WRONG_REGISTER"),
         "ja.causative_teiru" to setOf("WRONG_FORM", "WRONG_TENSE"),
         "ja.relative_clause" to setOf("WRONG_FORM", "WRONG_TENSE"),
+        // Japanese units 15-16. The conditions and the volitional are the same
+        // three the rest of this block admits: a wrong form (行きます for
+        // 行ったら), a register (行こう for 行きましょう, a 意向形 against a
+        // ましょう) and a tense where the ます form carries one. 〜ば pairs with
+        // ない/ありません and so has no tense of its own to get wrong.
+        "ja.conditional_tara" to setOf("WRONG_FORM", "WRONG_REGISTER", "WRONG_TENSE"),
+        "ja.conditional_nara" to setOf("WRONG_FORM", "WRONG_REGISTER", "WRONG_TENSE"),
+        "ja.conditional_ba" to setOf("WRONG_FORM", "WRONG_REGISTER"),
+        "ja.volition_polite" to setOf("WRONG_FORM", "WRONG_REGISTER", "WRONG_TENSE"),
+        // 敬語 is the register question itself: 召し上がる against いただきます
+        // is right grammar in the wrong clothes, so WRONG_REGISTER is the
+        // honest tag there, and what the plain forms miss is the form or tense.
+        "ja.keigo_honorific" to setOf("WRONG_FORM", "WRONG_REGISTER"),
+        "ja.keigo_humble" to setOf("WRONG_FORM", "WRONG_REGISTER", "WRONG_TENSE"),
+        "ja.rareru_readings" to setOf("WRONG_FORM", "WRONG_REGISTER", "WRONG_TENSE"),
     )
 
     @Test
