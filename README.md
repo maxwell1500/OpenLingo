@@ -12,12 +12,12 @@ Thanks to Sanidhya for building the project this started from, and for licensing
 
 ## Features
 
-- Offline curricula: 24 units, 50 lessons, 289 challenges across Spanish and Japanese
-- **Production-first exercises**: 52.6% of the corpus (152 of 289 challenges) makes the learner type, assemble, or conjugate a target-language form instead of only recognising one from the options — word bank assembly, verb conjugation, and typed fill-in-the-blank
+- Offline curricula: 28 units, 64 lessons, 377 challenges across Spanish and Japanese
+- **Production-first exercises**: 52.8% of the corpus (199 of 377 challenges) makes the learner type, assemble, or conjugate a target-language form instead of only recognising one from the options — word bank assembly, verb conjugation, and typed fill-in-the-blank
 - **Grammar rule cards**: each grammar challenge can carry a short rule that is shown alongside the challenge and repeated in the wrong-answer feedback, so the reason an answer is right arrives at the moment the learner gets it wrong
 - **Verb conjugation** (`CONJUGATE`): the options are inflected forms of a single word rather than translations, so the learner picks the right entry in the paradigm, not the right meaning
 - **Typed fill-in-the-blank** (`FILL_BLANK`): the learner types the missing form into a sentence scaffold. Grading forgives a missing Spanish accent and folds the full-width characters a Japanese IME emits, while still rejecting wrong word order and wrong inflected forms
-- **Listening in the target language**: all 52 listening challenges are answered in the language being learned, not with English glosses
+- **Listening in the target language**: all 66 listening challenges are answered in the language being learned, not with English glosses
 - Bundled Kokoro-82M TTS audio (Ogg) — every word and phrase is pronounceable, no network needed
 - **Checkpoint tests**: CEFR A1/A2/B1 and JLPT N5/N4 level mastery tests with celebratory pass badges and auto-queueing of missed questions. A session leads with a held-out pool of unseen sentences in the same grammar structures, which never appear on a lesson path, and tops that up with taught items. That pool only exists for the upper levels, and it is still small against a 30-question session: A2 holds 4 held-out items, B1 8 and N4 10, so on those checkpoints only the first few questions test generalisation rather than recall. A1 and N5 have no held-out pool yet and are drawn entirely from taught items.
 - **FSRS-4.5 spaced repetition**: Modern Free Spaced Repetition Scheduler algorithm for vocabulary review with 4-grade rating (Again, Hard, Good, Easy) and due-count badges
@@ -43,10 +43,10 @@ Thanks to Sanidhya for building the project this started from, and for licensing
 
 ## Curriculum
 
-Each course is organized into 12 units that unlock in sequence along the S-curve map:
+Each course is organized into 14 units that unlock in sequence along the S-curve map:
 
-- **Spanish** — CEFR A1 → A2 → B1: greetings and everyday phrases, food and routines, city and travel, shopping and money, health, past tenses and narrative, irregular preterite and past perfect, and the conditional with its connectives
-- **Japanese** — JLPT N5 → N4: kana, greetings, loanwords and katakana, daily verbs, counters and kanji basics, te-forms, potential/ability, politeness, and the past tense, plain vs polite register, い/な adjectives, ability, opinion and the giving/receiving trio
+- **Spanish** — CEFR A1 → A2 → B1: greetings and everyday phrases, food and routines, city and travel, shopping and money, health, past tenses and narrative, the irregular and stem-changing preterite, the past perfect, the conditional with its connectives, the subjunctive, the imperative, direct and indirect object pronouns, `gustar`, and reflexive verbs including impersonal `se`
+- **Japanese** — JLPT N5 → N4: kana, greetings, loanwords and katakana, daily verbs, counters and kanji basics, te-forms, potential/ability, politeness, and the past tense, plain vs polite register, い/な adjectives, ability, opinion, the giving/receiving trio, the passive (受身), the causative (使役) and relative clauses (修飾節)
 
 Every lesson mixes exercise types: multiple choice, verb conjugation, word bank assembly, typed fill-in-the-blank, match pairs, listening, and dialogue comprehension. Two `ASSIST` challenges exist in the corpus, but neither carries the `___` blank their renderer looks for, so both currently play as ordinary multiple choice — the mechanic is implemented, its content is not written yet.
 
