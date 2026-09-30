@@ -694,13 +694,13 @@ class LocalProgressRepository(private val database: DuoDatabase) {
         )
         lessonDao.insertOptions(
             listOf(
-                ChallengeOptionEntity(id = 10001, challengeId = 1001, text = "El hombre", correct = true, audioSrc = "asset:///audio/es/el_padre.ogg"),
-                ChallengeOptionEntity(id = 10002, challengeId = 1001, text = "La mujer", correct = false, audioSrc = "asset:///audio/es/la_madre.ogg"),
+ChallengeOptionEntity(id = 10001, challengeId = 1001, text = "El hombre", romaji = "el ˈombre", correct = true, audioSrc = "asset:///audio/es/el_padre.ogg"),
+ChallengeOptionEntity(id = 10002, challengeId = 1001, text = "La mujer", romaji = "la mujˈer", correct = false, audioSrc = "asset:///audio/es/la_madre.ogg"),
                 ChallengeOptionEntity(id = 10003, challengeId = 1001, text = "La manzana", correct = false),
 
-                ChallengeOptionEntity(id = 10004, challengeId = 1002, text = "Buenos días", correct = true, audioSrc = "asset:///audio/es/buenos_dias.ogg"),
+ChallengeOptionEntity(id = 10004, challengeId = 1002, text = "Buenos días", romaji = "bˈuenos dˈias", correct = true, audioSrc = "asset:///audio/es/buenos_dias.ogg"),
                 ChallengeOptionEntity(id = 10005, challengeId = 1002, text = "Buenas noches", correct = false),
-                ChallengeOptionEntity(id = 10006, challengeId = 1002, text = "Hola", correct = false, audioSrc = "asset:///audio/es/hola.ogg"),
+ChallengeOptionEntity(id = 10006, challengeId = 1002, text = "Hola", romaji = "ˈola", correct = false, audioSrc = "asset:///audio/es/hola.ogg"),
 
                 // Word Bank for 1003: "¡Hola! buenos días"
                 ChallengeOptionEntity(id = 10007, challengeId = 1003, text = "¡Hola!", correct = true),
@@ -709,7 +709,7 @@ class LocalProgressRepository(private val database: DuoDatabase) {
                 ChallengeOptionEntity(id = 10010, challengeId = 1003, text = "adiós", correct = false),
                 ChallengeOptionEntity(id = 10011, challengeId = 1003, text = "noche", correct = false),
 
-                ChallengeOptionEntity(id = 10012, challengeId = 1004, text = "Buenos días", correct = true),
+ChallengeOptionEntity(id = 10012, challengeId = 1004, text = "Buenos días", romaji = "bˈuenos dˈias", correct = true),
                 ChallengeOptionEntity(id = 10013, challengeId = 1004, text = "Buenos noches", correct = false),
                 ChallengeOptionEntity(id = 10014, challengeId = 1004, text = "Buenas días", correct = false),
             )
@@ -726,9 +726,9 @@ class LocalProgressRepository(private val database: DuoDatabase) {
         )
         lessonDao.insertOptions(
             listOf(
-                ChallengeOptionEntity(id = 10015, challengeId = 1005, text = "Muchas gracias", correct = true, audioSrc = "asset:///audio/es/gracias.ogg"),
-                ChallengeOptionEntity(id = 10016, challengeId = 1005, text = "De nada", correct = false, audioSrc = "asset:///audio/es/de_nada.ogg"),
-                ChallengeOptionEntity(id = 10017, challengeId = 1005, text = "Por favor", correct = false, audioSrc = "asset:///audio/es/por_favor.ogg"),
+ChallengeOptionEntity(id = 10015, challengeId = 1005, text = "Muchas gracias", romaji = "mˈuchas grˈasias", correct = true, audioSrc = "asset:///audio/es/gracias.ogg"),
+ChallengeOptionEntity(id = 10016, challengeId = 1005, text = "De nada", romaji = "de nˈadha", correct = false, audioSrc = "asset:///audio/es/de_nada.ogg"),
+ChallengeOptionEntity(id = 10017, challengeId = 1005, text = "Por favor", romaji = "por fabhˈor", correct = false, audioSrc = "asset:///audio/es/por_favor.ogg"),
 
                 // Word Bank for 1006: "Sí por favor"
                 ChallengeOptionEntity(id = 10018, challengeId = 1006, text = "Sí", correct = true),
@@ -737,11 +737,11 @@ class LocalProgressRepository(private val database: DuoDatabase) {
                 ChallengeOptionEntity(id = 10021, challengeId = 1006, text = "no", correct = false),
                 ChallengeOptionEntity(id = 10022, challengeId = 1006, text = "gracias", correct = false),
 
-                ChallengeOptionEntity(id = 10023, challengeId = 1007, text = "Por favor", correct = true),
+ChallengeOptionEntity(id = 10023, challengeId = 1007, text = "Por favor", romaji = "por fabhˈor", correct = true),
                 ChallengeOptionEntity(id = 10024, challengeId = 1007, text = "Por favores", correct = false),
                 ChallengeOptionEntity(id = 10025, challengeId = 1007, text = "Por la favor", correct = false),
 
-                ChallengeOptionEntity(id = 10026, challengeId = 1008, text = "De nada", correct = true, audioSrc = "asset:///audio/es/de_nada.ogg"),
+ChallengeOptionEntity(id = 10026, challengeId = 1008, text = "De nada", romaji = "de nˈadha", correct = true, audioSrc = "asset:///audio/es/de_nada.ogg"),
                 ChallengeOptionEntity(id = 10027, challengeId = 1008, text = "Perdón", correct = false),
                 ChallengeOptionEntity(id = 10028, challengeId = 1008, text = "Hasta luego", correct = false),
             )
@@ -758,11 +758,11 @@ class LocalProgressRepository(private val database: DuoDatabase) {
         )
         lessonDao.insertOptions(
             listOf(
-                ChallengeOptionEntity(id = 10029, challengeId = 1009, text = "El padre", correct = true, audioSrc = "asset:///audio/es/el_padre.ogg"),
-                ChallengeOptionEntity(id = 10030, challengeId = 1009, text = "La madre", correct = false, audioSrc = "asset:///audio/es/la_madre.ogg"),
+ChallengeOptionEntity(id = 10029, challengeId = 1009, text = "El padre", romaji = "el pˈadhre", correct = true, audioSrc = "asset:///audio/es/el_padre.ogg"),
+ChallengeOptionEntity(id = 10030, challengeId = 1009, text = "La madre", romaji = "la mˈadhre", correct = false, audioSrc = "asset:///audio/es/la_madre.ogg"),
                 ChallengeOptionEntity(id = 10031, challengeId = 1009, text = "El hermano", correct = false),
 
-                ChallengeOptionEntity(id = 10032, challengeId = 1010, text = "La madre", correct = true, audioSrc = "asset:///audio/es/la_madre.ogg"),
+ChallengeOptionEntity(id = 10032, challengeId = 1010, text = "La madre", romaji = "la mˈadhre", correct = true, audioSrc = "asset:///audio/es/la_madre.ogg"),
                 ChallengeOptionEntity(id = 10033, challengeId = 1010, text = "La hermana", correct = false),
                 ChallengeOptionEntity(id = 10034, challengeId = 1010, text = "La niña", correct = false),
 
@@ -774,7 +774,7 @@ class LocalProgressRepository(private val database: DuoDatabase) {
                 ChallengeOptionEntity(id = 10039, challengeId = 1011, text = "madre", correct = true),
                 ChallengeOptionEntity(id = 10040, challengeId = 1011, text = "hijo", correct = false),
 
-                ChallengeOptionEntity(id = 10041, challengeId = 1012, text = "La familia", correct = true),
+ChallengeOptionEntity(id = 10041, challengeId = 1012, text = "La familia", romaji = "la famˈilia", correct = true),
                 ChallengeOptionEntity(id = 10042, challengeId = 1012, text = "El familia", correct = false),
                 ChallengeOptionEntity(id = 10043, challengeId = 1012, text = "La familiar", correct = false),
             )
@@ -803,9 +803,9 @@ class LocalProgressRepository(private val database: DuoDatabase) {
         )
         lessonDao.insertOptions(
             listOf(
-                ChallengeOptionEntity(id = 10044, challengeId = 1013, text = "¡Mucho gusto!", correct = true, audioSrc = "asset:///audio/es/mucho_gusto.ogg"),
+ChallengeOptionEntity(id = 10044, challengeId = 1013, text = "¡Mucho gusto!", romaji = "mˈucho gˈusto", correct = true, audioSrc = "asset:///audio/es/mucho_gusto.ogg"),
                 ChallengeOptionEntity(id = 10045, challengeId = 1013, text = "Hasta luego", correct = false),
-                ChallengeOptionEntity(id = 10046, challengeId = 1013, text = "Buenos días", correct = false, audioSrc = "asset:///audio/es/buenos_dias.ogg"),
+ChallengeOptionEntity(id = 10046, challengeId = 1013, text = "Buenos días", romaji = "bˈuenos dˈias", correct = false, audioSrc = "asset:///audio/es/buenos_dias.ogg"),
 
                 // Word Bank for 1014: "Yo soy un niño"
                 ChallengeOptionEntity(id = 10047, challengeId = 1014, text = "Yo", correct = true),
@@ -815,7 +815,7 @@ class LocalProgressRepository(private val database: DuoDatabase) {
                 ChallengeOptionEntity(id = 10051, challengeId = 1014, text = "son", correct = false, errorTag = "WRONG_PERSON"),
                 ChallengeOptionEntity(id = 10052, challengeId = 1014, text = "estoy", correct = false, errorTag = "WRONG_COPULA"),
 
-                ChallengeOptionEntity(id = 10053, challengeId = 1015, text = "Yo soy un niño", correct = true),
+ChallengeOptionEntity(id = 10053, challengeId = 1015, text = "Yo soy un niño", romaji = "yˈo sˈoi un nˈiño", correct = true),
                 ChallengeOptionEntity(id = 10054, challengeId = 1015, text = "Yo estoy un niño", correct = false, errorTag = "WRONG_COPULA"),
                 ChallengeOptionEntity(id = 10055, challengeId = 1015, text = "Yo soy un nino", correct = false),
             )

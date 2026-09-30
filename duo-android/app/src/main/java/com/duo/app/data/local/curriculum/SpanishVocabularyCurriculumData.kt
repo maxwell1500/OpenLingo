@@ -263,7 +263,8 @@ object SpanishVocabularyCurriculumData {
                 ),
 
                 ChallengeEntity(
-                    id = 90520, lessonId = 900, type = ChallengeType.STORY,
+                    id = 90520,
+                                  romaji = "la konsˈulta ˈayer me dolˈia mˈucho la gargˈanta y no podhˈia abhlˈar bien mi mˈadhre me yebhˈo al mˈediko en el sˈentro de la siudhˈad la enfermˈera me tomˈo la temperatˈura y me dio una pastˈiya el mˈediko dˈijo kˈe deskansˈara dos dˈias", lessonId = 900, type = ChallengeType.STORY,
                     question = "La consulta\nAyer me dolía mucho la garganta y no podía hablar bien.\nMi madre me llevó al médico en el centro de la ciudad.\nLa enfermera me tomó la temperatura y me dio una pastilla.\nEl médico dijo que descansara dos días.\n\n❓ What did the doctor tell the speaker to do?",
                     audioSrc = "asset:///audio/es/story_900.ogg",
                     orderIndex = 26,
@@ -273,6 +274,7 @@ object SpanishVocabularyCurriculumData {
                     id = 91000, lessonId = 901, type = ChallengeType.MATCH_PAIRS,
                     question = "Match each word to its meaning (6 pairs)",
                     orderIndex = 0,
+                    ruleText = "A bedroom is la alcoba in Latin America and el dormitorio in Spain: the same room, so the English side is the same for both. Match each word to its meaning.",
                 ),
 
                 ChallengeEntity(
@@ -427,7 +429,10 @@ object SpanishVocabularyCurriculumData {
                     orderIndex = 20,
                     grammaticalFocus = "es.vocab.everyday_life",
                     acceptedAnswers = "nevera|frigorífico",
-                    ruleText = "The cold cupboard is la nevera in Spain and el frigorífico in Latin America, so both fill the slot. nevera is the answer. neveras is the wrong person or number for the slot. nevar is a form of the word that cannot fill the slot. estropiar is a form of the word that cannot fill the slot.",
+                    // "also understood in Spain" is deliberate: el frigorífico is an ordinary
+                    // DRAE-listed Spanish word too, so this is a preference, not a split.
+                    // Do not remove the overlap clause.
+                    ruleText = "The cold cupboard is la nevera in Spain and el frigorífico in Latin America; el frigorífico is also understood in Spain, so both fill the slot. nevera is the answer. neveras is the wrong person or number for the slot. nevar is a form of the word that cannot fill the slot. estropiar is a form of the word that cannot fill the slot.",
                 ),
 
                 ChallengeEntity(
@@ -476,7 +481,8 @@ object SpanishVocabularyCurriculumData {
                 ),
 
                 ChallengeEntity(
-                    id = 91520, lessonId = 901, type = ChallengeType.STORY,
+                    id = 91520,
+                                  romaji = "los sˈabadhos los sˈabadhos por la mañˈana lˈimpio la kosˈina y el bˈaño despˈues pˈongo la rrˈopa sˈusia en la labhadhˈora tˈiendo las toˈayas en la terrˈasa si ˈase sol el domˈingo por la tˈardhe me sˈiento en la sˈala kon un lˈibhro", lessonId = 901, type = ChallengeType.STORY,
                     question = "Los sábados\nLos sábados por la mañana limpio la cocina y el baño.\nDespués pongo la ropa sucia en la lavadora.\nTiendo las toallas en la terraza si hace sol.\nEl domingo por la tarde me siento en la sala con un libro.\n\n❓ What does the speaker do on Saturday morning?",
                     audioSrc = "asset:///audio/es/story_901.ogg",
                     orderIndex = 26,
@@ -667,7 +673,11 @@ object SpanishVocabularyCurriculumData {
                     orderIndex = 23,
                     grammaticalFocus = "es.vocab.everyday_life",
                     acceptedAnswers = "recoger|levantar",
-                    ruleText = "Spanish clears the table with the same phrase in two regions: recoger la mesa is the usual form in Spain, and levantar la mesa is the common form in Latin America. recoge is the tú form and recogida is a noun. recoger is the answer. recoge is a form of the word that cannot fill the slot. recogemos is the wrong person or number for the slot. recogida is a form of the word that cannot fill the slot.",
+                    // Deliberately states a shared default, not a two-way split: no native
+                    // speaker will ever check this (docs/kokoro-tts.md §11.1), and "recoger la
+                    // mesa" is not Spain-specific, so a contrast here could be false and
+                    // unverifiable forever. Do not "tighten" this into a regional split.
+                    ruleText = "Both regions say recoger la mesa to clear the table; levantar la mesa is also heard in Latin America for the same thing. recoge is the tú form and recogida is a noun. recoger is the answer. recoge is a form of the word that cannot fill the slot. recogemos is the wrong person or number for the slot. recogida is a form of the word that cannot fill the slot.",
                 ),
 
                 ChallengeEntity(
@@ -689,7 +699,8 @@ object SpanishVocabularyCurriculumData {
                 ),
 
                 ChallengeEntity(
-                    id = 92520, lessonId = 902, type = ChallengeType.STORY,
+                    id = 92520,
+                                  romaji = "en el merkˈadho ˈayer fˈui al merkˈadho kon mi ermˈana komprˈamos frˈuta berdhˈura y pan pˈara la semˈana en la panadherˈia paghˈamos kon tarjˈeta despˈues tomˈamos un kafˈe en la terrˈaza", lessonId = 902, type = ChallengeType.STORY,
                     question = "En el mercado\nAyer fui al mercado con mi hermana.\nCompramos fruta, verdura y pan para la semana.\nEn la panadería pagamos con tarjeta.\nDespués tomamos un café en la terraza.\n\n❓ How did they pay at the bakery?",
                     audioSrc = "asset:///audio/es/story_902.ogg",
                     orderIndex = 26,
@@ -849,12 +860,12 @@ object SpanishVocabularyCurriculumData {
                 ChallengeOptionEntity(id = 909202, challengeId = 90460, text = "encima", correct = false, errorTag = "WRONG_FORM"),
                 ChallengeOptionEntity(id = 909203, challengeId = 90460, text = "debajo", correct = false, errorTag = "WRONG_FORM"),
 
-                ChallengeOptionEntity(id = 909600, challengeId = 90480, text = "Me duele la garganta.", correct = true, audioSrc = "asset:///audio/es/me_duele_la_garganta.ogg"),
+ChallengeOptionEntity(id = 909600, challengeId = 90480, text = "Me duele la garganta.", romaji = "me dˈuele la gargˈanta", correct = true, audioSrc = "asset:///audio/es/me_duele_la_garganta.ogg"),
                 ChallengeOptionEntity(id = 909601, challengeId = 90480, text = "Me duelen la garganta", correct = false, errorTag = "WRONG_PERSON"),
                 ChallengeOptionEntity(id = 909602, challengeId = 90480, text = "Me duele el garganta", correct = false, errorTag = "WRONG_PERSON"),
                 ChallengeOptionEntity(id = 909603, challengeId = 90480, text = "Me duele las garganta", correct = false, errorTag = "WRONG_PERSON"),
 
-                ChallengeOptionEntity(id = 910000, challengeId = 90500, text = "La enfermera me dio una pastilla.", correct = true, audioSrc = "asset:///audio/es/la_enfermera_me_dio_una_pastilla.ogg"),
+ChallengeOptionEntity(id = 910000, challengeId = 90500, text = "La enfermera me dio una pastilla.", romaji = "la enfermˈera me dio una pastˈiya", correct = true, audioSrc = "asset:///audio/es/la_enfermera_me_dio_una_pastilla.ogg"),
                 ChallengeOptionEntity(id = 910001, challengeId = 90500, text = "La enfermera me dio una pastillas", correct = false, errorTag = "WRONG_PERSON"),
                 ChallengeOptionEntity(id = 910002, challengeId = 90500, text = "La enfermera me dio un pastilla", correct = false, errorTag = "WRONG_PERSON"),
                 ChallengeOptionEntity(id = 910003, challengeId = 90500, text = "La enfermera le dio una pastilla", correct = false, errorTag = "WRONG_PERSON"),
@@ -1016,12 +1027,12 @@ object SpanishVocabularyCurriculumData {
                 ChallengeOptionEntity(id = 929202, challengeId = 91460, text = "dormidas", correct = false, errorTag = "WRONG_FORM"),
                 ChallengeOptionEntity(id = 929203, challengeId = 91460, text = "dormir", correct = false, errorTag = "WRONG_FORM"),
 
-                ChallengeOptionEntity(id = 929600, challengeId = 91480, text = "La nevera está en la cocina.", correct = true, audioSrc = "asset:///audio/es/la_nevera_esta_en_la_cocina.ogg"),
+ChallengeOptionEntity(id = 929600, challengeId = 91480, text = "La nevera está en la cocina.", romaji = "la nebhˈera estˈa en la kosˈina", correct = true, audioSrc = "asset:///audio/es/la_nevera_esta_en_la_cocina.ogg"),
                 ChallengeOptionEntity(id = 929601, challengeId = 91480, text = "La nevera está en el cocina", correct = false, errorTag = "WRONG_PERSON"),
                 ChallengeOptionEntity(id = 929602, challengeId = 91480, text = "Las nevera está en la cocina", correct = false, errorTag = "WRONG_PERSON"),
                 ChallengeOptionEntity(id = 929603, challengeId = 91480, text = "La nevera está en las cocina", correct = false, errorTag = "WRONG_PERSON"),
 
-                ChallengeOptionEntity(id = 930000, challengeId = 91500, text = "Voy a limpiar el baño y el pasillo.", correct = true, audioSrc = "asset:///audio/es/voy_a_limpiar_el_bano_y_el_pasillo.ogg"),
+ChallengeOptionEntity(id = 930000, challengeId = 91500, text = "Voy a limpiar el baño y el pasillo.", romaji = "bˈoi a limpˈiar el bˈaño y el pasˈiyo", correct = true, audioSrc = "asset:///audio/es/voy_a_limpiar_el_bano_y_el_pasillo.ogg"),
                 ChallengeOptionEntity(id = 930001, challengeId = 91500, text = "Voy a limpiar el baño y la pasillo", correct = false, errorTag = "WRONG_PERSON"),
                 ChallengeOptionEntity(id = 930002, challengeId = 91500, text = "Voy a limpiar el baño y el pasillos", correct = false, errorTag = "WRONG_PERSON"),
                 ChallengeOptionEntity(id = 930003, challengeId = 91500, text = "Voy a limpios el baño y el pasillo", correct = false, errorTag = "WRONG_FORM"),
@@ -1183,12 +1194,12 @@ object SpanishVocabularyCurriculumData {
                 ChallengeOptionEntity(id = 949202, challengeId = 92460, text = "recogemos", correct = false, errorTag = "WRONG_PERSON"),
                 ChallengeOptionEntity(id = 949203, challengeId = 92460, text = "recogida", correct = false, errorTag = "WRONG_FORM"),
 
-                ChallengeOptionEntity(id = 949600, challengeId = 92480, text = "Quiero pedir la carta, por favor.", correct = true, audioSrc = "asset:///audio/es/quiero_pedir_la_carta.ogg"),
+ChallengeOptionEntity(id = 949600, challengeId = 92480, text = "Quiero pedir la carta, por favor.", romaji = "kˈiero pedhˈir la kˈarta por fabhˈor", correct = true, audioSrc = "asset:///audio/es/quiero_pedir_la_carta.ogg"),
                 ChallengeOptionEntity(id = 949601, challengeId = 92480, text = "Quiero pedir la cartas", correct = false, errorTag = "WRONG_PERSON"),
                 ChallengeOptionEntity(id = 949602, challengeId = 92480, text = "Quiero pedir el carta", correct = false, errorTag = "WRONG_PERSON"),
                 ChallengeOptionEntity(id = 949603, challengeId = 92480, text = "Quiero pedir la cocina", correct = false, errorTag = "WRONG_FORM"),
 
-                ChallengeOptionEntity(id = 950000, challengeId = 92500, text = "La propina está incluida en la cuenta.", correct = true, audioSrc = "asset:///audio/es/la_propina_esta_incluida.ogg"),
+ChallengeOptionEntity(id = 950000, challengeId = 92500, text = "La propina está incluida en la cuenta.", romaji = "la propˈina estˈa inklˈuidha en la kwˈenta", correct = true, audioSrc = "asset:///audio/es/la_propina_esta_incluida.ogg"),
                 ChallengeOptionEntity(id = 950001, challengeId = 92500, text = "La propinas está incluida", correct = false, errorTag = "WRONG_PERSON"),
                 ChallengeOptionEntity(id = 950002, challengeId = 92500, text = "La propina está incluidos", correct = false, errorTag = "WRONG_FORM"),
                 ChallengeOptionEntity(id = 950003, challengeId = 92500, text = "La propina está incluida en el cuenta", correct = false, errorTag = "WRONG_PERSON"),
@@ -1231,6 +1242,7 @@ object SpanishVocabularyCurriculumData {
                     id = 93040, lessonId = 903, type = ChallengeType.MATCH_PAIRS,
                     question = "Match each word to its meaning (4 pairs)",
                     orderIndex = 2,
+                    ruleText = "A ticket is el billete in Spain and el boleto in Latin America: the same noun, used in either region, so the English side is the same for both. Match each word to its meaning.",
                 ),
 
                 ChallengeEntity(
@@ -1282,7 +1294,10 @@ object SpanishVocabularyCurriculumData {
                     question = "Which one means 'a one-way ticket'?",
                     orderIndex = 9,
                     grammaticalFocus = "es.vocab.travel",
-                    ruleText = " un billete de ida is the answer. un billete de idas is a form of the word that cannot fill the slot. un billete de vuelta is a form of the word that cannot fill the slot. una billete de ida is the wrong person or number for the slot.",
+                    // "everyday word in" states a preference, not ownership: el boleto is a
+                    // normal Spanish word too. Do not rewrite this as "the Latin American form",
+                    // which reads as excluding Spain.
+                    ruleText = " un billete de ida is the answer, and un boleto de ida names the same ticket: el boleto is the everyday word in Latin America, and el billete is the everyday word in Spain.\nun billete de idas is a form of the word that cannot fill the slot. un billete de vuelta is a form of the word that cannot fill the slot. una billete de ida is the wrong person or number for the slot.",
                 ),
 
                 ChallengeEntity(
@@ -1290,7 +1305,8 @@ object SpanishVocabularyCurriculumData {
                     question = "Which one means 'a return ticket'?",
                     orderIndex = 10,
                     grammaticalFocus = "es.vocab.travel",
-                    ruleText = " un billete de ida y vuelta is the answer. un billete de ida y ida is a form of the word that cannot fill the slot. una billete de ida y vuelta is the wrong person or number for the slot. un billete de ida y vueltas is a form of the word that cannot fill the slot.",
+                    // Same reasoning as challenge 93180: a preference, not an exclusion.
+                    ruleText = " un billete de ida y vuelta is the answer, and un boleto de ida y vuelta names the same return ticket: el boleto is the everyday word in Latin America, and el billete is the everyday word in Spain.\nun billete de ida y ida is a form of the word that cannot fill the slot. una billete de ida y vuelta is the wrong person or number for the slot. un billete de ida y vueltas is a form of the word that cannot fill the slot.",
                 ),
 
                 ChallengeEntity(
@@ -1428,7 +1444,8 @@ object SpanishVocabularyCurriculumData {
                 ),
 
                 ChallengeEntity(
-                    id = 93540, lessonId = 903, type = ChallengeType.STORY,
+                    id = 93540,
+                                  romaji = "el tren perdhˈidho ˈayer yeghˈe a la estasˈion bˈeinte minˈutos tˈardhe el tren a madhrˈid yˈa abhˈia salˈidho del andˈen la señˈora de la bentanˈiya me dˈijo kˈe abhˈia ˈotro tren en una ˈora al finˈal yeghˈe a kˈasa a las ˈonse de la nˈoche", lessonId = 903, type = ChallengeType.STORY,
                     question = "El tren perdido\nAyer llegué a la estación veinte minutos tarde.\nEl tren a Madrid ya había salido del andén.\nLa señora de la ventanilla me dijo que había otro tren en una hora.\nAl final llegué a casa a las once de la noche.\n\n❓ Why did the speaker miss the train?",
                     audioSrc = "asset:///audio/es/story_903.ogg",
                     orderIndex = 27,
@@ -1641,7 +1658,8 @@ object SpanishVocabularyCurriculumData {
                 ),
 
                 ChallengeEntity(
-                    id = 94520, lessonId = 904, type = ChallengeType.STORY,
+                    id = 94520,
+                                  romaji = "un domˈingo en la siudhˈad el domˈingo por la mañˈana fˈui al sˈentro kon mi amˈigha asˈia buen tˈiempo y la plˈasa estˈabha yˈena de jˈente komprˈemos kafˈe y bˈoyos en una panadherˈia de la eskˈina por la tˈardhe bisitˈamos el musˈeo kˈe es grˈatis el primˈer domˈingo del mes", lessonId = 904, type = ChallengeType.STORY,
                     question = "Un domingo en la ciudad\nEl domingo por la mañana fui al centro con mi amiga.\nHacía buen tiempo y la plaza estaba llena de gente.\nCompremos café y bollos en una panadería de la esquina.\nPor la tarde visitamos el museo, que es gratis el primer domingo del mes.\n\n❓ How much did the visit to the museum cost?",
                     audioSrc = "asset:///audio/es/story_904.ogg",
                     orderIndex = 26,
@@ -1860,7 +1878,8 @@ object SpanishVocabularyCurriculumData {
                 ),
 
                 ChallengeEntity(
-                    id = 95540, lessonId = 905, type = ChallengeType.STORY,
+                    id = 95540,
+                                  romaji = "el primˈer dˈia el lˈunes fue mi primˈer dˈia en la emprˈesa mi jˈefe me enseñˈo la ofisˈina y me presentˈo al rrˈesto del ekˈipo a las dˈose tubhˈimos nˈuestra primˈera rreunˈion de la semˈana terminˈe el dˈia kon trˈes korrˈeos sin rrespondˈer", lessonId = 905, type = ChallengeType.STORY,
                     question = "El primer día\nEl lunes fue mi primer día en la empresa.\nMi jefe me enseñó la oficina y me presentó al resto del equipo.\nA las doce tuvimos nuestra primera reunión de la semana.\nTerminé el día con tres correos sin responder.\n\n❓ What did the speaker do with the rest of the team?",
                     audioSrc = "asset:///audio/es/story_905.ogg",
                     orderIndex = 27,
@@ -1934,11 +1953,13 @@ object SpanishVocabularyCurriculumData {
                 ChallengeOptionEntity(id = 963203, challengeId = 93160, text = "bajamos", correct = false, errorTag = "WRONG_PERSON"),
 
                 ChallengeOptionEntity(id = 963600, challengeId = 93180, text = "un billete de ida", correct = true),
+                ChallengeOptionEntity(id = 963604, challengeId = 93180, text = "un boleto de ida", correct = true),
                 ChallengeOptionEntity(id = 963601, challengeId = 93180, text = "un billete de idas", correct = false, errorTag = "WRONG_FORM"),
                 ChallengeOptionEntity(id = 963602, challengeId = 93180, text = "un billete de vuelta", correct = false, errorTag = "WRONG_FORM"),
                 ChallengeOptionEntity(id = 963603, challengeId = 93180, text = "una billete de ida", correct = false, errorTag = "WRONG_PERSON"),
 
                 ChallengeOptionEntity(id = 964000, challengeId = 93200, text = "un billete de ida y vuelta", correct = true),
+                ChallengeOptionEntity(id = 964004, challengeId = 93200, text = "un boleto de ida y vuelta", correct = true),
                 ChallengeOptionEntity(id = 964001, challengeId = 93200, text = "un billete de ida y ida", correct = false, errorTag = "WRONG_FORM"),
                 ChallengeOptionEntity(id = 964002, challengeId = 93200, text = "una billete de ida y vuelta", correct = false, errorTag = "WRONG_PERSON"),
                 ChallengeOptionEntity(id = 964003, challengeId = 93200, text = "un billete de ida y vueltas", correct = false, errorTag = "WRONG_FORM"),
@@ -2013,12 +2034,12 @@ object SpanishVocabularyCurriculumData {
                 ChallengeOptionEntity(id = 969602, challengeId = 93480, text = "seguir", correct = false, errorTag = "WRONG_FORM"),
                 ChallengeOptionEntity(id = 969603, challengeId = 93480, text = "siguen", correct = false, errorTag = "WRONG_PERSON"),
 
-                ChallengeOptionEntity(id = 970000, challengeId = 93500, text = "El avión llega tarde por la niebla.", correct = true, audioSrc = "asset:///audio/es/el_avion_llega_tarde.ogg"),
+ChallengeOptionEntity(id = 970000, challengeId = 93500, text = "El avión llega tarde por la niebla.", romaji = "el abhˈion yˈegha tˈardhe por la nˈiebhla", correct = true, audioSrc = "asset:///audio/es/el_avion_llega_tarde.ogg"),
                 ChallengeOptionEntity(id = 970001, challengeId = 93500, text = "El avión llegan tarde", correct = false, errorTag = "WRONG_PERSON"),
                 ChallengeOptionEntity(id = 970002, challengeId = 93500, text = "El avión llega tardes", correct = false, errorTag = "WRONG_FORM"),
                 ChallengeOptionEntity(id = 970003, challengeId = 93500, text = "El avión llega temprano", correct = false, errorTag = "WRONG_FORM"),
 
-                ChallengeOptionEntity(id = 970400, challengeId = 93520, text = "Gire a la derecha en la esquina.", correct = true, audioSrc = "asset:///audio/es/gire_a_la_derecha_en_la_esquina.ogg"),
+ChallengeOptionEntity(id = 970400, challengeId = 93520, text = "Gire a la derecha en la esquina.", romaji = "jˈire a la derˈecha en la eskˈina", correct = true, audioSrc = "asset:///audio/es/gire_a_la_derecha_en_la_esquina.ogg"),
                 ChallengeOptionEntity(id = 970401, challengeId = 93520, text = "Gire a la derecha en las esquinas", correct = false, errorTag = "WRONG_FORM"),
                 ChallengeOptionEntity(id = 970402, challengeId = 93520, text = "Gire a la derecha en la esquino", correct = false, errorTag = "WRONG_PERSON"),
                 ChallengeOptionEntity(id = 970403, challengeId = 93520, text = "Gire a la izquierda en la esquina", correct = false, errorTag = "WRONG_FORM"),
@@ -2164,12 +2185,12 @@ object SpanishVocabularyCurriculumData {
                 ChallengeOptionEntity(id = 989202, challengeId = 94460, text = "llenar", correct = false, errorTag = "WRONG_FORM"),
                 ChallengeOptionEntity(id = 989203, challengeId = 94460, text = "llenaron", correct = false, errorTag = "WRONG_TENSE"),
 
-                ChallengeOptionEntity(id = 989600, challengeId = 94480, text = "Hoy llueve en toda la ciudad.", correct = true, audioSrc = "asset:///audio/es/hoy_llueve_en_toda_la_ciudad.ogg"),
+ChallengeOptionEntity(id = 989600, challengeId = 94480, text = "Hoy llueve en toda la ciudad.", romaji = "oi yˈuebe en tˈodha la siudhˈad", correct = true, audioSrc = "asset:///audio/es/hoy_llueve_en_toda_la_ciudad.ogg"),
                 ChallengeOptionEntity(id = 989601, challengeId = 94480, text = "Hoy llueven en toda la ciudad", correct = false, errorTag = "WRONG_PERSON"),
                 ChallengeOptionEntity(id = 989602, challengeId = 94480, text = "Hoy llueve en toda la ciudades", correct = false, errorTag = "WRONG_FORM"),
                 ChallengeOptionEntity(id = 989603, challengeId = 94480, text = "Hoy nieva en toda la ciudad", correct = false, errorTag = "WRONG_FORM"),
 
-                ChallengeOptionEntity(id = 990000, challengeId = 94500, text = "El puente está cerrado por la lluvia.", correct = true, audioSrc = "asset:///audio/es/el_puente_esta_cerrado_por_lluvia.ogg"),
+ChallengeOptionEntity(id = 990000, challengeId = 94500, text = "El puente está cerrado por la lluvia.", romaji = "el pˈuente estˈa serrˈadho por la yˈubia", correct = true, audioSrc = "asset:///audio/es/el_puente_esta_cerrado_por_lluvia.ogg"),
                 ChallengeOptionEntity(id = 990001, challengeId = 94500, text = "El puentes está cerrado por la lluvia", correct = false, errorTag = "WRONG_PERSON"),
                 ChallengeOptionEntity(id = 990002, challengeId = 94500, text = "El puente están cerrados por la lluvia", correct = false, errorTag = "WRONG_PERSON"),
                 ChallengeOptionEntity(id = 990003, challengeId = 94500, text = "El puente está cerrado por las lluvia", correct = false, errorTag = "WRONG_PERSON"),
@@ -2324,12 +2345,12 @@ object SpanishVocabularyCurriculumData {
                 ChallengeOptionEntity(id = 1009602, challengeId = 95480, text = "tenemos", correct = false, errorTag = "WRONG_PERSON"),
                 ChallengeOptionEntity(id = 1009603, challengeId = 95480, text = "tener", correct = false, errorTag = "WRONG_FORM"),
 
-                ChallengeOptionEntity(id = 1010000, challengeId = 95500, text = "Mi jefe trabaja desde casa desde marzo.", correct = true, audioSrc = "asset:///audio/es/mi_jefe_trabaja_desde_casa.ogg"),
+ChallengeOptionEntity(id = 1010000, challengeId = 95500, text = "Mi jefe trabaja desde casa desde marzo.", romaji = "mi jˈefe trabhˈaja dˈesde kˈasa dˈesde mˈarso", correct = true, audioSrc = "asset:///audio/es/mi_jefe_trabaja_desde_casa.ogg"),
                 ChallengeOptionEntity(id = 1010001, challengeId = 95500, text = "Mi jefes trabaja desde casa desde marzo", correct = false, errorTag = "WRONG_PERSON"),
                 ChallengeOptionEntity(id = 1010002, challengeId = 95500, text = "Mi jefe trabajan desde casa desde marzo", correct = false, errorTag = "WRONG_PERSON"),
                 ChallengeOptionEntity(id = 1010003, challengeId = 95500, text = "Mi jefe trabaja desde casa desde mayo", correct = false, errorTag = "WRONG_FORM"),
 
-                ChallengeOptionEntity(id = 1010400, challengeId = 95520, text = "La reunión se ha aplazado hasta el viernes.", correct = true, audioSrc = "asset:///audio/es/la_reunion_se_ha_aplazado.ogg"),
+ChallengeOptionEntity(id = 1010400, challengeId = 95520, text = "La reunión se ha aplazado hasta el viernes.", romaji = "la rreunˈion se a aplazˈadho ˈasta el bˈiernes", correct = true, audioSrc = "asset:///audio/es/la_reunion_se_ha_aplazado.ogg"),
                 ChallengeOptionEntity(id = 1010401, challengeId = 95520, text = "La reunión se han aplazado", correct = false, errorTag = "WRONG_PERSON"),
                 ChallengeOptionEntity(id = 1010402, challengeId = 95520, text = "La reunión se ha aplazada", correct = false, errorTag = "WRONG_FORM"),
                 ChallengeOptionEntity(id = 1010403, challengeId = 95520, text = "La reunión se han aplazada", correct = false, errorTag = "WRONG_FORM"),

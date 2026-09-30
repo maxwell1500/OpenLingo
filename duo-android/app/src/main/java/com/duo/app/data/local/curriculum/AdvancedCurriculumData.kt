@@ -31,7 +31,7 @@ object AdvancedCurriculumData {
                 LessonEntity(id = 111, unitId = 15, title = "Lesson 11: Furniture", orderIndex = 1),
             ),
             challenges = listOf(
-                ChallengeEntity(id = 1030, lessonId = 110, type = ChallengeType.SELECT, question = "Which one means 'The bedroom'?", audioSrc = "asset:///audio/es/el_dormitorio.ogg", orderIndex = 0),
+                ChallengeEntity(id = 1030, lessonId = 110, type = ChallengeType.SELECT, question = "Which one means 'The bedroom'?", audioSrc = "asset:///audio/es/el_dormitorio.ogg", orderIndex = 0, ruleText = "A bedroom is el dormitorio in Spain and la alcoba in Latin America: the same room, named with either word, so both are answered by the same English side. The clip says el dormitorio, the form offered here."),
                 ChallengeEntity(
                     id = 1031, lessonId = 110, type = ChallengeType.WORD_BANK,
                     question = "Assemble: 'The kitchen is clean'",
@@ -59,23 +59,23 @@ object AdvancedCurriculumData {
                 ChallengeEntity(id = 1035, lessonId = 111, type = ChallengeType.LISTEN, question = "Tap what you hear", audioSrc = "asset:///audio/es/la_ventana.ogg", orderIndex = 2),
             ),
             options = listOf(
-                ChallengeOptionEntity(id = 10101, challengeId = 1030, text = "El dormitorio", correct = true, audioSrc = "asset:///audio/es/el_dormitorio.ogg"),
+ChallengeOptionEntity(id = 10101, challengeId = 1030, text = "El dormitorio", romaji = "el dormitˈorio", correct = true, audioSrc = "asset:///audio/es/el_dormitorio.ogg"),
                 ChallengeOptionEntity(id = 10102, challengeId = 1030, text = "La cocina", correct = false),
                 ChallengeOptionEntity(id = 10103, challengeId = 1030, text = "El baño", correct = false),
                 ChallengeOptionEntity(id = 10104, challengeId = 1030, text = "La sala", correct = false),
 
                 ChallengeOptionEntity(id = 10105, challengeId = 1031, text = "La", correct = true),
-                ChallengeOptionEntity(id = 10106, challengeId = 1031, text = "cocina", correct = true, audioSrc = "asset:///audio/es/la_cocina.ogg"),
+ChallengeOptionEntity(id = 10106, challengeId = 1031, text = "cocina", romaji = "kosˈina", correct = true, audioSrc = "asset:///audio/es/la_cocina.ogg"),
                 ChallengeOptionEntity(id = 10107, challengeId = 1031, text = "está", correct = true),
                 ChallengeOptionEntity(id = 10108, challengeId = 1031, text = "limpia", correct = true),
                 ChallengeOptionEntity(id = 10109, challengeId = 1031, text = "es", correct = false, errorTag = "WRONG_COPULA"),
                 ChallengeOptionEntity(id = 10110, challengeId = 1031, text = "están", correct = false, errorTag = "WRONG_PERSON"),
 
-                ChallengeOptionEntity(id = 10111, challengeId = 1032, text = "La cocina", correct = true),
+ChallengeOptionEntity(id = 10111, challengeId = 1032, text = "La cocina", romaji = "la kosˈina", correct = true),
                 ChallengeOptionEntity(id = 10112, challengeId = 1032, text = "El cocina", correct = false),
                 ChallengeOptionEntity(id = 10113, challengeId = 1032, text = "La cosa", correct = false),
 
-                ChallengeOptionEntity(id = 10114, challengeId = 1033, text = "La mesa", correct = true, audioSrc = "asset:///audio/es/la_mesa.ogg"),
+ChallengeOptionEntity(id = 10114, challengeId = 1033, text = "La mesa", romaji = "la mˈesa", correct = true, audioSrc = "asset:///audio/es/la_mesa.ogg"),
                 ChallengeOptionEntity(id = 10115, challengeId = 1033, text = "La silla", correct = false),
                 ChallengeOptionEntity(id = 10116, challengeId = 1033, text = "La cama", correct = false),
                 ChallengeOptionEntity(id = 10117, challengeId = 1033, text = "El sofá", correct = false),
@@ -87,7 +87,7 @@ object AdvancedCurriculumData {
 
                 ChallengeOptionEntity(id = 300005, challengeId = 1034, text = "son", correct = false, errorTag = "WRONG_PERSON"),
 
-                ChallengeOptionEntity(id = 10123, challengeId = 1035, text = "La ventana", correct = true),
+ChallengeOptionEntity(id = 10123, challengeId = 1035, text = "La ventana", romaji = "la bentˈana", correct = true),
                 ChallengeOptionEntity(id = 10124, challengeId = 1035, text = "Las ventana", correct = false),
                 ChallengeOptionEntity(id = 10125, challengeId = 1035, text = "La verano", correct = false),
 
@@ -133,23 +133,23 @@ object AdvancedCurriculumData {
                 ChallengeEntity(id = 1041, lessonId = 113, type = ChallengeType.LISTEN, question = "Tap what you hear", audioSrc = "asset:///audio/es/los_zapatos.ogg", orderIndex = 2),
             ),
             options = listOf(
-                ChallengeOptionEntity(id = 10126, challengeId = 1036, text = "¿Cuánto cuesta?", correct = true, audioSrc = "asset:///audio/es/cuanto_cuesta.ogg"),
+ChallengeOptionEntity(id = 10126, challengeId = 1036, text = "¿Cuánto cuesta?", romaji = "kuuanto kˈuesta", correct = true, audioSrc = "asset:///audio/es/cuanto_cuesta.ogg"),
                 ChallengeOptionEntity(id = 10127, challengeId = 1036, text = "¿Dónde está?", correct = false),
                 ChallengeOptionEntity(id = 10128, challengeId = 1036, text = "¿Qué hora es?", correct = false),
                 ChallengeOptionEntity(id = 10129, challengeId = 1036, text = "¿Cómo estás?", correct = false),
 
                 ChallengeOptionEntity(id = 10130, challengeId = 1037, text = "Esta", correct = true),
-                ChallengeOptionEntity(id = 10131, challengeId = 1037, text = "camisa", correct = true, audioSrc = "asset:///audio/es/la_camisa.ogg"),
+ChallengeOptionEntity(id = 10131, challengeId = 1037, text = "camisa", romaji = "kamˈisa", correct = true, audioSrc = "asset:///audio/es/la_camisa.ogg"),
                 ChallengeOptionEntity(id = 10132, challengeId = 1037, text = "es", correct = true),
                 ChallengeOptionEntity(id = 10133, challengeId = 1037, text = "cara", correct = true),
                 ChallengeOptionEntity(id = 10134, challengeId = 1037, text = "está", correct = false, errorTag = "WRONG_COPULA"),
                 ChallengeOptionEntity(id = 10135, challengeId = 1037, text = "están", correct = false, errorTag = "WRONG_PERSON"),
 
-                ChallengeOptionEntity(id = 10136, challengeId = 1038, text = "La camisa", correct = true),
+ChallengeOptionEntity(id = 10136, challengeId = 1038, text = "La camisa", romaji = "la kamˈisa", correct = true),
                 ChallengeOptionEntity(id = 10137, challengeId = 1038, text = "La camino", correct = false),
                 ChallengeOptionEntity(id = 10138, challengeId = 1038, text = "Las camisa", correct = false),
 
-                ChallengeOptionEntity(id = 10139, challengeId = 1039, text = "Barato", correct = true, audioSrc = "asset:///audio/es/barato.ogg"),
+ChallengeOptionEntity(id = 10139, challengeId = 1039, text = "Barato", romaji = "barˈato", correct = true, audioSrc = "asset:///audio/es/barato.ogg"),
                 ChallengeOptionEntity(id = 10140, challengeId = 1039, text = "Caro", correct = false),
                 ChallengeOptionEntity(id = 10141, challengeId = 1039, text = "Nuevo", correct = false),
                 ChallengeOptionEntity(id = 10142, challengeId = 1039, text = "Bonito", correct = false),
@@ -159,7 +159,7 @@ object AdvancedCurriculumData {
                 ChallengeOptionEntity(id = 10146, challengeId = 1040, text = "compramos", correct = false, errorTag = "WRONG_PERSON"),
                 ChallengeOptionEntity(id = 10147, challengeId = 1040, text = "compra", correct = false, errorTag = "WRONG_PERSON"),
 
-                ChallengeOptionEntity(id = 10148, challengeId = 1041, text = "Los zapatos", correct = true),
+ChallengeOptionEntity(id = 10148, challengeId = 1041, text = "Los zapatos", romaji = "los zapˈatos", correct = true),
                 ChallengeOptionEntity(id = 10149, challengeId = 1041, text = "Los zapato", correct = false),
                 ChallengeOptionEntity(id = 10150, challengeId = 1041, text = "La zapatos", correct = false),
             )
@@ -200,7 +200,7 @@ object AdvancedCurriculumData {
                 ChallengeEntity(id = 1047, lessonId = 115, type = ChallengeType.LISTEN, question = "Tap what you hear", audioSrc = "asset:///audio/es/el_doctor.ogg", orderIndex = 2),
             ),
             options = listOf(
-                ChallengeOptionEntity(id = 10151, challengeId = 1042, text = "La cabeza", correct = true, audioSrc = "asset:///audio/es/la_cabeza.ogg"),
+ChallengeOptionEntity(id = 10151, challengeId = 1042, text = "La cabeza", romaji = "la kabhˈeza", correct = true, audioSrc = "asset:///audio/es/la_cabeza.ogg"),
                 ChallengeOptionEntity(id = 10152, challengeId = 1042, text = "El ojo", correct = false),
                 ChallengeOptionEntity(id = 10153, challengeId = 1042, text = "La mano", correct = false),
                 ChallengeOptionEntity(id = 10154, challengeId = 1042, text = "La boca", correct = false),
@@ -212,11 +212,11 @@ object AdvancedCurriculumData {
                 ChallengeOptionEntity(id = 10159, challengeId = 1043, text = "Tiene", correct = false, errorTag = "WRONG_PERSON"),
                 ChallengeOptionEntity(id = 10160, challengeId = 1043, text = "Tienen", correct = false, errorTag = "WRONG_PERSON"),
 
-                ChallengeOptionEntity(id = 10161, challengeId = 1044, text = "La mano", correct = true),
+ChallengeOptionEntity(id = 10161, challengeId = 1044, text = "La mano", romaji = "la mˈano", correct = true),
                 ChallengeOptionEntity(id = 10162, challengeId = 1044, text = "La manos", correct = false),
                 ChallengeOptionEntity(id = 10163, challengeId = 1044, text = "Las mano", correct = false),
 
-                ChallengeOptionEntity(id = 10164, challengeId = 1045, text = "Tengo fiebre", correct = true, audioSrc = "asset:///audio/es/tengo_fiebre.ogg"),
+ChallengeOptionEntity(id = 10164, challengeId = 1045, text = "Tengo fiebre", romaji = "tˈenggo fˈiebhre", correct = true, audioSrc = "asset:///audio/es/tengo_fiebre.ogg"),
                 ChallengeOptionEntity(id = 10165, challengeId = 1045, text = "Me duele", correct = false),
                 ChallengeOptionEntity(id = 10166, challengeId = 1045, text = "Descansar", correct = false),
                 ChallengeOptionEntity(id = 10167, challengeId = 1045, text = "Tomar medicina", correct = false),
@@ -228,7 +228,7 @@ object AdvancedCurriculumData {
                 ChallengeOptionEntity(id = 10172, challengeId = 1046, text = "tomamos", correct = false, errorTag = "WRONG_PERSON"),
                 ChallengeOptionEntity(id = 10173, challengeId = 1046, text = "toman", correct = false, errorTag = "WRONG_PERSON"),
 
-                ChallengeOptionEntity(id = 10174, challengeId = 1047, text = "El doctor", correct = true),
+ChallengeOptionEntity(id = 10174, challengeId = 1047, text = "El doctor", romaji = "el doktˈor", correct = true),
                 ChallengeOptionEntity(id = 10175, challengeId = 1047, text = "La doctor", correct = false),
                 ChallengeOptionEntity(id = 10176, challengeId = 1047, text = "Los doctor", correct = false),
             )
@@ -304,10 +304,10 @@ object AdvancedCurriculumData {
 
                 ChallengeOptionEntity(id = 20100, challengeId = 2029, text = "五百円", romaji = "Gohyakuen", correct = true),
                 ChallengeOptionEntity(id = 20101, challengeId = 2029, text = "です", romaji = "Desu", correct = true),
-                ChallengeOptionEntity(id = 20102, challengeId = 2029, text = "千円", romaji = "Senen", correct = false),
+                ChallengeOptionEntity(id = 20102, challengeId = 2029, text = "千円", romaji = "Sennen", correct = false),
                 ChallengeOptionEntity(id = 20103, challengeId = 2029, text = "二人", romaji = "Futari", correct = false),
 
-                ChallengeOptionEntity(id = 20104, challengeId = 2030, text = "千円", romaji = "Senen", correct = true),
+                ChallengeOptionEntity(id = 20104, challengeId = 2030, text = "千円", romaji = "Sennen", correct = true),
                 ChallengeOptionEntity(id = 20105, challengeId = 2030, text = "百円", romaji = "Hyakuen", correct = false),
                 ChallengeOptionEntity(id = 20106, challengeId = 2030, text = "五百円", romaji = "Gohyakuen", correct = false),
             )

@@ -843,4 +843,304 @@ class CurriculumIntegrityTest {
             unnamed,
         )
     }
+
+    /**
+     * Every Japanese reading that has been audited against the audio it ships
+     * with, and what that audio actually pronounces.
+     *
+     * `romaji` is what the learner reads under the word, so a wrong one is a
+     * contradiction the app states in its own text.  Three classes are here:
+     *
+     *  * an extra or missing mora -- `見られる` was declared `mirerareru`
+     *    (みれるられる) for a 4-mora word, `待たせる` `matasaseru` carries a さ
+     *    the word does not, and `sennen`, `ryoushuusho` and `teikyuubi` dropped
+     *    morae the same way;
+     *  * a transcription slip -- `shigato` for 仕事 (しごと), `okomi` for
+     *    お読み (oyomi), `gomiru` for ご覧 (goran);
+     *  * a romaji carried over from a sibling challenge -- `hirougohan`
+     *    (昼ご飯) left on options whose own text says お昼, and `ie ni te
+     *    kudasai` on options whose own text says 家にいてください.  These
+     *    reached the correct answer AND its distractors, which is why each
+     *    family has four rows here and not one.
+     *
+     * The text is asserted alongside the reading so an id cannot be re-pointed
+     * at different content to make a row pass.
+     */
+    private val auditedJapaneseReadings = listOf(
+        Triple(6300086, "見られる", "mirareru"),
+        Triple(6300121, "見られる", "mirareru"),
+        Triple(6300285, "見られる", "mirareru"),
+        Triple(6300584, "待たせる", "mataseru"),
+        Triple(6300586, "飲ませる", "nomaseru"),
+        Triple(6400001, "雨が降ったら、家にいてください。", "ame ga futtara, ie ni ite kudasai"),
+        Triple(6400002, "雨が降ると、家にいてください。", "ame ga furuto, ie ni ite kudasai"),
+        Triple(6400003, "雨が降るたら、家にいてください。", "ame ga furutara, ie ni ite kudasai"),
+        Triple(6400004, "雨が降りましたら、家にいてください。", "ame ga furimashitara, ie ni ite kudasai"),
+        Triple(6400013, "仕事が終わったら、帰りましょう。", "shigoto ga owattara, kaerimashou"),
+        Triple(6400014, "仕事が変わるなら、帰りましょう。", "shigoto ga kawarunara, kaerimashou"),
+        Triple(6400015, "仕事が終われば、帰りましょう。", "shigoto ga owareba, kaerimashou"),
+        Triple(6400016, "仕事が終わって、帰りましょう。", "shigoto ga owatte, kaerimashou"),
+        Triple(6400065, "社長がお昼を召し上がります。", "shachou ga ohiru o meshimasu"),
+        Triple(6400066, "お昼をいただきます。", "ohiru o itadakimasu"),
+        Triple(6400067, "社長がお昼を食べます。", "shachou ga ohiru o tabemasu"),
+        Triple(6400068, "社長がお昼を食べなさいます。", "shachou ga ohiru o tabenasaimasu"),
+        Triple(6400069, "部長が契約書を お読みになります。", "bucho ga keiyakusho o oyomi ni narimasu"),
+        Triple(6400071, "部長が契約書をお読みます。", "bucho ga keiyakusho o oyomimasu"),
+        Triple(6400076, "ご覧になる", "goran ni naru"),
+        Triple(6400109, "私はその映画を見られます。", "watashi wa sono eiga o miraremasu"),
+        Triple(6500061, "定休日", "teikyuubi"),
+        Triple(6500072, "現金で払わなければなりません。", "genkin de harawanakereba narimasen"),
+        Triple(6500074, "現金で払わなくてもいいです。", "genkin de harawanakutemo ii desu"),
+        Triple(6500075, "現金で払わなかった。", "genkin de harawanakatta"),
+        Triple(6500113, "領収書", "ryoushuusho"),
+        Triple(6500153, "領収書", "ryoushuusho"),
+        Triple(6500172, "領収書", "ryoushuusho"),
+        Triple(7500013, "停留所", "teiryuujyo"),
+        Triple(7500053, "停留所", "teiryuujyo"),
+        Triple(7500073, "停留所", "teiryuujyo"),
+        Triple(7500220, "今日は風が強いです。", "kyou wa kaze ga tsuyoi desu"),
+        Triple(7500221, "今日は風が強くです。", "kyou wa kaze ga tsuyoku desu"),
+        Triple(7500222, "今日は風が強いでした。", "kyou wa kaze ga tsuyoi deshita"),
+        Triple(20102, "千円", "Sennen"),
+        Triple(20104, "千円", "Sennen"),
+    )
+
+    @Test
+    fun `a japanese reading that the audio pronounces differently is declared as the audio says it`() {
+        val optionsById = allPayloads.flatMap { it.options }.associateBy { it.id }
+        val drifted = auditedJapaneseReadings.mapNotNull { (id, text, romaji) ->
+            val option = optionsById[id] ?: return@mapNotNull "option $id is gone"
+            if (option.text == text && option.romaji == romaji) {
+                null
+            } else {
+                "option $id reads ${option.text} as '${option.romaji}', " +
+                    "expected $text as '$romaji'"
+            }
+        }
+        assertEquals(
+            "declared readings that contradict the shipped audio",
+            emptyList<String>(),
+            drifted,
+        )
+    }
+
+    /**
+     * The same contract seen from the audio side: the option that plays a clip
+     * is the option whose reading the learner is shown, so the two cannot be
+     * corrected independently and drift apart again.
+     */
+    @Test
+    fun `the option that plays an audited clip declares the reading that clip pronounces`() {
+        val audited = auditedJapaneseReadings
+            .mapNotNull { (id, _, romaji) ->
+                allPayloads.flatMap { it.options }
+                    .firstOrNull { it.id == id && it.audioSrc != null }
+                    ?.let { it.audioSrc!! to romaji }
+            }
+            .toMap()
+        assertTrue("no audited clip-carrying option was found", audited.isNotEmpty())
+
+        val optionsByAudio = allPayloads.flatMap { it.options }
+            .filter { it.audioSrc != null }
+            .groupBy { it.audioSrc }
+        val mismatched = audited.filter { (audio, romaji) ->
+            val declared = optionsByAudio[audio].orEmpty().mapNotNull { it.romaji }.distinct()
+            declared.isNotEmpty() && romaji !in declared
+        }
+        assertEquals(
+            "clips whose declaring option no longer states the audited reading",
+            emptyMap<String, String>(),
+            mismatched.toMap(),
+        )
+    }
+
+    /**
+     * Japanese writes reduplication with the iteration mark 々, never by
+     * doubling the character itself — 人々, 日々, 様々, 時々, 段々.  So a kanji
+     * sitting immediately next to a copy of itself is a typing slip, and a
+     * learner both reads and is graded against it.
+     *
+     * This is the check that catches the class rather than one instance: it
+     * needed no allowlist, because 々 is a separate character and so never
+     * reads as a repeated kanji.  An earlier clip census reported 人人 in
+     * `辞書を使わない人人は少ないです`, which turned out to be an artefact of
+     * the census's own fill-in-the-blank reconstruction rather than a real
+     * string — but had it reached the Kotlin, this is what would have caught
+     * it.  The corpus currently has no instance, so the assertion is empty
+     * and its value is in holding the line for content added later.
+     *
+     * Scans every field a learner is shown or graded against, not just
+     * `romaji`: the doubling is in the Japanese itself.
+     */
+    @Test
+    fun `no japanese text repeats a kanji instead of using the iteration mark`() {
+        fun kanjiRuns(field: String, where: String): List<String> {
+            val hits = mutableListOf<String>()
+            field.forEachIndexed { i, c ->
+                if (c.code in 0x4E00..0x9FFF && i + 1 < field.length &&
+                    field[i + 1] == c
+                ) {
+                    hits += "$where: $field (doubled ${c} at $i)"
+                }
+            }
+            return hits
+        }
+
+        val doubled = allPayloads.flatMap { payload ->
+            val fromOptions = payload.options.flatMap {
+                kanjiRuns(it.text, "option ${it.id}")
+            }
+            val fromChallenges = payload.challenges.flatMap { challenge ->
+                val at = "challenge ${challenge.id}"
+                kanjiRuns(challenge.question, "$at question") +
+                    (challenge.ruleText?.let { kanjiRuns(it, "$at ruleText") }
+                        ?: emptyList()) +
+                    // acceptedAnswers is a |-separated list of ALTERNATIVES, so
+                    // only each alternative is scanned: a repeat across the
+                    // separator is two spellings, not one word typed twice.
+                    (challenge.acceptedAnswers
+                        ?.split("|")
+                        ?.flatMap { kanjiRuns(it, "$at answer") }
+                        ?: emptyList())
+            }
+            fromOptions + fromChallenges
+        }
+        assertEquals(
+            "kanji doubled instead of written with 々, so a learner reads the " +
+                "typo and is graded against it",
+            emptyList<String>(),
+            doubled,
+        )
+    }
+
+    /**
+     * Where a rule card states that more than one form is correct, every form
+     * it names as correct must be present in that challenge's correct options.
+     *
+     * The corpus convention for naming multiple correct forms is an explicit
+     * marker — "both are correct", "all correct", or "both are accepted" —
+     * with the forms listed before it, separated by " or " or "/". This test
+     * finds every rule card that uses one of those markers, extracts the forms
+     * it names, and asserts each one appears among the challenge's correct
+     * options.
+     *
+     * This is a contract test, not a corpus restatement: it does not care
+     * WHICH forms are correct, only that the rule card and the answer key
+     * agree. A rule card that promises two answers and an option grid that
+     * delivers one is a defect this catches regardless of what the forms are.
+     */
+    @Test
+    fun `a rule card that names multiple correct forms has all of them in the options`() {
+        val optionsByChallenge = allPayloads.flatMap { it.options }.groupBy { it.challengeId }
+        val markers = listOf("both are correct", "all correct", "both are accepted")
+        val failures = mutableListOf<String>()
+        // English function words that can sit directly in front of a marker
+        // phrase. None of them is a form any rule card would endorse.
+        val englishFunctionWords = setOf(
+            "both", "all", "are", "is", "the", "a", "an", "so", "and", "of", "in", "on",
+            "or", "to", "it", "that", "this", "with", "for", "as", "also", "correct", "accepted",
+        )
+
+        allPayloads.flatMap { it.challenges }.forEach { challenge ->
+            val rule = challenge.ruleText ?: return@forEach
+            val marker = markers.firstOrNull { rule.contains(it, ignoreCase = true) }
+                ?: return@forEach
+
+            // The corpus convention: forms appear immediately before parenthetical
+            // annotations like "(vosotros)"/"(ustedes)" or before the marker itself.
+            // Extract words that appear right before "(...)" or before the marker.
+            val before = rule.substring(0, rule.indexOf(marker, ignoreCase = true))
+            val namedForms = mutableListOf<String>()
+
+            // Pattern: word(s) before a parenthetical annotation
+            Regex("([a-záéíóúñü]+(?:/[a-záéíóúñü]+)*)\\s*\\([^)]*\\)").findAll(before).forEach { m ->
+                m.groupValues[1].split("/").forEach { namedForms.add(it) }
+            }
+            // Pattern: word(s) immediately before the marker (no parenthetical).
+            //
+            // This pattern is the noisiest of the two, because the markers are
+            // English phrases ("both are correct") and the word sitting in front
+            // of one is usually the last word of an English sentence rather than
+            // a Spanish form. Two guards, in order:
+            //
+            //  1. A named form sits immediately before the marker, so `before`
+            //     must end in a letter. If it ends in . ! ? , ; : ) — the text is
+            //     prose, not an endorsed form.
+            //  2. The harvested token must not be an English function word.
+            //     Without this, "…in Latin America, so both are correct" yields
+            //     the form "so" and fails a challenge that is perfectly correct.
+            //     Every form the corpus actually endorses is a Spanish content
+            //     word (estéis, estén, nevera, frigorífico), so this discards
+            //     false positives without discarding real ones.
+            val trimmed = before.trimEnd()
+            if (trimmed.lastOrNull()?.isLetter() == true) {
+                Regex("([a-záéíóúñü]+(?:/[a-záéíóúñü]+)*)\\s*$", RegexOption.IGNORE_CASE).find(trimmed)?.let { m ->
+                    val forms = m.groupValues[1].split("/")
+                    if (forms.none { it.lowercase() in englishFunctionWords }) {
+                        forms.forEach { namedForms.add(it) }
+                    }
+                }
+            }
+
+            if (namedForms.size < 2) return@forEach
+
+            val correctTexts = optionsByChallenge[challenge.id].orEmpty()
+                .filter { it.correct }
+                .map { it.text }
+                .toSet()
+
+            namedForms.forEach { form ->
+                if (form !in correctTexts) {
+                    failures += "challenge ${challenge.id} rule card names '$form' as correct " +
+                        "but it is not among the correct options ($correctTexts)"
+                }
+            }
+        }
+
+        assertEquals(
+            "rule cards whose named correct forms are missing from the option grid: $failures",
+            emptyList<String>(),
+            failures,
+        )
+    }
+
+    /**
+     * A challenge that offers more than one option with `correct = true` must
+     * not carry a challenge-level `audioSrc`.
+     *
+     * When a challenge has multiple correct options there is no single target
+     * form for a clip to speak. A CONJUGATE clip names one form as the answer;
+     * if the learner is graded correct for producing a different form, the audio
+     * actively misleads about which to pick. The audio must live on the options
+     * (where each form can carry its own clip) or not at all.
+     *
+     * WORD_BANK is excluded: its challenge-level clip speaks the full assembled
+     * sentence the learner is building, not a single target tile. Multiple
+     * correct tiles are all part of that sentence, so the clip models the target
+     * without naming one tile as the answer.
+     *
+     * This test is corpus-independent: it does not care WHICH forms are correct,
+     * only that a multi-answer challenge does not carry a clip that names one.
+     */
+    @Test
+    fun `a challenge with multiple correct options carries no challenge-level audio`() {
+        val optionsByChallenge = allPayloads.flatMap { it.options }.groupBy { it.challengeId }
+        val failures = mutableListOf<String>()
+
+        allPayloads.flatMap { it.challenges }.forEach { challenge ->
+            if (challenge.type == ChallengeType.WORD_BANK) return@forEach
+            if (challenge.audioSrc == null) return@forEach
+            val correctCount = optionsByChallenge[challenge.id].orEmpty().count { it.correct }
+            if (correctCount > 1) {
+                failures += "challenge ${challenge.id} (${challenge.type.rawValue}) has $correctCount correct options " +
+                    "but carries audioSrc '${challenge.audioSrc}', which speaks one form as the answer"
+            }
+        }
+
+        assertEquals(
+            "multi-answer challenges carrying challenge-level audio: $failures",
+            emptyList<String>(),
+            failures,
+        )
+    }
 }

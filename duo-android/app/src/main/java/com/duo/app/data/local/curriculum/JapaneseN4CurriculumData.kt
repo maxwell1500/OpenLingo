@@ -1099,7 +1099,7 @@ object JapaneseN4CurriculumData {
                 ChallengeOptionEntity(id = 6300083, challengeId = 62004, text = "使う", romaji = "tsukau", correct = true),
                 ChallengeOptionEntity(id = 6300084, challengeId = 62004, text = "使われる", romaji = "tsukawareru", correct = true, audioSrc = "asset:///audio/ja/g_passive_tsukawareru.ogg"),
                 ChallengeOptionEntity(id = 6300085, challengeId = 62004, text = "見る", romaji = "miru", correct = true),
-                ChallengeOptionEntity(id = 6300086, challengeId = 62004, text = "見られる", romaji = "mirerareru", correct = true, audioSrc = "asset:///audio/ja/g_passive_mirerareru.ogg"),
+                ChallengeOptionEntity(id = 6300086, challengeId = 62004, text = "見られる", romaji = "mirareru", correct = true, audioSrc = "asset:///audio/ja/g_passive_mirerareru.ogg"),
                 ChallengeOptionEntity(id = 6300087, challengeId = 62004, text = "話す", romaji = "hanasu", correct = true),
                 ChallengeOptionEntity(id = 6300088, challengeId = 62004, text = "話される", romaji = "hanasareru", correct = true, audioSrc = "asset:///audio/ja/g_passive_hanasareru.ogg"),
                 ChallengeOptionEntity(id = 6300089, challengeId = 62004, text = "食べる", romaji = "taberu", correct = true),
@@ -1111,7 +1111,7 @@ object JapaneseN4CurriculumData {
                 ChallengeOptionEntity(id = 6300102, challengeId = 62005, text = "母を叱られました", romaji = "haha o shikararemashita", correct = false, errorTag = "WRONG_FORM"),
                 ChallengeOptionEntity(id = 6300103, challengeId = 62005, text = "母が叱られました", romaji = "haha ga shikararemashita", correct = false, errorTag = "WRONG_FORM"),
 
-                ChallengeOptionEntity(id = 6300121, challengeId = 62006, text = "見られる", romaji = "mirerareru", correct = true, audioSrc = "asset:///audio/ja/g_passive_mirerareru.ogg"),
+                ChallengeOptionEntity(id = 6300121, challengeId = 62006, text = "見られる", romaji = "mirareru", correct = true, audioSrc = "asset:///audio/ja/g_passive_mirerareru.ogg"),
                 ChallengeOptionEntity(id = 6300122, challengeId = 62006, text = "見える", romaji = "mieru", correct = false, errorTag = "WRONG_FORM"),
                 ChallengeOptionEntity(id = 6300123, challengeId = 62006, text = "見せる", romaji = "miseru", correct = false, errorTag = "WRONG_FORM"),
 
@@ -1151,7 +1151,7 @@ object JapaneseN4CurriculumData {
                 ChallengeOptionEntity(id = 6300282, challengeId = 62014, text = "is read", correct = true),
                 ChallengeOptionEntity(id = 6300283, challengeId = 62014, text = "読ませる", romaji = "yomaseru", correct = true),
                 ChallengeOptionEntity(id = 6300284, challengeId = 62014, text = "makes read", correct = true),
-                ChallengeOptionEntity(id = 6300285, challengeId = 62014, text = "見られる", romaji = "mirerareru", correct = true),
+                ChallengeOptionEntity(id = 6300285, challengeId = 62014, text = "見られる", romaji = "mirareru", correct = true),
                 ChallengeOptionEntity(id = 6300286, challengeId = 62014, text = "is seen", correct = true),
                 ChallengeOptionEntity(id = 6300287, challengeId = 62014, text = "見せる", romaji = "miseru", correct = true),
                 ChallengeOptionEntity(id = 6300288, challengeId = 62014, text = "shows", correct = true),
@@ -1436,9 +1436,9 @@ object JapaneseN4CurriculumData {
                 ChallengeOptionEntity(id = 6300581, challengeId = 62029, text = "休まれる", romaji = "yasumareru", correct = true),
                 ChallengeOptionEntity(id = 6300582, challengeId = 62029, text = "休ませる", romaji = "yasumaseru", correct = true, audioSrc = "asset:///audio/ja/g_causative_yasumaseru.ogg"),
                 ChallengeOptionEntity(id = 6300583, challengeId = 62029, text = "待たれる", romaji = "matareru", correct = true),
-                ChallengeOptionEntity(id = 6300584, challengeId = 62029, text = "待たせる", romaji = "matasaseru", correct = true, audioSrc = "asset:///audio/ja/g_causative_matasaseru.ogg"),
+                ChallengeOptionEntity(id = 6300584, challengeId = 62029, text = "待たせる", romaji = "mataseru", correct = true, audioSrc = "asset:///audio/ja/g_causative_matasaseru.ogg"),
                 ChallengeOptionEntity(id = 6300585, challengeId = 62029, text = "飲まれる", romaji = "nomareru", correct = true),
-                ChallengeOptionEntity(id = 6300586, challengeId = 62029, text = "飲ませる", romaji = "nomasaseru", correct = true, audioSrc = "asset:///audio/ja/g_causative_nomasaseru.ogg"),
+                ChallengeOptionEntity(id = 6300586, challengeId = 62029, text = "飲ませる", romaji = "nomaseru", correct = true, audioSrc = "asset:///audio/ja/g_causative_nomasaseru.ogg"),
                 ChallengeOptionEntity(id = 6300587, challengeId = 62029, text = "書かれる", romaji = "kakareru", correct = true),
                 ChallengeOptionEntity(id = 6300588, challengeId = 62029, text = "書かせる", romaji = "kakaseru", correct = true),
 
@@ -1601,7 +1601,7 @@ object JapaneseN4CurriculumData {
         // the IPA the acoustic model is actually handed: ɸɯʔtaɾa for 降った,
         // ɾeba for れば, naɾa for なら, kaeba for 買えば, maɕoː and deɕoː for
         // ましょう and でしょう, keːjakɯɕo for 契約, ɯkaɡai for 伺, moːɕiaɡeɾɯ
-        // for 申し上げる, eːɡa for 映画, soːʥi for 掃除, and a bare e for 得 in
+        // for 申し上げる, eiɡa for 映画, soːʥi for 掃除, and a bare e for 得 in
         // 得られる.
         //
         // No item in this block is held out: the held-out pool is fixed at
@@ -1772,10 +1772,10 @@ object JapaneseN4CurriculumData {
                 ),
             ),
             options = listOf(
-                ChallengeOptionEntity(id = 6400001, challengeId = 64000, text = "雨が降ったら、家にいてください。", romaji = "ame ga futtara, ie ni te kudasai", correct = true, audioSrc = "asset:///audio/ja/ja_cond_ame_ga_futtara_ie_tekudasai.ogg"),
-                ChallengeOptionEntity(id = 6400002, challengeId = 64000, text = "雨が降ると、家にいてください。", romaji = "ame ga furuto, ie ni te kudasai", correct = false, errorTag = "WRONG_FORM"),
-                ChallengeOptionEntity(id = 6400003, challengeId = 64000, text = "雨が降るたら、家にいてください。", romaji = "ame ga furutara, ie ni te kudasai", correct = false, errorTag = "WRONG_FORM"),
-                ChallengeOptionEntity(id = 6400004, challengeId = 64000, text = "雨が降りましたら、家にいてください。", romaji = "ame ga furimashitara, ie ni te kudasai", correct = false, errorTag = "WRONG_REGISTER"),
+                ChallengeOptionEntity(id = 6400001, challengeId = 64000, text = "雨が降ったら、家にいてください。", romaji = "ame ga futtara, ie ni ite kudasai", correct = true, audioSrc = "asset:///audio/ja/ja_cond_ame_ga_futtara_ie_tekudasai.ogg"),
+                ChallengeOptionEntity(id = 6400002, challengeId = 64000, text = "雨が降ると、家にいてください。", romaji = "ame ga furuto, ie ni ite kudasai", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 6400003, challengeId = 64000, text = "雨が降るたら、家にいてください。", romaji = "ame ga furutara, ie ni ite kudasai", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 6400004, challengeId = 64000, text = "雨が降りましたら、家にいてください。", romaji = "ame ga furimashitara, ie ni ite kudasai", correct = false, errorTag = "WRONG_REGISTER"),
 
                 ChallengeOptionEntity(id = 6400005, challengeId = 64001, text = "飲んだら", romaji = "nondattara", correct = true, audioSrc = "asset:///audio/ja/ja_cond_nondattara.ogg"),
                 ChallengeOptionEntity(id = 6400006, challengeId = 64001, text = "飲むなら", romaji = "nomunara", correct = false, errorTag = "WRONG_FORM"),
@@ -1787,10 +1787,10 @@ object JapaneseN4CurriculumData {
                 ChallengeOptionEntity(id = 6400011, challengeId = 64002, text = "降ると", romaji = "furuto", correct = false, errorTag = "WRONG_FORM"),
                 ChallengeOptionEntity(id = 6400012, challengeId = 64002, text = "降るなら", romaji = "furunara", correct = false, errorTag = "WRONG_FORM"),
 
-                ChallengeOptionEntity(id = 6400013, challengeId = 64003, text = "仕事が終わったら、帰りましょう。", romaji = "shigato ga owattara, kaerimashou", correct = true, audioSrc = "asset:///audio/ja/ja_cond_shigato_ga_owattara_kaerimashou.ogg"),
-                ChallengeOptionEntity(id = 6400014, challengeId = 64003, text = "仕事が変わるなら、帰りましょう。", romaji = "shigato ga kawarunara, kaerimashou", correct = false, errorTag = "WRONG_FORM"),
-                ChallengeOptionEntity(id = 6400015, challengeId = 64003, text = "仕事が終われば、帰りましょう。", romaji = "shigato ga owareba, kaerimashou", correct = false, errorTag = "WRONG_REGISTER"),
-                ChallengeOptionEntity(id = 6400016, challengeId = 64003, text = "仕事が終わって、帰りましょう。", romaji = "shigato ga owatte, kaerimashou", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 6400013, challengeId = 64003, text = "仕事が終わったら、帰りましょう。", romaji = "shigoto ga owattara, kaerimashou", correct = true, audioSrc = "asset:///audio/ja/ja_cond_shigato_ga_owattara_kaerimashou.ogg"),
+                ChallengeOptionEntity(id = 6400014, challengeId = 64003, text = "仕事が変わるなら、帰りましょう。", romaji = "shigoto ga kawarunara, kaerimashou", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 6400015, challengeId = 64003, text = "仕事が終われば、帰りましょう。", romaji = "shigoto ga owareba, kaerimashou", correct = false, errorTag = "WRONG_REGISTER"),
+                ChallengeOptionEntity(id = 6400016, challengeId = 64003, text = "仕事が終わって、帰りましょう。", romaji = "shigoto ga owatte, kaerimashou", correct = false, errorTag = "WRONG_FORM"),
 
                 ChallengeOptionEntity(id = 6400017, challengeId = 64004, text = "読む", romaji = "yomu", correct = true),
                 ChallengeOptionEntity(id = 6400018, challengeId = 64004, text = "読んだら", romaji = "yondattara", correct = true, audioSrc = "asset:///audio/ja/ja_tara_yondattara.ogg"),
@@ -2001,20 +2001,20 @@ object JapaneseN4CurriculumData {
                 ),
             ),
             options = listOf(
-                ChallengeOptionEntity(id = 6400065, challengeId = 64015, text = "社長がお昼を召し上がります。", romaji = "shachou ga hirougohan o meshimasu", correct = true, audioSrc = "asset:///audio/ja/ja_keigo_shachou_ga_hirougohan_o_meshimasu.ogg"),
-                ChallengeOptionEntity(id = 6400066, challengeId = 64015, text = "お昼をいただきます。", romaji = "hirougohan o itadakimasu", correct = false, errorTag = "WRONG_REGISTER"),
-                ChallengeOptionEntity(id = 6400067, challengeId = 64015, text = "社長がお昼を食べます。", romaji = "shachou ga hirougohan o tabemasu", correct = false, errorTag = "WRONG_REGISTER"),
-                ChallengeOptionEntity(id = 6400068, challengeId = 64015, text = "社長がお昼を食べなさいます。", romaji = "shachou ga hirougohan o tabenasaimasu", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 6400065, challengeId = 64015, text = "社長がお昼を召し上がります。", romaji = "shachou ga ohiru o meshimasu", correct = true, audioSrc = "asset:///audio/ja/ja_keigo_shachou_ga_hirougohan_o_meshimasu.ogg"),
+                ChallengeOptionEntity(id = 6400066, challengeId = 64015, text = "お昼をいただきます。", romaji = "ohiru o itadakimasu", correct = false, errorTag = "WRONG_REGISTER"),
+                ChallengeOptionEntity(id = 6400067, challengeId = 64015, text = "社長がお昼を食べます。", romaji = "shachou ga ohiru o tabemasu", correct = false, errorTag = "WRONG_REGISTER"),
+                ChallengeOptionEntity(id = 6400068, challengeId = 64015, text = "社長がお昼を食べなさいます。", romaji = "shachou ga ohiru o tabenasaimasu", correct = false, errorTag = "WRONG_FORM"),
 
-                ChallengeOptionEntity(id = 6400069, challengeId = 64016, text = "部長が契約書を お読みになります。", romaji = "bucho ga keiyakusho o okomi ni narimasu", correct = true, audioSrc = "asset:///audio/ja/ja_keigo_bucho_ga_keiyakusho_o_okomi_ni_narimasu.ogg"),
+                ChallengeOptionEntity(id = 6400069, challengeId = 64016, text = "部長が契約書を お読みになります。", romaji = "bucho ga keiyakusho o oyomi ni narimasu", correct = true, audioSrc = "asset:///audio/ja/ja_keigo_bucho_ga_keiyakusho_o_okomi_ni_narimasu.ogg"),
                 ChallengeOptionEntity(id = 6400070, challengeId = 64016, text = "部長が契約書を読みます。", romaji = "bucho ga keiyakusho o yomimasu", correct = false, errorTag = "WRONG_REGISTER"),
-                ChallengeOptionEntity(id = 6400071, challengeId = 64016, text = "部長が契約書をお読みます。", romaji = "bucho ga keiyakusho o okomimasu", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 6400071, challengeId = 64016, text = "部長が契約書をお読みます。", romaji = "bucho ga keiyakusho o oyomimasu", correct = false, errorTag = "WRONG_FORM"),
                 ChallengeOptionEntity(id = 6400072, challengeId = 64016, text = "部長が契約書をお書きになります。", romaji = "bucho ga keiyakusho o okaki ni narimasu", correct = false, errorTag = "WRONG_FORM"),
 
                 ChallengeOptionEntity(id = 6400073, challengeId = 64017, text = "食べる", romaji = "taberu", correct = true),
                 ChallengeOptionEntity(id = 6400074, challengeId = 64017, text = "召し上がる", romaji = "meshiagaru", correct = true, audioSrc = "asset:///audio/ja/ja_keigo_meshiagaru.ogg"),
                 ChallengeOptionEntity(id = 6400075, challengeId = 64017, text = "見る", romaji = "miru", correct = true),
-                ChallengeOptionEntity(id = 6400076, challengeId = 64017, text = "ご覧になる", romaji = "gomiru ni naru", correct = true, audioSrc = "asset:///audio/ja/ja_keigo_gomiruninaru.ogg"),
+                ChallengeOptionEntity(id = 6400076, challengeId = 64017, text = "ご覧になる", romaji = "goran ni naru", correct = true, audioSrc = "asset:///audio/ja/ja_keigo_gomiruninaru.ogg"),
                 ChallengeOptionEntity(id = 6400077, challengeId = 64017, text = "する", romaji = "suru", correct = true),
                 ChallengeOptionEntity(id = 6400078, challengeId = 64017, text = "なさる", romaji = "nasaru", correct = true, audioSrc = "asset:///audio/ja/ja_keigo_nasaru.ogg"),
                 ChallengeOptionEntity(id = 6400079, challengeId = 64017, text = "言う", romaji = "iu", correct = true),
@@ -2053,7 +2053,7 @@ object JapaneseN4CurriculumData {
                 ChallengeOptionEntity(id = 6400107, challengeId = 64022, text = "作られます", romaji = "tsukurarerumasu", correct = false, errorTag = "WRONG_REGISTER"),
                 ChallengeOptionEntity(id = 6400108, challengeId = 64022, text = "作られた", romaji = "tsukurarerutta", correct = false, errorTag = "WRONG_TENSE"),
 
-                ChallengeOptionEntity(id = 6400109, challengeId = 64023, text = "私はその映画を見られます。", romaji = "watashi wa sono eiga o mireraremasu", correct = true, audioSrc = "asset:///audio/ja/ja_rareru_watashi_wa_sono_eiga_o_mireraremasu.ogg"),
+                ChallengeOptionEntity(id = 6400109, challengeId = 64023, text = "私はその映画を見られます。", romaji = "watashi wa sono eiga o miraremasu", correct = true, audioSrc = "asset:///audio/ja/ja_rareru_watashi_wa_sono_eiga_o_mireraremasu.ogg"),
                 ChallengeOptionEntity(id = 6400110, challengeId = 64023, text = "私はその映画を見ませんでした。", romaji = "watashi wa sono eiga o mirimasen deshita", correct = false, errorTag = "WRONG_TENSE"),
                 ChallengeOptionEntity(id = 6400111, challengeId = 64023, text = "私はその映画を見させられる。", romaji = "watashi wa sono eiga o miraserareru", correct = false, errorTag = "WRONG_FORM"),
 
@@ -2433,7 +2433,7 @@ object JapaneseN4CurriculumData {
                 ChallengeOptionEntity(id = 6500059, challengeId = 65006, text = "肉", romaji = "niku", correct = false, errorTag = null),
                 ChallengeOptionEntity(id = 6500060, challengeId = 65006, text = "魚", romaji = "sakana", correct = false, errorTag = null),
 
-                ChallengeOptionEntity(id = 6500061, challengeId = 65007, text = "定休日", romaji = "teikyubi", correct = true, errorTag = null, audioSrc = "asset:///audio/ja/teikyubi.ogg"),
+                ChallengeOptionEntity(id = 6500061, challengeId = 65007, text = "定休日", romaji = "teikyuubi", correct = true, errorTag = null, audioSrc = "asset:///audio/ja/teikyubi.ogg"),
                 ChallengeOptionEntity(id = 6500062, challengeId = 65007, text = "閉店", romaji = "heiten", correct = false, errorTag = null),
                 ChallengeOptionEntity(id = 6500063, challengeId = 65007, text = "営業中", romaji = "eigyouchuu", correct = false, errorTag = null),
                 ChallengeOptionEntity(id = 6500064, challengeId = 65007, text = "半額", romaji = "hangaku", correct = false, errorTag = null),
@@ -2446,10 +2446,10 @@ object JapaneseN4CurriculumData {
                 ChallengeOptionEntity(id = 6500070, challengeId = 65008, text = "あの店と", romaji = "ano mise to", correct = false, errorTag = "WRONG_FORM"),
                 ChallengeOptionEntity(id = 6500071, challengeId = 65008, text = "買う", romaji = "kau", correct = false, errorTag = "WRONG_REGISTER"),
 
-                ChallengeOptionEntity(id = 6500072, challengeId = 65009, text = "現金で払わなければなりません。", romaji = "genkin de harwanakereba narimasen", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500072, challengeId = 65009, text = "現金で払わなければなりません。", romaji = "genkin de harawanakereba narimasen", correct = true, errorTag = null),
                 ChallengeOptionEntity(id = 6500073, challengeId = 65009, text = "現金で払う。", romaji = "genkin de harau", correct = false, errorTag = "WRONG_FORM"),
-                ChallengeOptionEntity(id = 6500074, challengeId = 65009, text = "現金で払わなくてもいいです。", romaji = "genkin de harwanakutemo ii desu", correct = false, errorTag = "WRONG_FORM"),
-                ChallengeOptionEntity(id = 6500075, challengeId = 65009, text = "現金で払わなかった。", romaji = "genkin de harwanakatta", correct = false, errorTag = "WRONG_TENSE"),
+                ChallengeOptionEntity(id = 6500074, challengeId = 65009, text = "現金で払わなくてもいいです。", romaji = "genkin de harawanakutemo ii desu", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 6500075, challengeId = 65009, text = "現金で払わなかった。", romaji = "genkin de harawanakatta", correct = false, errorTag = "WRONG_TENSE"),
 
                 ChallengeOptionEntity(id = 6500076, challengeId = 65010, text = "大きい", romaji = "ookii", correct = true, errorTag = null),
                 ChallengeOptionEntity(id = 6500077, challengeId = 65010, text = "大きく", romaji = "ookiku", correct = false, errorTag = "WRONG_FORM"),
@@ -2495,7 +2495,7 @@ object JapaneseN4CurriculumData {
                 ChallengeOptionEntity(id = 6500110, challengeId = 65029, text = "to pay", romaji = null, correct = true, errorTag = null),
                 ChallengeOptionEntity(id = 6500111, challengeId = 65029, text = "会計", romaji = "kaikei", correct = true, errorTag = null),
                 ChallengeOptionEntity(id = 6500112, challengeId = 65029, text = "the bill", romaji = null, correct = true, errorTag = null),
-                ChallengeOptionEntity(id = 6500113, challengeId = 65029, text = "領収書", romaji = "ryoushosho", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500113, challengeId = 65029, text = "領収書", romaji = "ryoushuusho", correct = true, errorTag = null),
                 ChallengeOptionEntity(id = 6500114, challengeId = 65029, text = "receipt", romaji = null, correct = true, errorTag = null),
                 ChallengeOptionEntity(id = 6500115, challengeId = 65029, text = "両替", romaji = "riougae", correct = true, errorTag = null),
                 ChallengeOptionEntity(id = 6500116, challengeId = 65029, text = "changing money", romaji = null, correct = true, errorTag = null),
@@ -2540,7 +2540,7 @@ object JapaneseN4CurriculumData {
                 ChallengeOptionEntity(id = 6500151, challengeId = 65015, text = "値札", romaji = "nefuda", correct = false, errorTag = null),
                 ChallengeOptionEntity(id = 6500152, challengeId = 65015, text = "予算", romaji = "yosan", correct = false, errorTag = null),
 
-                ChallengeOptionEntity(id = 6500153, challengeId = 65016, text = "領収書", romaji = "ryoushosho", correct = true, errorTag = null, audioSrc = "asset:///audio/ja/ryoushosho.ogg"),
+                ChallengeOptionEntity(id = 6500153, challengeId = 65016, text = "領収書", romaji = "ryoushuusho", correct = true, errorTag = null, audioSrc = "asset:///audio/ja/ryoushosho.ogg"),
                 ChallengeOptionEntity(id = 6500154, challengeId = 65016, text = "割引券", romaji = "waribikiken", correct = false, errorTag = null),
                 ChallengeOptionEntity(id = 6500155, challengeId = 65016, text = "会計", romaji = "kaikei", correct = false, errorTag = null),
                 ChallengeOptionEntity(id = 6500156, challengeId = 65016, text = "値札", romaji = "nefuda", correct = false, errorTag = null),
@@ -2564,7 +2564,7 @@ object JapaneseN4CurriculumData {
                 ChallengeOptionEntity(id = 6500170, challengeId = 65105, text = "この店の野菜は安いくです。", romaji = "kono mise no yasai wa yasuku desu", correct = false, errorTag = "WRONG_FORM"),
                 ChallengeOptionEntity(id = 6500171, challengeId = 65105, text = "この店の野菜は安いでした。", romaji = "kono mise no yasai wa yasui deshita", correct = false, errorTag = "WRONG_TENSE"),
 
-                ChallengeOptionEntity(id = 6500172, challengeId = 65104, text = "領収書", romaji = "ryoushosho", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 6500172, challengeId = 65104, text = "領収書", romaji = "ryoushuusho", correct = true, errorTag = null),
                 ChallengeOptionEntity(id = 6500173, challengeId = 65104, text = "割引券", romaji = "waribikiken", correct = false, errorTag = "UNRELATED"),
                 ChallengeOptionEntity(id = 6500174, challengeId = 65104, text = "値札", romaji = "nefuda", correct = false, errorTag = "UNRELATED"),
                 ChallengeOptionEntity(id = 6500175, challengeId = 65104, text = "小銭", romaji = "kozeni", correct = false, errorTag = "UNRELATED"),
@@ -2890,7 +2890,7 @@ object JapaneseN4CurriculumData {
                 ChallengeOptionEntity(id = 7500011, challengeId = 65200, text = "切り取り線", romaji = "kiritorisen", correct = true, errorTag = null),
                 ChallengeOptionEntity(id = 7500012, challengeId = 65200, text = "the perforation", romaji = null, correct = true, errorTag = null),
 
-                ChallengeOptionEntity(id = 7500013, challengeId = 65201, text = "停留所", romaji = "teeryuujo", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500013, challengeId = 65201, text = "停留所", romaji = "teiryuujyo", correct = true, errorTag = null),
                 ChallengeOptionEntity(id = 7500014, challengeId = 65201, text = "bus stop", romaji = null, correct = true, errorTag = null),
                 ChallengeOptionEntity(id = 7500015, challengeId = 65201, text = "乗り換え", romaji = "norikae", correct = true, errorTag = null),
                 ChallengeOptionEntity(id = 7500016, challengeId = 65201, text = "a change", romaji = null, correct = true, errorTag = null),
@@ -2934,7 +2934,7 @@ object JapaneseN4CurriculumData {
                 ChallengeOptionEntity(id = 7500051, challengeId = 65204, text = "往復券", romaji = "oofukuken", correct = false, errorTag = null),
                 ChallengeOptionEntity(id = 7500052, challengeId = 65204, text = "片道券", romaji = "katamichiken", correct = false, errorTag = null),
 
-                ChallengeOptionEntity(id = 7500053, challengeId = 65205, text = "停留所", romaji = "teeryuujo", correct = true, errorTag = null, audioSrc = "asset:///audio/ja/teeryuujo.ogg"),
+                ChallengeOptionEntity(id = 7500053, challengeId = 65205, text = "停留所", romaji = "teiryuujyo", correct = true, errorTag = null, audioSrc = "asset:///audio/ja/teeryuujo.ogg"),
                 ChallengeOptionEntity(id = 7500054, challengeId = 65205, text = "待合室", romaji = "machiaishitsu", correct = false, errorTag = null),
                 ChallengeOptionEntity(id = 7500055, challengeId = 65205, text = "切符売り場", romaji = "kippuuriba", correct = false, errorTag = null),
                 ChallengeOptionEntity(id = 7500056, challengeId = 65205, text = "入口", romaji = "iriguchi", correct = false, errorTag = null),
@@ -2959,7 +2959,7 @@ object JapaneseN4CurriculumData {
 
                 ChallengeOptionEntity(id = 7500071, challengeId = 65302, text = "切符売り場", romaji = "kippuuriba", correct = true, errorTag = null),
                 ChallengeOptionEntity(id = 7500072, challengeId = 65302, text = "待合室", romaji = "machiaishitsu", correct = false, errorTag = "UNRELATED"),
-                ChallengeOptionEntity(id = 7500073, challengeId = 65302, text = "停留所", romaji = "teeryuujo", correct = false, errorTag = "UNRELATED"),
+                ChallengeOptionEntity(id = 7500073, challengeId = 65302, text = "停留所", romaji = "teiryuujyo", correct = false, errorTag = "UNRELATED"),
                 ChallengeOptionEntity(id = 7500074, challengeId = 65302, text = "入口", romaji = "iriguchi", correct = false, errorTag = "UNRELATED"),
 
                 ChallengeOptionEntity(id = 7500075, challengeId = 65210, text = "会社員", romaji = "kaishain", correct = true, errorTag = null),
@@ -3126,9 +3126,9 @@ object JapaneseN4CurriculumData {
                 ChallengeOptionEntity(id = 7500218, challengeId = 65228, text = "明日は雪がなります。", romaji = "ashita wa yuki ga narimasu", correct = false, errorTag = "WRONG_FORM"),
                 ChallengeOptionEntity(id = 7500219, challengeId = 65228, text = "明日は雪でした。", romaji = "ashita wa yuki deshita", correct = false, errorTag = "WRONG_TENSE"),
 
-                ChallengeOptionEntity(id = 7500220, challengeId = 65305, text = "今日は風が強いです。", romaji = "kyoo wa kaze ga tsuyoi desu", correct = true, errorTag = null),
-                ChallengeOptionEntity(id = 7500221, challengeId = 65305, text = "今日は風が強くです。", romaji = "kyoo wa kaze ga tsuyoku desu", correct = false, errorTag = "WRONG_FORM"),
-                ChallengeOptionEntity(id = 7500222, challengeId = 65305, text = "今日は風が強いでした。", romaji = "kyoo wa kaze ga tsuyoi deshita", correct = false, errorTag = "WRONG_TENSE"),
+                ChallengeOptionEntity(id = 7500220, challengeId = 65305, text = "今日は風が強いです。", romaji = "kyou wa kaze ga tsuyoi desu", correct = true, errorTag = null),
+                ChallengeOptionEntity(id = 7500221, challengeId = 65305, text = "今日は風が強くです。", romaji = "kyou wa kaze ga tsuyoku desu", correct = false, errorTag = "WRONG_FORM"),
+                ChallengeOptionEntity(id = 7500222, challengeId = 65305, text = "今日は風が強いでした。", romaji = "kyou wa kaze ga tsuyoi deshita", correct = false, errorTag = "WRONG_TENSE"),
 
                 ChallengeOptionEntity(id = 7500223, challengeId = 65306, text = "雲", romaji = "kumo", correct = true, errorTag = null),
                 ChallengeOptionEntity(id = 7500224, challengeId = 65306, text = "雪", romaji = "yuki", correct = false, errorTag = "UNRELATED"),
