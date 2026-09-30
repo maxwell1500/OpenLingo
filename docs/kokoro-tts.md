@@ -2656,8 +2656,8 @@ romaji symbol. The romaji `z` is ambiguous *and* may be followed by anything:
 | *cocina*, *oficina*, *gracias*, *ciudad*, *cerrado*, *entonces* | `c` before **e**/**i** | `kosˈina`, `ofizˈina` | `z` → `s` |
 | *hacía*, *parecía* | `c` before **í** | `asˈia`, `paresˈia` | `z` → `s` |
 | *necesitaba*, *necesito* | `c` before **e** (the `ce` of *neces-*) | `nezesitˈabha` | `z` → `s` |
-| *llave*, *llueve*, *lluvia*, *llega*, *llego*, *llamé*, *llamaría*, *llegué*, *llegamos*, *silla*, *toalla*, *pastilla*, *billete*, *pasillo* | any Spanish `ll` that is the historical lateral **/ʎ/** — including where it follows a vowel, forms a diphthong, or closes the syllable | `llˈabhe`, `pastˈiya` | `ll` → `y` |
-| *caballero*, *cabello*, *ella* in its conservative Castilian reading | `ll` that is **/ʝ/ in every variety** — a glide or a consonantal cluster rather than the lateral | — | **leave alone** |
+| *llave*, *llueve*, *lluvia*, *llega*, *llegado*, *llegamos*, *llegué*, *llena*, *llamada*, *llamé*, *llamaría*, *llevó*, *billete*, *pastilla*, *pasillo*, *toallas*, *bollos*, *ventanilla*, *maravilloso*, *Sevilla* | `ll` that is the historical lateral **/ʎ/** in Castilian — word-initial, or syllable-medial or syllable-final before a vowel, including where it follows a vowel | `la yˈabhe`, `pastˈiya` | **`ll` → `y` — a seseante change** |
+| no corpus word | `ll` that is **/ʝ/ in every variety** — a glide or a consonantal cluster rather than the lateral, e.g. *caballero*, *cabello*. **Neither word appears in the corpus at all** (0 occurrences, so no `romaji`), and nothing here needed rewriting | — | **`y` — alphabet normalisation, NOT a variety change** |
 | *Madrid*, *verdad* | word-final `-d` | `madhrˈidh` | trailing `dh` → `d` |
 | any | intervocalic /ð/ | `nˈadha`, `mˈadhre` | **leave alone** — out of scope |
 | any | `bh` | `fabhˈor` | **leave alone** — `bh` is /β/, never /θ/; /θ/ is `z` |
@@ -2713,10 +2713,76 @@ trailing `dh` returns exactly those 6 and **0** literals needing a further
 change. That is a positive result from the full enumeration, not a
 `remaining: 0` asserted from a partial sweep.
 
-**The two `ella` rows are alphabet normalisation, not a variety fix.** *ella* is
-/ˈeʝa/ in every variety — that `ll` is not the /ʎ/ of *llave*. The owner was
-told this and approved it. Recorded so a later reader does not "discover" it
-as a missed variety change and revert it.
+**The two `ella` rows are alphabet normalisation, not a variety fix — do not
+revert them.** `B1CurriculumData.kt:2241` (`ˈeya se bistˈio`) and `:2855` (`ˈeya
+dˈijo kˈe estˈabha lˈista`) are the **second** class in the table above: the
+`ll` is /ʝ/ in every variety, so writing it `y` is alphabet normalisation and is
+correct for Castilian and seseante alike. The owner was told this and approved
+it.
+
+An independent read-only audit flagged both rows as high-severity violations on
+the grounds that the `ll` should be `/ʎ/` and therefore `ll`. **That audit is
+wrong and the code is right.** It is recorded here because the row above is what
+provoked it: a rule phrased by syllable rather than by phoneme reads as though
+`ella` were excluded from the seseante class, and a reader auditing against that
+row will "discover" a defect that does not exist. The table is now phrased by
+phoneme for exactly that reason.
+
+**The `z`-before-vowel G2P defect is real, and the audio is right anyway — and
+that is a standing risk, not a clean bill of health.** This was measured
+acoustically, not inferred.
+
+*The G2P input is wrong.* espeak-ng's `es` voice emits `θ` for orthographic `z`
+before a/o/u, where Spanish is /s/ in every variety. Confirmed against the
+recorded output of the real `make_pipeline(lang_code='e')` in
+`data/intended.json`. Ten shipped clips are affected:
+
+| clip | intended output |
+|---|---|
+| `los_zapatos.ogg` | `los θapˈatos` |
+| `la_cabeza.ogg` | `la kaβˈeθa` |
+| `yo_como_manzanas.ogg` | `ʝˈo kˌomo manθˈanas` |
+| `mi_jefe_trabaja_desde_casa.ogg` | `mˈaɾθo` |
+| `la_reunion_se_ha_aplazado.ogg` | `ˌaplaθˈaðo` |
+| `cuando_llegue_la_pelicula_ya_habia_empezado.ogg`, `el_tren_perdido.ogg` | `ˌempeθˈaðo` |
+| `story_901.ogg`, `story_902.ogg` | `terˈaθa` |
+| `story_904.ogg` | `plˈaθa` |
+
+Kokoro's vocabulary does contain `θ` at id 119, so the token reaches the
+acoustic model as a distinct token; nothing downstream substitutes /s/ in the
+phoneme encoding.
+
+*The audio is nevertheless correct.* The phone recogniser cannot separate θ
+from s at all — on the 380-stimulus calibration it emitted `s` for 10 of 10 θ
+renders and 10 of 10 s renders, p = 0.58 — so θ-token absence proves nothing.
+Identification was done on the waveform instead: high-frequency energy ratio,
+`hf_ratio` = energy above 4 kHz over energy in 3.5–10 kHz. A dental θ is low,
+flat noise; an alveolar s is high and peaked. The measure was validated on
+espeak-ng's own synthesiser first — `kaza` 0.111 vs `kasa` 0.825, `zena` 0.010
+vs `sena` 0.530 — a clean empty gap, decision cut 0.32.
+
+Handed a θ directly, `ef_dora` scores 0.729 [0.662, 0.828]; handed an s, 0.727
+[0.646, 0.809]. The means differ by 0.002 and the ranges overlap completely.
+**The voice renders θ as /s/.** That independently corroborates the earlier 6.2%
+figure from a different direction. Of the 10 affected clips, the 2 that
+produced any θ token both contain other legitimate θ words (*story_901* has
+cocina/hace/sucia, *story_904* has centro/ciudad/hacía). Restricted to the 8
+affected clips containing no other θ word: **0 of 8**, against 0 of 103 in the
+/s/ negative control, exact p = 1.000. The cleanest single case,
+`la_cabeza.ogg`, is one word whose only fricative is the θ: `hf_ratio` 0.901,
+squarely in the /s/ band.
+
+*The fragility is the point.* The G2P input is genuinely wrong, and the audio is
+right **only because this particular voice does not realise the θ it is
+handed.** A future voice that does realise it would turn all ten clips into a
+defect with no code change at all. This is a permanent risk to the corpus, and
+it is a condition to re-check whenever the voice or the G2P front-end changes.
+
+Note that this closes an open question rather than settling the `z`-before-`a`
+row of the table above. That row rests on the project rule that orthographic `z`
+before a vowel is already /s/; the measurement here supports the rule's
+*outcome* for these ten clips in the shipped voice, and does not establish that
+/θ/ is impossible in that position.
 
 **Japanese romaji is byte-identical before and after**, over the **812** `romaji`
 values in `JapaneseN4CurriculumData.kt`, in four serialisations:
