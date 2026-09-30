@@ -2643,7 +2643,7 @@ The §12.1–§12.8 pass above edited no romanisation rule, IPA specification or
 reading. §12.9 records a rewrite that was applied by a separate workstream, and
 measures what it left behind.
 
-### 12.9 The seseante romanisation rewrite, and how it was finished (added 2026-09-29, amended same day)
+### 12.9 The seseante romanisation rewrite, and how it was finished (added 2026-09-29, amended 2026-09-29 and 2026-09-30)
 
 **The classification rule, which is the whole point.** Never regex the romaji.
 Decide from the sibling `text` field's Spanish orthography, then look up the
@@ -2777,6 +2777,32 @@ right **only because this particular voice does not realise the θ it is
 handed.** A future voice that does realise it would turn all ten clips into a
 defect with no code change at all. This is a permanent risk to the corpus, and
 it is a condition to re-check whenever the voice or the G2P front-end changes.
+
+**The G2P defect is now FIXED (amended 2026-09-30).** The Spanish G2P front
+end in `duo-android/tools/g2p_fixes.py` now rewrites orthographic `z` before
+a/o/u to `s` before espeak-ng sees it, so the phoneme input is /s/ for those
+words (`zapatos` → `sapˈatos`, `cabeza` → `kaβˈesa`, `terraza` → `terˈasa`).
+The fix is a pre-processing step on the input text, not a post-hoc edit of the
+phoneme string, so it generalises to any word and any capitalisation.  It
+fires only for `z` before a/o/u: `z` before e/i (`diez`, `vez`) and every
+`ce`/`ci` sequence (`gracias`, `cocina`, `ciudad`) still produce θ, and
+Japanese and English G2P are untouched.  The fix is guarded by
+`duo-android/tools/test_g2p_fixes.py`.
+
+The ten shipped clips still carry the wrong G2P input: they were rendered
+before this fix, and their stored audio was measured acoustically correct
+because the `ef_dora` voice renders the θ it is handed as /s/.  They were
+deliberately **not** re-rendered.  That is a decision, not an omission:
+re-rendering verified-good audio to repair a defect that is not currently
+audible would trade a proven artifact for an unproven one, and the fix's
+correctness is established at the G2P level by the regression guard, not by
+re-rendering the clips.
+
+The shipped audio must be re-rendered and re-measured before release whenever
+the voice or the G2P front-end changes.  The G2P input is now correct, so a
+future voice that realises θ will pronounce these words correctly; but any change
+to either the voice or the front-end invalidates the existing acoustic
+measurement and requires the ten clips to be re-rendered and re-measured.
 
 Note that this closes an open question rather than settling the `z`-before-`a`
 row of the table above. That row rests on the project rule that orthographic `z`

@@ -357,6 +357,30 @@ SPANISH_UY_FIXES = {
     "argüy": "aɾˈɣwi",
 }
 
+# --- Spanish: z before a/o/u is /s/ in every variety --------------------
+# espeak-ng's `es` voice emits the dental fricative /θ/ for orthographic z
+# before a/o/u (zapato -> θapˈato), where Spanish is /s/ in every variety.
+# The project is seseante, so the G2P input must say /s/.  The general fix
+# is to normalise the ORTHOGRAPHY before espeak sees it: written z before
+# a/o/u is rewritten to s, which espeak always reads as /s/.  This is a
+# pre-processing step on the input text, not a post-hoc edit of the phoneme
+# string, so it generalises to any word and any capitalisation.
+#
+# It fires ONLY for z before a/o/u.  z before e/i (diez, vez) and every
+# ce/ci sequence (gracias, cocina, ciudad) keep espeak's θ, which is the
+# project's chosen reading for those.  A z at a word end or before a
+# consonant is untouched (the regex requires a following a/o/u).
+_Z_BEFORE_AOU_RE = re.compile(r"([zZ])([aáoóuúAÁOÓUÚ])")
+
+
+def _z_to_s_before_aou(text):
+    """Rewrite Spanish z before a/o/u to s, preserving case and the vowel."""
+    return _Z_BEFORE_AOU_RE.sub(
+        lambda m: ("s" if m.group(1) == "z" else "S") + m.group(2),
+        text,
+    )
+
+
 _WORD_RE = re.compile(r"[A-Za-zÁÉÍÓÚÜÑáéíóúüñ]+")
 
 
@@ -373,6 +397,7 @@ class PatchedEsG2P:
         self._base = misaki_espeak.EspeakG2P(language="es")
 
     def __call__(self, text, *args, **kwargs):
+        text = _z_to_s_before_aou(text)
         phonemes, rest = self._base(text, *args, **kwargs)
         joined = "".join(phonemes)
         words = sorted({w.lower() for w in _WORD_RE.findall(text)})

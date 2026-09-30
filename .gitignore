@@ -10,6 +10,8 @@
 
 # local signing secrets (never commit)
 keystore.properties
+*.jks
+*.keystore
 
 # misc
 .DS_Store
