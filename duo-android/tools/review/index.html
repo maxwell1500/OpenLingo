@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pronunciation review</title>
+<!-- Everything this page needs is on this machine. There is no CDN, no web
+     font, no analytics and no network request of any kind. -->
+<link rel="stylesheet" href="review.css">
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <h1>Pronunciation review</h1>
+    <p class="tagline">Listen to each line and decide whether it sounds right.
+      Nothing is uploaded &mdash; your answers stay in this browser until you export them.</p>
+
+    <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+    <p class="progress-text" id="progressText">&nbsp;</p>
+
+    <div class="toolbar">
+      <fieldset>
+        <legend>Show</legend>
+        <select id="fLang" aria-label="Filter by language">
+          <option value="">Both languages</option>
+          <option value="es">Spanish only</option>
+          <option value="ja">Japanese only</option>
+        </select>
+        <select id="fVerdict" aria-label="Filter by what the computer thought">
+          <option value="">Any computer result</option>
+        </select>
+        <select id="fType" aria-label="Filter by kind of exercise">
+          <option value="">Any kind of exercise</option>
+        </select>
+        <label class="check"><input type="checkbox" id="fUnjudged"> Only not judged yet</label>
+      </fieldset>
+
+      <fieldset>
+        <legend>Speed</legend>
+        <select id="rate" aria-label="Playback speed">
+          <option value="0.5">0.5&times; &mdash; slow</option>
+          <option value="0.75">0.75&times;</option>
+          <option value="1" selected>1&times; &mdash; normal</option>
+        </select>
+        <label class="check"><input type="checkbox" id="loopAll"> Repeat each line</label>
+        <button id="playAll" type="button">Play the list</button>
+        <button id="stopAll" type="button">Stop</button>
+      </fieldset>
+
+      <fieldset>
+        <legend>Pick for me</legend>
+        <input type="text" id="sampleN" value="20" size="3" aria-label="How many clips to pick"
+               inputmode="numeric" title="How many clips to pick">
+        <button id="sampleBtn" type="button">Random sample</button>
+        <button id="clearSample" type="button">Back to all</button>
+      </fieldset>
+
+      <fieldset>
+        <legend>Results</legend>
+        <label class="check" title="Hidden by default so your first impression is your own ear, not the machine's.">
+          <input type="checkbox" id="showMachine"> Show what the computer found
+        </label>
+        <button id="exportBtn" type="button" class="primary">Export answers</button>
+        <button id="importBtn" type="button">Import answers</button>
+        <input type="file" id="importFile" accept="application/json,.json" hidden>
+        <button id="helpBtn" type="button">How to use this</button>
+      </fieldset>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <p id="loadError" class="empty" hidden></p>
+  <div id="list"></div>
+  <p id="noRows" class="empty" hidden>Nothing matches these filters. Try “Back to all”.</p>
+</main>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<dialog id="help">
+  <button class="close" type="button" onclick="this.closest('dialog').close()">Close</button>
+  <h2>How to use this</h2>
+  <p>You do not need to know anything about linguistics. If you can tell whether a
+     sentence <em>sounds</em> like something you would say, you are exactly the person
+     this is for.</p>
+
+  <h3>On each line</h3>
+  <ol>
+    <li>Press the round <strong>Play</strong> button to hear the line. Press again to stop.</li>
+    <li>Read the sentence shown next to it. Under it is the reading the app promises —
+        for Japanese the romaji, for Spanish a plain-English way of writing the sounds.</li>
+    <li>Press one of the four buttons:</li>
+  </ol>
+  <ul>
+    <li><strong>Sounds correct</strong> &mdash; you would say it exactly like that.</li>
+    <li><strong>Wrong sound</strong> &mdash; something is mispronounced. Then say <em>which word</em>
+        in the note box, if you can. That is what a fix needs.</li>
+    <li><strong>Unclear / robotic</strong> &mdash; you can understand it, but it does not sound like
+        a person talking. This is not the same as wrong, and it matters.</li>
+    <li><strong>Skip</strong> &mdash; you cannot tell, or you would rather not say.</li>
+  </ul>
+  <p>The two small boxes only appear once you have chosen something, and both are optional.</p>
+
+  <h3>Slowing down</h3>
+  <p>Subtle mistakes hide in fast speech. Set <strong>Speed</strong> to 0.5&times; and tick
+     <strong>Repeat each line</strong> to hear a line over and over. Then compare it with
+     how you yourself would say it, out loud if that helps.</p>
+
+  <h3>Comparing against a real voice (optional)</h3>
+  <p>If a reference recording has been supplied for a line, a second button
+     <strong>Reference</strong> appears next to Play. Press it to hear the reference voice
+     instead, and press it again to go back. The two swap instantly, so you can A/B them as
+     many times as you like.</p>
+  <p>The reference slot is empty for now. To fill it: record each sentence once, as a
+     native speaker, and save the files as <code>.ogg</code> into
+     <code>references/es/</code> and <code>references/ja/</code>, using the clip's own file name.
+     Reload this page and the buttons appear by themselves. See
+     <code>references/README.md</code>.</p>
+
+  <h3>Coming back later</h3>
+  <p>Your answers are saved in this browser as you go, so you can close the page and come
+     back. Only this browser, on this computer &mdash; nothing is sent anywhere.</p>
+
+  <h3>Sending the results back &mdash; do this last</h3>
+  <p>Click <strong>Export answers</strong>. A file called
+     <code>pronunciation-review-&lt;date&gt;.json</code> is saved to your Downloads folder.
+     <strong>That file is the deliverable.</strong> Send it back to whoever gave you this page
+     and nothing else is needed. If you review on a different computer or browser, use
+     <strong>Import answers</strong> there first.</p>
+
+  <h3>Shortcuts</h3>
+  <ul>
+    <li><code>Space</code> play or stop the line you are on</li>
+    <li><code>1</code> sounds correct &nbsp; <code>2</code> wrong sound &nbsp;
+        <code>3</code> unclear &nbsp; <code>4</code> skip</li>
+    <li><code>j</code> / <code>k</code> move down / up the list</li>
+    <li><code>s</code> switch between the clip and its reference recording</li>
+  </ul>
+</dialog>
+
+<script src="review.js"></script>
+</body>
+</html>

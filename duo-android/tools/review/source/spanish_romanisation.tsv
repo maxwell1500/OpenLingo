@@ -1,0 +1,271 @@
+optionId	lessonId	esText	romanisation	dialectNote	confidence
+10309	116	Hablé con él ayer	abhlˈe kon el ˈayer	ayer: the written y is the CONSONANT /ʝ/. This is also the only esdrújula in the corpus, which the plain ending-rule would get wrong	high
+10319	117	Compré el billete de tren	komprˈe el billˈete de tren	billete: ll is the traditional /ʎ/. This is a genuine Castilian/Canarian split: southern Spanish frequently realises it as /ʝ/ | clip: the authoritative text for this clip is a whole STORY passage and is itself marked inferred-uncertain, while this option is a short phrase. The two do not describe the same audio, so this row CANNOT be compared clip-for-clip and the low rating is a statement about the corpus, not about the reading	low
+10330	118	Cuando era niño vivía en Madrid	kwˈando era nˈiño bibhˈia en madhrˈidh	Cuando: REASON: cu is the digraph /kw/; the engine writes the u as a vowel.: cu is /kw/; this one IS two syllables, unlike cuatro | Madrid: a proper noun, /maˈðɾið/. Uncontroversial | clip: the authoritative text for this clip is a whole STORY passage and is itself marked inferred-uncertain, while this option is a short phrase. The two do not describe the same audio, so this row CANNOT be compared clip-for-clip and the low rating is a statement about the corpus, not about the reading	low
+10343	119	Hacía buen tiempo todos los días	azˈia buen tˈiempo tˈodhos los dˈias		high
+500000	300	Tuve un día malo	tˈubhe un dˈia mˈalo		high
+500080	300	La reunión	la rreunˈion	reunión: the initial r is a trill and c before i is /θ/	high
+500090	300	Estuve muy cansado	estˈubhe mˈui kansˈadho	muy: the written y is a VOWEL, /i/. Writing this as /muʝ/ is the single most common error in transliterating Spanish	high
+500100	301	No quise ir	no kˈise ir		high
+500190	301	La estación	la estazˈion	estación: c before i is /θ/. This is the largest Castilian/Spanish-American split in the whole set: -ción is /θjon/ in Spain and /sjon/ throughout Latin America	high
+501090	303	La cita	la zˈita	cita: c before i is /θ/	high
+501130	304	¿Me trae la cuenta, por favor?	me trˈae la kwˈenta por fabhˈor	cuenta: REASON: cu is the digraph /kw/; the engine writes the u as a vowel.: cu is /kw/; the n is alveolar before a t	high
+501190	304	La llave	la llˈabhe	llave: ll is the traditional /ʎ/ of Castilian. Spanish America merges ll with y and says /ˈʝabhe/. This table follows Castilian	high
+501250	305	La llamé porque necesitaba dinero	la llamˈe pˈorke nezesitˈabha dinˈero	llamé: ll is the traditional /ʎ/ | porque: qu is /k/; the r is a tap	high
+501260	305	Estudio español para viajar a España	estˈudhio españˈol pˈara biajˈar a espˈaña	español: ñ is /ɲ/; the stress falls on the ñ because the word ends in a consonant other than n or s | viajar: v is /b/ and j is /x/ | España: ñ is /ɲ/; the stress is on the pa- syllable because the word ends in a vowel | español: the final stress falls on the n-tilde because the word ends in a consonant other than n or s | España: the clip filename is espana with no tilde, but the option text carries the tilde and the tilde is the reading	high
+501290	305	El fin de semana	el fin de semˈana		high
+700020	600	Necesito que firmes este formulario	nezesˈito kˈe fˈirmes ˈeste formulˈario	que: qu is /k/; the u is silent	high
+700130	601	Es una pena que no haya venido	es una pˈena kˈe no ˈaya benˈidho	que: qu is /k/; the u is silent	high
+700210	602	Te lo digo para que lo sepas	te lo dˈigho pˈara kˈe lo sˈepas	que: qu is /k/; the u is silent	high
+700320	603	La veo en la puerta	la bˈeo en la pˈuerta		high
+700450	604	Nos gusta el mar	nos gˈusta el mar	gusta: g before u is a hard /ɡ/	high
+700530	605	Ella se vistió	ˈella se bistˈio	vistió: v is /β/; the written y is a consonant	high
+700630	606	Siéntese, por favor	sˈientese por fabhˈor		high
+800000	700	Si hubiera sabido, habría venido	si ubhˈiera sabhˈidho abhrˈia benˈidho		high
+800100	701	Habló como si lo hubiera sabido todo	abhlˈo komo si lo ubhˈiera sabhˈidho tˈodho	Habló: h is silent and b is /β/	high
+800200	702	Mis amigos no vinieron porque ya habían salido	mis amˈighos no binierˈon pˈorke yˈa abhˈian salˈidho	porque: qu is /k/; the r is a tap | ya: y is the consonant /ʝ/. After a pause it is fully fricative; between vowels it is weaker, often almost /i/	medium
+800250	702	Si lo hubiera pedido, la habría ayudado	si lo ubhˈiera pedhˈidho la abhrˈia ayudhˈadho	ayudado: y is the consonant /ʝ/; both d's are /ð/	high
+800300	703	Dijo que estaba cansado	dˈijo kˈe estˈabha kansˈadho	Dijo: j is /x/ | que: qu is /k/; the u is silent	high
+800360	703	Ella dijo que estaba lista	ˈella dˈijo kˈe estˈabha lˈista	dijo: j is /x/ | que: qu is /k/; the u is silent	high
+800400	704	Dijo que ya había salido	dˈijo kˈe yˈa abhˈia salˈidho	Dijo: j is /x/ | que: qu is /k/; the u is silent | ya: y is the consonant /ʝ/. After a pause it is fully fricative; between vowels it is weaker, often almost /i/ | había: h is silent, so the y is a bare VOWEL: a-βi-a. A respelling that keeps the y is not wrong in sound but is confusing to read	medium
+800440	704	Preguntó si podía sentarme	preguntˈo si podhˈia sentˈarme		high
+800500	705	Gracias por tu ayuda	grˈazias por tu ayˈudha	Gracias: c before i is /θ/. Spanish-American seseo gives /ˈɡɾasias/ with /s/. I have taken Castilian, and this is the word most often used to argue the point | ayuda: y before a vowel is the CONSONANT /ʝ/, not /i/ and not /ʎ/. The d between vowels is /ð/	high
+800520	705	Lo compré para tu regalo	lo komprˈe pˈara tu rreghˈalo	regalo: the initial r is a trill and the g is /ɣ/ intervocalically	high
+800560	705	Por eso no pude venir	por ˈeso no pˈudhe benˈir		high
+10057	105	Un café, por favor	un kafˈe por fabhˈor		high
+10068	106	¿Dónde está el restaurante?	dˈonde estˈa el rrestaurˈante		high
+10071	106	La cuenta	la kwˈenta	cuenta: REASON: cu is the digraph /kw/; the engine writes the u as a vowel.: cu is /kw/; the n is alveolar before a t	high
+10300	106	Café	kafˈe		high
+10302	106	Cuenta	kwˈenta	Cuenta: REASON: cu is the digraph /kw/; the engine writes the u as a vowel.: cu is /kw/; the n is alveolar before a t	high
+10306	106	A coffee	(not Spanish)	NOT SPANISH. This is a SELECT answer option (binding: option-direct) attached to a Spanish clip. The clip plays when the option is chosen, but the clip is speaking the Spanish target sentence, not this English text, so there is no reading of it to declare. It is left in the table so the omission is visible and countable, and the detector skips it. Romanising it as if it were Spanish would manufacture a specification for audio that never claims to speak it.	n/a
+10078	107	Yo hablo español	yˈo ˈabhlo españˈol	Yo: y is the consonant /ʝ/ | hablo: h is silent and b is /β/ | español: ñ is /ɲ/; the stress falls on the ñ because the word ends in a consonant other than n or s | español: the final stress falls on the n-tilde because the word ends in a consonant other than n or s	high
+10101	110	El dormitorio	el dormitˈorio		high
+10106	110	cocina	kozˈina	cocina: c before i is /θ/	high
+10114	111	La mesa	la mˈesa		high
+10126	112	¿Cuánto cuesta?	kuuanto kˈuesta		high
+10131	112	camisa	kamˈisa		high
+10139	113	Barato	barˈato		high
+10151	114	La cabeza	la kabhˈeza		high
+10164	115	Tengo fiebre	tˈenggo fˈiebhre	Tengo: REASON: the ng before g is the velar /ngg/; the engine writes n+g.: the ng before g is the velar /ŋɡ/	high
+909600	900	Me duele la garganta.	me dˈuele la gargˈanta		high
+910000	900	La enfermera me dio una pastilla.	la enfermˈera me dio una pastˈilla		high
+929600	901	La nevera está en la cocina.	la nebhˈera estˈa en la kozˈina	cocina: c before i is /θ/	high
+930000	901	Voy a limpiar el baño y el pasillo.	bˈoi a limpˈiar el bˈaño y el pasˈillo	Voy: the written y is a vowel, /i/; the v is /b/ | baño: ñ is /ɲ/ | pasillo: ll is the traditional /ʎ/. A minority of Castilian speakers, mostly southern, say /paˈsiʝo/; the default is the one I have taken	high
+949600	902	Quiero pedir la carta, por favor.	kˈiero pedhˈir la kˈarta por fabhˈor		high
+950000	902	La propina está incluida en la cuenta.	la propˈina estˈa inklˈuidha en la kwˈenta	cuenta: REASON: cu is the digraph /kw/; the engine writes the u as a vowel.: cu is /kw/; the n is alveolar before a t	high
+970000	903	El avión llega tarde por la niebla.	el abhˈion llˈegha tˈardhe por la nˈiebhla		high
+970400	903	Gire a la derecha en la esquina.	jˈire a la derˈecha en la eskˈina	Gire: g before i is /x/. Compare Llegó, where the same letter g after a vowel is the soft /ɣ/ - two different sounds from one letter	high
+989600	904	Hoy llueve en toda la ciudad.	oi llˈuebe en tˈodha la ziudhˈadh	llueve: REASON: the b is the /bh/ allophone between vowels.: ll is the traditional /ʎ/; ue is the diphthong /we/	high
+990000	904	El puente está cerrado por la lluvia.	el pˈuente estˈa zerrˈadho por la llˈubia	cerrado: c before e is /θ/; the rr is a trill and the d is /ð/ | lluvia: REASON: the v is the /bh/ allophone between vowels.: ll is the traditional /ʎ/; the v is /β/ between vowels	high
+1010000	905	Mi jefe trabaja desde casa desde marzo.	mi jˈefe trabhˈaja dˈesde kˈasa dˈesde mˈarzo	jefe: written j is /x/. Spanish-American seseo does not touch this word, but the j is the sound an LLM voice is most likely to miss, so it is spelled out here	high
+1010400	905	La reunión se ha aplazado hasta el viernes.	la rreunˈion se a aplazˈadho ˈasta el bˈiernes	reunión: the initial r is a trill and c before i is /θ/	high
+10001	100	El hombre	el ˈombre		high
+10002	100	La mujer	la mujˈer		high
+10004	100	Buenos días	bˈuenos dˈias		high
+10006	100	Hola	ˈola	Hola: h is silent	high
+10015	101	Muchas gracias	mˈuchas grˈazias	Muchas: ch is /tʃ/ | gracias: c before i is /θ/. Spanish-American seseo gives /ˈɡɾasias/ with /s/. I have taken Castilian, and this is the word most often used to argue the point	high
+10016	101	De nada	de nˈadha		high
+10017	101	Por favor	por fabhˈor		high
+10026	101	De nada	de nˈadha		high
+10029	102	El padre	el pˈadhre		high
+10030	102	La madre	la mˈadhre	madre: d between vowels is /ð/; r is a tap	high
+10032	102	La madre	la mˈadhre	madre: d between vowels is /ð/; r is a tap	high
+10044	103	¡Mucho gusto!	mˈucho gˈusto	Mucho: ch is /tʃ/. Written mu-tʃo, one syllable | gusto: g before u is a hard /ɡ/	high
+10046	103	Buenos días	bˈuenos dˈias		high
+10316	116	Llegamos a tiempo	lleghˈamos a tˈiempo	Llegamos: ll is /ʎ/; g is /ɣ/ after a vowel	high
+10327	117	Bought the train ticket	(not Spanish)	NOT SPANISH. This is a STORY answer option (binding: correct-option) attached to a Spanish clip. The clip plays when the option is chosen, but the clip is speaking the Spanish target sentence, not this English text, so there is no reading of it to declare. It is left in the table so the omission is visible and countable, and the detector skips it. Romanising it as if it were Spanish would manufacture a specification for audio that never claims to speak it.	n/a
+10340	118	Cuando era niño vivía en Madrid	kwˈando era nˈiño bibhˈia en madhrˈidh	Cuando: REASON: cu is the digraph /kw/; the engine writes the u as a vowel.: cu is /kw/; this one IS two syllables, unlike cuatro | Madrid: a proper noun, /maˈðɾið/. Uncontroversial | clip: the authoritative text for this clip is a whole STORY passage and is itself marked inferred-uncertain, while this option is a short phrase. The two do not describe the same audio, so this row CANNOT be compared clip-for-clip and the low rating is a statement about the corpus, not about the reading	low
+10353	119	Hacía buen tiempo todos los días	azˈia buen tˈiempo tˈodhos los dˈias		high
+10356	119	In Madrid with her family	(not Spanish)	NOT SPANISH. This is a STORY answer option (binding: correct-option) attached to a Spanish clip. The clip plays when the option is chosen, but the clip is speaking the Spanish target sentence, not this English text, so there is no reading of it to declare. It is left in the table so the omission is visible and countable, and the detector skips it. Romanising it as if it were Spanish would manufacture a specification for audio that never claims to speak it.	n/a
+500010	300	tuve	tˈubhe		high
+500020	300	Tuve	tˈubhe		high
+500030	300	pude	pˈudhe		high
+500040	300	Pude	pˈudhe		high
+500050	300	hice	ˈize	hice: h is silent and c before e is /θ/	high
+503000	300	Ayer hice un bizcocho para la reunión	ˈayer ˈize un bizkˈocho pˈara la rreunˈion	Ayer: the written y is the CONSONANT /ʝ/. This is also the only esdrújula in the corpus, which the plain ending-rule would get wrong | hice: h is silent and c before e is /θ/ | reunión: the initial r is a trill and c before i is /θ/	high
+500070	300	dijimos	dijˈimos	dijimos: j is /x/. This is the case the app's own audio has to get right and cannot be reached by any orthography-to-phoneme shortcut	high
+503010	300	Estuve en casa todo el día	estˈubhe en kˈasa tˈodho el dˈia		high
+500110	301	vinieron	binierˈon		high
+500120	301	Vino	bˈino		high
+500130	301	estuve	estˈubhe		high
+500140	301	pusimos	pusˈimos		high
+500150	301	dormí	dormˈi		high
+500160	301	Dormí	dormˈi		high
+503020	301	Anoche dormimos ocho horas	anˈoche dormˈimos ˈocho ˈoras	Anoche: ch is /tʃ/ | ocho: ch is /tʃ/; the word is one syllable	high
+500170	301	pidió	pidhˈio	pidió: d between vowels is /ð/; the written y is a consonant /i/	high
+500180	301	descubrimos	deskubhrˈimos		high
+500400	301	Siguió	sigˈio		high
+500410	301	Volvió	bolbhˈio	Volvió: v is /β/; the written y is a consonant /i/	high
+503030	301	Los niños pidieron permiso para salir	los nˈiños pidhierˈon permˈiso pˈara salˈir	niños: ñ is /ɲ/ | pidieron: d between vowels is /ð/ and ie is /je/. Pidió is a tap; pidieron keeps the vowel	high
+500200	302	Cuando	kwˈando	Cuando: REASON: cu is the digraph /kw/; the engine writes the u as a vowel.: cu is /kw/; this one IS two syllables, unlike cuatro	high
+500201	302	llegué	llegˈue		high
+500202	302	la	la		high
+500203	302	película	pelˈikula		high
+500204	302	ya	yˈa	ya: y is the consonant /ʝ/. After a pause it is fully fricative; between vowels it is weaker, often almost /i/	medium
+500205	302	había	abhˈia	había: h is silent, so the y is a bare VOWEL: a-βi-a. A respelling that keeps the y is not wrong in sound but is confusing to read	high
+500206	302	empezado	empezˈadho		high
+500210	302	Había	abhˈia	Había: h is silent, so the y is a bare VOWEL: a-βi-a. A respelling that keeps the y is not wrong in sound but is confusing to read	high
+503040	302	El tren ya había salido cuando llegué	el tren yˈa abhˈia salˈidho kwˈando llegˈue	ya: y is the consonant /ʝ/. After a pause it is fully fricative; between vowels it is weaker, often almost /i/ | había: h is silent, so the y is a bare VOWEL: a-βi-a. A respelling that keeps the y is not wrong in sound but is confusing to read | cuando: REASON: cu is the digraph /kw/; the engine writes the u as a vowel.: cu is /kw/; this one IS two syllables, unlike cuatro	medium
+500260	302	In a lost day	(not Spanish)	NOT SPANISH. This is a STORY answer option (binding: correct-option) attached to a Spanish clip. The clip plays when the option is chosen, but the clip is speaking the Spanish target sentence, not this English text, so there is no reading of it to declare. It is left in the table so the omission is visible and countable, and the detector skips it. Romanising it as if it were Spanish would manufacture a specification for audio that never claims to speak it.	n/a
+500420	302	comprado	komprˈadho		high
+500430	302	abrí	abhrˈi		high
+503050	302	Ya habíamos terminado el trabajo	yˈa abhˈiamos terminˈadho el trabhˈajo	Ya: y is the consonant /ʝ/. After a pause it is fully fricative; between vowels it is weaker, often almost /i/	medium
+501000	303	hablaría	abhlarˈia	hablaría: h is silent and the written y is a vowel, /i/	high
+501010	303	Hablaría	abhlarˈia	Hablaría: h is silent and the written y is a vowel, /i/	high
+501020	303	viviríamos	bibhirˈiamos		high
+501030	303	tendría	tendrˈia	tendría: the written y is a vowel, /i/	high
+501040	303	podríamos	podhrˈiamos		high
+501050	303	diría	dirˈia	diría: the written y is a vowel, /i/	high
+501060	303	saldría	saldhrˈia	saldría: the written y is a vowel, /i/	high
+501070	303	Estaría	estarˈia	Estaría: the written y is a vowel, /i/	high
+503060	303	Yo compraría una casa más grande	yˈo komprarˈia una kˈasa mas grˈande	Yo: y is the consonant /ʝ/	high
+501080	303	vendríamos	bendrˈiamos	vendríamos: v is /β/; the written y is a vowel, /i/	high
+501400	303	Harías	arˈias	Harías: the written y is a vowel, /i/	high
+503070	303	Yo diría que sí, pero no sé	yˈo dirˈia kˈe si pˈero no se	Yo: y is the consonant /ʝ/ | diría: the written y is a vowel, /i/ | que: qu is /k/; the u is silent	high
+501100	304	gustaría	gustarˈia	gustaría: the written y is a vowel, /i/, and gu+i is a hard /ɡ/	high
+501110	304	querría	kerrˈia		high
+501120	304	podría	podhrˈia		high
+501150	304	Me	me		high
+501151	304	gustaría	gustarˈia	gustaría: the written y is a vowel, /i/, and gu+i is a hard /ɡ/	high
+501152	304	reservar	rreserbhˈar	reservar: the initial r is a trill, both interior r's are taps, and the final v is /β/	high
+501153	304	una	una		high
+501154	304	mesa	mˈesa		high
+501160	304	Comería	komerˈia		high
+503080	304	Me gustaría reservar una mesa para cuatro	me gustarˈia rreserbhˈar una mˈesa pˈara kwˈatro	gustaría: the written y is a vowel, /i/, and gu+i is a hard /ɡ/ | reservar: the initial r is a trill, both interior r's are taps, and the final v is /β/ | cuatro: REASON: cu is the digraph /kw/; the engine writes the u as a vowel.: cu is the digraph /kw/ and the word is one syllable with a tap r	high
+501410	304	Comería	komerˈia		high
+501420	304	diría	dirˈia	diría: the written y is a vowel, /i/	high
+503090	304	Yo querría un vaso de agua, por favor	yˈo kerrˈia un bˈaso de ˈaghwa por fabhˈor	Yo: y is the consonant /ʝ/ | agua: REASON: intervocalic g is the soft /gh/; the engine writes the phoneme g without the allophone.: g before a vowel is the soft /ɣ/, NOT /x/, and the u is a glide, so agua is two syllables. Contrast Guitar, where the same letters give a hard /ɡ/	high
+501200	305	porque	pˈorke	porque: qu is /k/; the r is a tap	high
+503100	305	No fui porque estaba cansado	no fui pˈorke estˈabha kansˈadho	porque: qu is /k/; the r is a tap	high
+501210	305	entonces	entˈonzes	entonces: the c before e is /θ/ and the word-final c is a spelling letter with no sound	high
+501220	305	aunque	ˈaunke		high
+501240	305	Era	era		high
+501241	305	tarde	tˈardhe		high
+501242	305	así	asˈi		high
+501243	305	que	kˈe	que: qu is /k/; the u is silent	high
+501244	305	nos	nos		high
+501245	305	fuimos	fwˈimos	fuimos: REASON: fui is the diphthong /fwi/; the engine writes the u as a vowel.: fui is the diphthong /wi/ and the s stays /s/ before a consonant	high
+501246	305	a	a		high
+501247	305	casa	kˈasa		high
+501270	305	A plan that changed	(not Spanish)	NOT SPANISH. This is a STORY answer option (binding: correct-option) attached to a Spanish clip. The clip plays when the option is chosen, but the clip is speaking the Spanish target sentence, not this English text, so there is no reading of it to declare. It is left in the table so the omission is visible and countable, and the detector skips it. Romanising it as if it were Spanish would manufacture a specification for audio that never claims to speak it.	n/a
+501280	305	Aunque	ˈaunke		high
+501281	305	costaba	kostˈabha		high
+501282	305	mucho	mˈucho	mucho: ch is /tʃ/. Written mu-tʃo, one syllable	high
+501284	305	dos	dos		high
+501285	305	bicicletas	biziklˈetas		high
+501283	305	compramos	komprˈamos		high
+501430	305	Pero	pˈero		high
+503110	305	Llegué tarde, así que no pude entrar	llegˈue tˈardhe asˈi kˈe no pˈudhe entrˈar	que: qu is /k/; the u is silent	high
+700000	600	vengas	bˈengas	vengas: v is /β/; the ng is the velar /ŋɡ/ in careful speech	high
+700010	600	envíes	enbˈies		high
+700030	600	hagas	ˈaghas		high
+700040	600	Quiero	kˈiero		high
+700041	600	que	kˈe	que: qu is /k/; the u is silent	high
+700042	600	vengas	bˈengas	vengas: v is /β/; the ng is the velar /ŋɡ/ in careful speech	high
+700043	600	mañana	mañˈana	mañana: ñ is /ɲ/	high
+700100	601	No creo que sea la verdad	no krˈeo kˈe sea la berdhˈadh	que: qu is /k/; the u is silent	high
+700110	601	seas	sˈeas		high
+700120	601	pueda	pwˈedha	pueda: REASON: pue is the diphthong /pwe/; the engine writes the u as a vowel.: ue is /we/ and d is /ð/	high
+700140	601	Me alegro de que estén listos	me alˈegro de kˈe estˈen lˈistos	que: qu is /k/; the u is silent	high
+700150	601	estéis	estˈeis		high
+700200	602	salga	sˈalga		high
+700220	602	podamos	podhˈamos		high
+700230	602	Te lo compro para que puedas usarlo mañana	te lo kˈompro pˈara kˈe pwˈedhas usˈarlo mañˈana	que: qu is /k/; the u is silent | puedas: REASON: pue is the diphthong /pwe/; the engine writes the u as a vowel.: ue is /we/ and d is /ð/ | mañana: ñ is /ɲ/	high
+700240	602	termines	termˈines		high
+700250	602	Unless it rains	(not Spanish)	NOT SPANISH. This is a STORY answer option (binding: correct-option) attached to a Spanish clip. The clip plays when the option is chosen, but the clip is speaking the Spanish target sentence, not this English text, so there is no reading of it to declare. It is left in the table so the omission is visible and countable, and the detector skips it. Romanising it as if it were Spanish would manufacture a specification for audio that never claims to speak it.	n/a
+700300	603	lo	lo		high
+700310	603	Lo	lo		high
+700330	603	Los veo en el parque	los bˈeo en el pˈarke		high
+700340	603	Compro	kˈompro		high
+700341	603	los	los		high
+700342	603	boletos	bolˈetos		high
+700400	604	le	le		high
+700410	604	Le	le		high
+700420	604	A Marta le gusta el café	a mˈarta le gˈusta el kafˈe	gusta: g before u is a hard /ɡ/ | Marta: a proper noun, /ˈmaɾta/. Uncontroversial	high
+700430	604	gustan	gustˈan	gustan: g before u is a hard /ɡ/	high
+700440	604	gustan	gustˈan	gustan: g before u is a hard /ɡ/	high
+700500	605	Me levanto todos los días	me lebhˈanto tˈodhos los dˈias		high
+700510	605	me	me		high
+700520	605	se	se		high
+700540	605	habla	ˈabhla	habla: h is silent and b is /β/	high
+700550	605	hablan	abhlˈan	hablan: h is silent and b is /β/	high
+700560	605	She gets up	(not Spanish)	NOT SPANISH. This is a STORY answer option (binding: correct-option) attached to a Spanish clip. The clip plays when the option is chosen, but the clip is speaking the Spanish target sentence, not this English text, so there is no reading of it to declare. It is left in the table so the omission is visible and countable, and the detector skips it. Romanising it as if it were Spanish would manufacture a specification for audio that never claims to speak it.	n/a
+700600	606	escucha	eskˈucha		high
+700610	606	ven	ben		high
+700620	606	corras	kˈoras		high
+700640	606	siéntate	sˈientate		high
+700650	606	duerme	dˈuerme		high
+700660	606	No digas eso, por favor	no dˈighas ˈeso por fabhˈor		high
+800010	700	hubieras	ubhˈieras		high
+800020	700	hubiera	ubhˈiera		high
+800030	700	Ojalá hubieras estudiado más	ojalˈa ubhˈieras estudhˈiadho mas		high
+800040	700	Si no	si no		high
+800041	700	hubieras	ubhˈieras		high
+800042	700	avisado	abhisˈadho		high
+800043	700	no	no		high
+800044	700	hubiera	ubhˈiera		high
+800045	700	venido	benˈidho		high
+800050	700	habríamos	abhrˈiamos	habríamos: the written y is a vowel, /i/	high
+800060	700	He would have arrived earlier	(not Spanish)	NOT SPANISH. This is a STORY answer option (binding: correct-option) attached to a Spanish clip. The clip plays when the option is chosen, but the clip is speaking the Spanish target sentence, not this English text, so there is no reading of it to declare. It is left in the table so the omission is visible and countable, and the detector skips it. Romanising it as if it were Spanish would manufacture a specification for audio that never claims to speak it.	n/a
+800110	701	hubieses	ubhˈieses		high
+800120	701	hubiera	ubhˈiera		high
+800140	701	Sentía como si hubiera perdido el tren	sentˈia komo si ubhˈiera perdhˈidho el tren	perdido: r between vowels is a TAP, /ɾ/, and both d's are /ð/. Compare Rojo, where the r is a trill	high
+800150	701	Nos	nos		high
+800151	701	parecía	parezˈia		high
+800152	701	como si	komo si		high
+800153	701	hubiéramos	ubhˈieramos		high
+800154	701	conocido	konozˈidho	conocido: c before i is /θ/; d is /ð/	high
+800155	701	a ese	a ˈese		high
+800156	701	hombre	ˈombre		high
+800210	702	habría	abhrˈia		high
+800220	702	hubiera	ubhˈiera		high
+800230	702	Si hubiera tenido dinero, no habría ido	si ubhˈiera tenˈidho dinˈero no abhrˈia ˈidho		high
+800240	702	hubieseis	ubhˈieseis		high
+800260	702	Because the writer did not have the recipient's number	(not Spanish)	NOT SPANISH. This is a STORY answer option (binding: correct-option) attached to a Spanish clip. The clip plays when the option is chosen, but the clip is speaking the Spanish target sentence, not this English text, so there is no reading of it to declare. It is left in the table so the omission is visible and countable, and the detector skips it. Romanising it as if it were Spanish would manufacture a specification for audio that never claims to speak it.	n/a
+800310	703	llamaría	llamarˈia	llamaría: ll is the traditional /ʎ/; the written y is a vowel here, /i/	high
+800320	703	trabajaba	trabhajˈabha		high
+800340	703	Me dijo que venía mañana	me dˈijo kˈe benˈia mañˈana	dijo: j is /x/ | que: qu is /k/; the u is silent | mañana: ñ is /ɲ/	high
+800350	703	Nos	nos		high
+800351	703	dijo	dˈijo	dijo: j is /x/	high
+800352	703	que	kˈe	que: qu is /k/; the u is silent	high
+800353	703	habíamos	abhˈiamos		high
+800354	703	perdido	perdhˈidho	perdido: r between vowels is a TAP, /ɾ/, and both d's are /ð/. Compare Rojo, where the r is a trill	high
+800355	703	el	el		high
+800356	703	tren	tren		high
+800410	704	tomó	tomˈo		high
+800420	704	cogió	koghˈio	cogió: REASON: g before a vowel is the soft /gh/, not /x/; the engine is wrong here and this is the SPANISH_WORD_FIXES case.: the written g before a vowel is the soft /ɣ/, NOT /x/. This is the one sound in this set that g2p_fixes.SPANISH_WORD_FIXES patches, and it is a different sound from the /x/ of Gire	high
+800430	704	La maestra dijo que había terminado	la maˈestra dˈijo kˈe abhˈia terminˈadho	dijo: j is /x/ | que: qu is /k/; the u is silent | había: h is silent, so the y is a bare VOWEL: a-βi-a. A respelling that keeps the y is not wrong in sound but is confusing to read	high
+800450	704	Le	le		high
+800451	704	dijo	dˈijo	dijo: j is /x/	high
+800452	704	que	kˈe	que: qu is /k/; the u is silent	high
+800453	704	tomó	tomˈo		high
+800454	704	el	el		high
+800455	704	desayuno	desayˈuno		high
+800460	704	He lied: he had not finished the report	(not Spanish)	NOT SPANISH. This is a STORY answer option (binding: correct-option) attached to a Spanish clip. The clip plays when the option is chosen, but the clip is speaking the Spanish target sentence, not this English text, so there is no reading of it to declare. It is left in the table so the omission is visible and countable, and the detector skips it. Romanising it as if it were Spanish would manufacture a specification for audio that never claims to speak it.	n/a
+800510	705	por	por		high
+800540	705	Lo hice por mí	lo ˈize por mi	hice: h is silent and c before e is /θ/	high
+800550	705	No	no		high
+800551	705	fui	fui		high
+800552	705	por	por		high
+800553	705	que	kˈe	que: qu is /k/; the u is silent	high
+800554	705	no	no		high
+800555	705	tenía	tenˈia		high
+800556	705	dinero	dinˈero		high
+10065	105	La cuenta	la kwˈenta	cuenta: REASON: cu is the digraph /kw/; the engine writes the u as a vowel.: cu is /kw/; the n is alveolar before a t	high
+10085	107	Yo como manzanas	yˈo komo manzˈanas	Yo: y is the consonant /ʝ/	high
+10111	110	La cocina	la kozˈina	cocina: c before i is /θ/	high
+10123	111	La ventana	la bentˈana		high
+10136	112	La camisa	la kamˈisa		high
+10148	113	Los zapatos	los zapˈatos		high
+10161	114	La mano	la mˈano		high
+10174	115	El doctor	el doktˈor		high
+910400	900	To rest for two days	(not Spanish)	NOT SPANISH. This is a STORY answer option (binding: correct-option) attached to a Spanish clip. The clip plays when the option is chosen, but the clip is speaking the Spanish target sentence, not this English text, so there is no reading of it to declare. It is left in the table so the omission is visible and countable, and the detector skips it. Romanising it as if it were Spanish would manufacture a specification for audio that never claims to speak it.	n/a
+930400	901	Cleans the kitchen and the bathroom	(not Spanish)	NOT SPANISH. This is a STORY answer option (binding: correct-option) attached to a Spanish clip. The clip plays when the option is chosen, but the clip is speaking the Spanish target sentence, not this English text, so there is no reading of it to declare. It is left in the table so the omission is visible and countable, and the detector skips it. Romanising it as if it were Spanish would manufacture a specification for audio that never claims to speak it.	n/a
+950400	902	By card	(not Spanish)	NOT SPANISH. This is a STORY answer option (binding: correct-option) attached to a Spanish clip. The clip plays when the option is chosen, but the clip is speaking the Spanish target sentence, not this English text, so there is no reading of it to declare. It is left in the table so the omission is visible and countable, and the detector skips it. Romanising it as if it were Spanish would manufacture a specification for audio that never claims to speak it.	n/a
+970800	903	It had already left the platform	(not Spanish)	NOT SPANISH. This is a STORY answer option (binding: correct-option) attached to a Spanish clip. The clip plays when the option is chosen, but the clip is speaking the Spanish target sentence, not this English text, so there is no reading of it to declare. It is left in the table so the omission is visible and countable, and the detector skips it. Romanising it as if it were Spanish would manufacture a specification for audio that never claims to speak it.	n/a
+990400	904	Nothing, it was free	(not Spanish)	NOT SPANISH. This is a STORY answer option (binding: correct-option) attached to a Spanish clip. The clip plays when the option is chosen, but the clip is speaking the Spanish target sentence, not this English text, so there is no reading of it to declare. It is left in the table so the omission is visible and countable, and the detector skips it. Romanising it as if it were Spanish would manufacture a specification for audio that never claims to speak it.	n/a
+1010800	905	Their boss introduced them	(not Spanish)	NOT SPANISH. This is a STORY answer option (binding: correct-option) attached to a Spanish clip. The clip plays when the option is chosen, but the clip is speaking the Spanish target sentence, not this English text, so there is no reading of it to declare. It is left in the table so the omission is visible and countable, and the detector skips it. Romanising it as if it were Spanish would manufacture a specification for audio that never claims to speak it.	n/a
+10012	100	Buenos días	bˈuenos dˈias		high
+10023	101	Por favor	por fabhˈor		high
+10041	102	La familia	la famˈilia		high
+10053	103	Yo soy un niño	yˈo sˈoi un nˈiño	Yo: y is the consonant /ʝ/ | soy: the written y is a vowel, /i/	high
