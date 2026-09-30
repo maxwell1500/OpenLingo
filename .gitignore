@@ -6,12 +6,14 @@
 *.apk
 *.aab
 .idea/
+.kotlin/
 
 # local signing secrets (never commit)
 keystore.properties
 
 # misc
 .DS_Store
+__pycache__/
 *.log
 
 # transitional: leftover web-tooling output (backend removed; safe to delete)
