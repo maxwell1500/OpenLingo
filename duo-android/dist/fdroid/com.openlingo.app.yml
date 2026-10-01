@@ -56,11 +56,24 @@ Builds:
       - ./gradlew :app:assembleRelease -PallowDebugSigning
     output: app/build/outputs/apk/release/app-release.apk
 
+  - versionName: '1.5.0_beta'
+    versionCode: 6
+    commit: 95a03b8d0f9ef47f57377e94f3fe3b3ea6fa75f6
+    subdir: duo-android
+    # A cold build — Gradle 9.6.0 download, AGP 9.4.0, KSP, Room, Compose —
+    # has no warm cache to lean on, so drop the 2-hour server default.
+    timeout: 0
+    prebuild:
+      - chmod +x gradlew
+    build:
+      - ./gradlew :app:assembleRelease -PallowDebugSigning
+    output: app/build/outputs/apk/release/app-release.apk
+
 AutoUpdateMode: Version
 UpdateCheckMode: Tags
 
-CurrentVersion: '1.1.0'
-CurrentVersionCode: 2
+CurrentVersion: '1.5.0_beta'
+CurrentVersionCode: 6
 
 MaintainerNotes: |-
   Signing: -PallowDebugSigning is mandatory, not a shortcut.
