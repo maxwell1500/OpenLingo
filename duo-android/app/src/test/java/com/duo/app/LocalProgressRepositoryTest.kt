@@ -288,7 +288,7 @@ class LocalProgressRepositoryTest {
         assertTrue(
             db.challengeProgressDao().getCompletedChallengeIdsDirect("guest_local").isEmpty(),
         )
-        repository.getMistakes().test { assertTrue(awaitItem().isEmpty()) }
+        repository.getMistakes(2).test { assertTrue(awaitItem().isEmpty()) }
         repository.getCharacterMastery().test { assertTrue(awaitItem().isEmpty()) }
         // The day's quest progress is part of the reset too. Leaving the day row
         // behind put a learner on 0 points looking at a bar still reading the XP
@@ -422,7 +422,7 @@ class LocalProgressRepositoryTest {
         // backup silently rewrites the quest they set.
         assertEquals(50, repository.getDailyQuestGoalDirect())
         assertTrue(db.challengeProgressDao().getCompletedChallengeIdsDirect("guest_local").contains(2001))
-        repository.getMistakes().test {
+        repository.getMistakes(2).test {
             val mistakes = awaitItem()
             assertTrue(mistakes.any { it.challengeId == 2002 })
         }
@@ -517,7 +517,7 @@ class LocalProgressRepositoryTest {
         assertTrue(result is AnswerResult.Incorrect)
         assertEquals(4, (result as AnswerResult.Incorrect).remainingHearts)
         assertEquals(4, db.userProgressDao().getUserProgressDirect("guest_local")?.hearts)
-        repository.getMistakes().test {
+        repository.getMistakes(2).test {
             val mistakes = awaitItem()
             assertTrue(mistakes.any { it.challengeId == 2001 })
         }
@@ -530,10 +530,58 @@ class LocalProgressRepositoryTest {
 
         repository.submitAnswer(challengeId = 2001, isCorrect = true)
 
-        repository.getMistakes().test {
+        repository.getMistakes(2).test {
             assertTrue(awaitItem().none { it.challengeId == 2001 })
         }
         assertEquals(10, db.userProgressDao().getUserProgressDirect("guest_local")?.points)
+    }
+
+    /**
+     * A mistake is course content, not a global queue. Reading the whole table
+     * put Japanese titles, prompts and kana rules on the Spanish Practice tab
+     * and launched Japanese items into a Spanish practice session.
+     */
+    @Test
+    fun `mistakes are scoped to the course that recorded them`() = runTest {
+        repository.initializeIfNeeded()
+
+        // 1001 is Spanish (lesson 100); 2001 is Japanese (lesson 200).
+        repository.submitAnswer(challengeId = 1001, isCorrect = false)
+        repository.submitAnswer(challengeId = 2001, isCorrect = false)
+
+        repository.getMistakes(courseId = 1).test {
+            val mistakes = awaitItem()
+            assertTrue(mistakes.any { it.challengeId == 1001 })
+            assertTrue(
+                "a Japanese miss leaked into the Spanish review list",
+                mistakes.none { it.challengeId == 2001 },
+            )
+        }
+        repository.getMistakes(courseId = 2).test {
+            val mistakes = awaitItem()
+            assertTrue(mistakes.any { it.challengeId == 2001 })
+            assertTrue(
+                "a Spanish miss leaked into the Japanese review list",
+                mistakes.none { it.challengeId == 1001 },
+            )
+        }
+
+        // The queue practice launches from is scoped the same way.
+        assertEquals(
+            listOf(1001),
+            repository.getMistakeChallenges(courseId = 1).map { it.challenge.id },
+        )
+        assertEquals(
+            listOf(2001),
+            repository.getMistakeChallenges(courseId = 2).map { it.challenge.id },
+        )
+
+        // Clearing one course's queue must not wipe the other's.
+        repository.clearMistakes(courseId = 1)
+        repository.getMistakes(courseId = 1).test { assertTrue(awaitItem().isEmpty()) }
+        repository.getMistakes(courseId = 2).test {
+            assertTrue(awaitItem().any { it.challengeId == 2001 })
+        }
     }
 
     @Test

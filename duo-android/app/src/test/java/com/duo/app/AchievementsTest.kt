@@ -17,7 +17,8 @@ class AchievementsTest {
         kana: Int = 0,
         challenges: Int = 0,
         lessons: Int = 0,
-    ): Set<String> = evaluateAchievements(points, streak, kana, challenges, lessons)
+        isJapanese: Boolean = true,
+    ): Set<String> = evaluateAchievements(points, streak, kana, challenges, lessons, isJapanese)
         .filter { it.second }
         .map { it.first.id }
         .toSet()
@@ -54,7 +55,23 @@ class AchievementsTest {
     }
 
     @Test
-    fun `catalog holds nine achievements`() {
-        assertEquals(9, evaluateAchievements(0, 1, 0, 0, 0).size)
+    fun `catalog holds nine achievements on the Japanese course`() {
+        assertEquals(9, evaluateAchievements(0, 1, 0, 0, 0, isJapanese = true).size)
+    }
+
+    /**
+     * Kana mastery is Japanese-course content. A Spanish learner cannot trace a
+     * kana, so a full kana count must still leave them with no kana shelf — and
+     * no "Syllabary master" trophy they could never earn.
+     */
+    @Test
+    fun `kana achievements are Japanese only`() {
+        val spanish = evaluateAchievements(0, 1, 46, 0, 0, isJapanese = false)
+        assertTrue(
+            "the Spanish shelf offers a kana achievement",
+            spanish.none { it.first.id.startsWith("kana-") },
+        )
+        assertEquals(6, spanish.size)
+        assertTrue(unlockedIds(kana = 46, isJapanese = false).none { it.startsWith("kana-") })
     }
 }

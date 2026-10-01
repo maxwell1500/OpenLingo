@@ -41,6 +41,7 @@ fun ProfileTabScreen(
     streak: Int,
     completedLessons: Int,
     kanaCount: Int,
+    isJapanese: Boolean,
     accuracyPercent: Int,
     achievements: List<Pair<Achievement, Boolean>>,
     typeStats: List<com.duo.app.data.local.entities.ExerciseTypeStatsEntity> = emptyList(),
@@ -89,7 +90,11 @@ fun ProfileTabScreen(
         }
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             StatCard(emoji = "📖", value = "$completedLessons", label = "Lessons done", modifier = Modifier.weight(1f))
-            StatCard(emoji = "🈁", value = "$kanaCount", label = "Kana mastered", modifier = Modifier.weight(1f))
+            // Kana mastery is Japanese-course content; a Spanish learner has no
+            // kana to master and must not be shown the stat.
+            if (isJapanese) {
+                StatCard(emoji = "🈁", value = "$kanaCount", label = "Kana mastered", modifier = Modifier.weight(1f))
+            }
         }
 
         // Accuracy

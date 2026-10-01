@@ -265,6 +265,7 @@ class MainActivity : ComponentActivity() {
                                             points = userProgress?.points ?: 0,
                                             streak = userProgress?.streak ?: 1,
                                             completedLessons = completedLessonCount,
+                                            isJapanese = isJapanese,
                                             kanaCount = masteredCharacters.size,
                                             accuracyPercent = accuracy,
                                             achievements = com.duo.app.ui.evaluateAchievements(
@@ -273,6 +274,7 @@ class MainActivity : ComponentActivity() {
                                                 kanaCount = masteredCharacters.size,
                                                 completedChallenges = completedChallengeIds.size,
                                                 completedLessons = completedLessonCount,
+                                                isJapanese = isJapanese,
                                             ),
                                             typeStats = typeStats,
                                         )
@@ -303,6 +305,7 @@ class MainActivity : ComponentActivity() {
                                     onLookup = { entry -> lookupEntry = entry },
                                     showRomaji = showRomaji,
                                     onToggleRomaji = viewModel::toggleRomaji,
+                                    isJapanese = isJapanese,
                                     onSelectOption = viewModel::selectOption,
                                     onSelectWordTile = viewModel::selectWordTile,
                                     onRemoveWordTile = viewModel::removeWordTile,
@@ -1257,6 +1260,7 @@ private fun ExerciseScreen(
     dictionary: com.duo.app.dictionary.Dictionary,
     onLookup: (com.duo.app.dictionary.DictionaryEntry) -> Unit,
     showRomaji: Boolean,
+    isJapanese: Boolean,
     onToggleRomaji: () -> Unit,
     onSelectOption: (Int) -> Unit,
     onSelectWordTile: (Int) -> Unit,
@@ -1341,24 +1345,28 @@ private fun ExerciseScreen(
                         trackColor = Color(0xFFE5E5E5),
                     )
 
-                    // Romaji / Furigana Toggle Button (Duolingo Japanese style)
-                    Surface(
-                        modifier = Modifier
-                            .clickable(onClick = onToggleRomaji),
-                        shape = RoundedCornerShape(8.dp),
-                        color = if (showRomaji) Color(0xFFE5F5FF) else Color(0xFFF5F5F5),
-                        border = androidx.compose.foundation.BorderStroke(
-                            width = 1.dp,
-                            color = if (showRomaji) Color(0xFF1CB0F6) else Color(0xFFD5D5D5),
-                        ),
-                    ) {
-                        Text(
-                            text = if (showRomaji) "あ/a" else "あ",
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = if (showRomaji) Color(0xFF1899D6) else Color(0xFF888888),
-                        )
+                    // Romaji / Furigana Toggle Button (Duolingo Japanese style).
+                    // Japanese-course chrome only: a Spanish lesson has no romaji
+                    // to switch, so the toggle must not render there.
+                    if (isJapanese) {
+                        Surface(
+                            modifier = Modifier
+                                .clickable(onClick = onToggleRomaji),
+                            shape = RoundedCornerShape(8.dp),
+                            color = if (showRomaji) Color(0xFFE5F5FF) else Color(0xFFF5F5F5),
+                            border = androidx.compose.foundation.BorderStroke(
+                                width = 1.dp,
+                                color = if (showRomaji) Color(0xFF1CB0F6) else Color(0xFFD5D5D5),
+                            ),
+                        ) {
+                            Text(
+                                text = if (showRomaji) "あ/a" else "あ",
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = if (showRomaji) Color(0xFF1899D6) else Color(0xFF888888),
+                            )
+                        }
                     }
                 }
             }

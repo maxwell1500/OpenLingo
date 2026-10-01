@@ -179,9 +179,15 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         .map { list -> list.map { it.character }.toSet() }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptySet())
 
-    val mistakes: StateFlow<List<com.duo.app.data.local.entities.MistakeEntry>> =
-        repository.getMistakes()
-            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    /**
+     * The active course's review queue, scoped the same way the lesson path is
+     * (see [unitsWithLessons]): switching course switches which misses show.
+     */
+    val mistakes: StateFlow<List<com.duo.app.data.local.entities.MistakeEntry>> = userProgress
+        .flatMapLatest { progress ->
+            repository.getMistakes(progress?.activeCourseId ?: 1)
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     val exerciseTypeStats: StateFlow<List<com.duo.app.data.local.entities.ExerciseTypeStatsEntity>> =
         repository.getExerciseTypeStats()
@@ -395,7 +401,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun clearAllMistakes() {
-        viewModelScope.launch { repository.clearAllMistakes() }
+        viewModelScope.launch {
+            repository.clearMistakes(userProgress.value?.activeCourseId ?: 1)
+        }
     }
 
     fun resetAllProgress() {
@@ -660,7 +668,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     fun startMistakePractice() {
         viewModelScope.launch {
-            val challenges = repository.getMistakeChallenges()
+            val challenges = repository.getMistakeChallenges(userProgress.value?.activeCourseId ?: 1)
             if (challenges.isNotEmpty()) {
                 isInPracticeSession = true
                 currentLessonChallenges = challenges

@@ -192,9 +192,16 @@ class LocalProgressRepository(private val database: DuoDatabase) {
             }
         }
 
-    suspend fun getMistakeChallenges(): List<ChallengeWithOptions> =
+    /**
+     * The challenges to re-ask in practice, limited to [courseId]'s mistakes.
+     *
+     * Reading the whole table here launched Japanese prompts into a Spanish
+     * practice session (and the reverse); the course is resolved through the
+     * mistake's lesson → unit, exactly as the review list does.
+     */
+    suspend fun getMistakeChallenges(courseId: Int): List<ChallengeWithOptions> =
         withContext(Dispatchers.IO) {
-            val mistakes = mistakeDao.getAllMistakesDirect()
+            val mistakes = mistakeDao.getMistakesForCourseDirect(courseId)
             val challengeIds = mistakes.map { it.challengeId }.distinct()
             if (challengeIds.isEmpty()) return@withContext emptyList()
             val challenges = lessonDao.getChallengesByIds(challengeIds)
@@ -213,8 +220,10 @@ class LocalProgressRepository(private val database: DuoDatabase) {
                 )
             }
         }
-    suspend fun clearAllMistakes() = withContext(Dispatchers.IO) {
-        mistakeDao.clearAllMistakes()
+
+    /** Clears the active course's review queue, not every course's. */
+    suspend fun clearMistakes(courseId: Int) = withContext(Dispatchers.IO) {
+        mistakeDao.clearMistakesForCourse(courseId)
     }
 
     suspend fun switchCourse(courseId: Int) = withContext(Dispatchers.IO) {
@@ -641,14 +650,14 @@ class LocalProgressRepository(private val database: DuoDatabase) {
         )
     }
 
-    fun getMistakes(): Flow<List<com.duo.app.data.local.entities.MistakeEntry>> =
-        mistakeDao.getMistakeEntries().flowOn(Dispatchers.IO)
+    fun getMistakes(courseId: Int): Flow<List<com.duo.app.data.local.entities.MistakeEntry>> =
+        mistakeDao.getMistakeEntries(courseId).flowOn(Dispatchers.IO)
 
     fun getExerciseTypeStats(): Flow<List<ExerciseTypeStatsEntity>> =
         exerciseTypeStatsDao.getAllStats().flowOn(Dispatchers.IO)
 
-    fun getMistakeCount(): Flow<Int> =
-        mistakeDao.getMistakeCount().flowOn(Dispatchers.IO)
+    fun getMistakeCount(courseId: Int): Flow<Int> =
+        mistakeDao.getMistakeCount(courseId).flowOn(Dispatchers.IO)
 
     private suspend fun seedSpanishCourse() {
         courseDao.insertCourses(
