@@ -227,6 +227,27 @@ class LocalProgressRepository(private val database: DuoDatabase) {
         userProgressDao.setShowRomaji(userId, showRomaji)
     }
 
+    /**
+     * Writes the learner's single completion row for one challenge.
+     *
+     * The row id is auto-generated, so Room's REPLACE on `markChallengeCompleted`
+     * never fires for a re-answer and every call appended another row. Duplicate
+     * (userId, challengeId) rows inflate the GROUP BY count behind
+     * `getCompletedLessonIds`, which un-completes a finished lesson and keeps the
+     * next one locked. Delete this learner's row for the challenge, then insert.
+     */
+    private suspend fun markChallengeCompletedOnce(challengeId: Int) {
+        challengeProgressDao.clearChallengeFor(GUEST_USER_ID, challengeId)
+        challengeProgressDao.markChallengeCompleted(
+            ChallengeProgressEntity(
+                userId = GUEST_USER_ID,
+                challengeId = challengeId,
+                completed = true,
+                synced = false,
+            )
+        )
+    }
+
     suspend fun submitAnswer(challengeId: Int, isCorrect: Boolean, isPractice: Boolean = false): AnswerResult =
         withContext(Dispatchers.IO) {
             val user = userProgressDao.getUserProgressDirect(GUEST_USER_ID)
@@ -249,14 +270,7 @@ class LocalProgressRepository(private val database: DuoDatabase) {
 
             if (isCorrect) {
                 if (!isPractice) {
-                    challengeProgressDao.markChallengeCompleted(
-                        ChallengeProgressEntity(
-                            userId = GUEST_USER_ID,
-                            challengeId = challengeId,
-                            completed = true,
-                            synced = false,
-                        )
-                    )
+                    markChallengeCompletedOnce(challengeId)
                 }
                 // Answered right: clear any pending mistake for this challenge.
                 mistakeDao.clearMistake(challengeId)
@@ -403,14 +417,7 @@ class LocalProgressRepository(private val database: DuoDatabase) {
         if (unitIds.isNotEmpty()) {
             val challenges = lessonDao.getChallengesForUnits(unitIds)
             for (c in challenges) {
-                challengeProgressDao.markChallengeCompleted(
-                    ChallengeProgressEntity(
-                        userId = GUEST_USER_ID,
-                        challengeId = c.id,
-                        completed = true,
-                        synced = false,
-                    )
-                )
+                markChallengeCompletedOnce(c.id)
             }
             userProgressDao.addPoints(GUEST_USER_ID, challenges.size * POINTS_PER_CHALLENGE)
         }
@@ -539,14 +546,7 @@ class LocalProgressRepository(private val database: DuoDatabase) {
 
             challengeProgressDao.clearProgressForUser(GUEST_USER_ID)
             backup.completedChallengeIds.forEach { id ->
-                challengeProgressDao.markChallengeCompleted(
-                    ChallengeProgressEntity(
-                        userId = GUEST_USER_ID,
-                        challengeId = id,
-                        completed = true,
-                        synced = false,
-                    )
-                )
+                markChallengeCompletedOnce(id)
             }
 
             characterMasteryDao.clearAllMastery()

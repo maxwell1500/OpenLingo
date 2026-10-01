@@ -119,6 +119,77 @@ class LocalProgressRepositoryTest {
         visible.forEach { repository.submitAnswer(challengeId = it, isCorrect = true) }
         assertTrue(repository.getCompletedLessonIds().first().contains(119))
     }
+
+    /**
+     * The write path must keep exactly one row per (userId, challengeId).
+     *
+     * The row id is auto-generated, so Room's REPLACE never fires on a re-answer
+     * and each call appended another row. The completion query joins challenges to
+     * progress and counts rows per lesson, so duplicates inflated the count and
+     * dropped the lesson out of `getCompletedLessonIds` — the map star stayed
+     * hollow and the next lesson stayed locked.
+     */
+    @Test
+    fun `re-answering a challenge keeps one progress row and the lesson stays complete`() = runTest {
+        repository.initializeIfNeeded()
+
+        val lessonId = 100
+        val challengeIds = db.lessonDao().getChallengesForLesson(lessonId).map { it.id }
+        assertTrue(challengeIds.isNotEmpty())
+        challengeIds.forEach { repository.submitAnswer(challengeId = it, isCorrect = true) }
+        // A learner replaying the lesson answers the first challenge twice more.
+        repeat(2) { repository.submitAnswer(challengeId = challengeIds.first(), isCorrect = true) }
+
+        val completedRows = db.challengeProgressDao().getCompletedChallengeIdsDirect("guest_local")
+        assertEquals(
+            "a re-answer must replace the row, not append another",
+            1,
+            completedRows.count { it == challengeIds.first() },
+        )
+        assertEquals(
+            "the table must hold one row per completed challenge",
+            challengeIds.size,
+            completedRows.size,
+        )
+        assertTrue(repository.getCompletedLessonIds().first().contains(lessonId))
+    }
+
+    /**
+     * The placement fast-forward writes the same invariant through a bulk loop:
+     * running it twice must not leave two rows for a challenge, or every lesson it
+     * completed would fall back out of `getCompletedLessonIds`.
+     */
+    @Test
+    fun `placement fast-forward does not duplicate progress rows`() = runTest {
+        repository.initializeIfNeeded()
+
+        repository.completeChallengesUpToUnit(14)
+        repository.completeChallengesUpToUnit(14)
+
+        val completedRows = db.challengeProgressDao().getCompletedChallengeIdsDirect("guest_local")
+        assertTrue(completedRows.isNotEmpty())
+        assertEquals(
+            "each fast-forwarded challenge must have exactly one row",
+            completedRows.distinct().size,
+            completedRows.size,
+        )
+    }
+
+    /**
+     * A restored backup is the learner's state: an id listed twice — which is what
+     * an export from a duplicated table produces — must still land as one row.
+     */
+    @Test
+    fun `restoring a backup with a repeated challenge id keeps one row`() = runTest {
+        repository.initializeIfNeeded()
+
+        val json = """{"version":2,"completedChallengeIds":[2001,2001,2002]}"""
+        assertTrue(repository.importBackupJson(json).isSuccess)
+
+        val completedRows = db.challengeProgressDao().getCompletedChallengeIdsDirect("guest_local")
+        assertEquals(1, completedRows.count { it == 2001 })
+        assertEquals(2, completedRows.size)
+    }
     @Test
     fun `sound and haptics toggles persist`() = runTest {
         repository.initializeIfNeeded()

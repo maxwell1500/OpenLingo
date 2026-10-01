@@ -39,6 +39,17 @@ interface ChallengeProgressDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun markChallengeCompleted(progress: ChallengeProgressEntity)
 
+    /**
+     * Deletes the learner's progress row for one challenge.
+     *
+     * [markChallengeCompleted] cannot dedupe on its own — the primary key is an
+     * auto-generated row id, so REPLACE never fires for a re-answer and every
+     * insert appends. The write path deletes first so the table keeps exactly one
+     * row per (userId, challengeId).
+     */
+    @Query("DELETE FROM challenge_progress WHERE userId = :userId AND challengeId = :challengeId")
+    suspend fun clearChallengeFor(userId: String, challengeId: Int)
+
     @Query("DELETE FROM challenge_progress WHERE userId = :userId")
     suspend fun clearProgressForUser(userId: String)
 }
