@@ -551,7 +551,7 @@ function buildExport() {
       };
     });
   return {
-    tool: "DuoLingo clone - native pronunciation review",
+    tool: "OpenLingo - native pronunciation review",
     formatVersion: 1,
     exportedAt: new Date().toISOString(),
     clipCount: state.clips.length,

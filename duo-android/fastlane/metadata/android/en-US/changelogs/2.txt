@@ -5,4 +5,4 @@
 • Placement test at onboarding to skip ahead based on knowledge
 • JSON backup schema v2 with checkpoint scores and FSRS schedules
 • Dark mode selector (System / Light / Dark)
-• 100% offline, free forever, no ads or tracking
+• Learn offline. Own your progress. No ads or tracking.

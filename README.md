@@ -114,7 +114,7 @@ The signed release APK lands in `duo-android/app/build/outputs/apk/release/`.
 
 ## F-Droid packaging
 
-`duo-android/dist/fdroid/com.duo.app.yml` is the build recipe F-Droid builds this app from. Nothing in the Gradle build reads it: it is a standalone file you copy into a fork of [fdroiddata](https://gitlab.com/fdroid/fdroiddata) (the recipes repository, formerly `fdroid/recipes`) and open a merge request against. The file is named after the application ID because fdroiddata requires `metadata/<applicationId>.yml`.
+`duo-android/dist/fdroid/com.openlingo.app.yml` is the build recipe F-Droid builds this app from. Nothing in the Gradle build reads it: it is a standalone file you copy into a fork of [fdroiddata](https://gitlab.com/fdroid/fdroiddata) (the recipes repository, formerly `fdroid/recipes`) and open a merge request against. The file is named after the application ID because fdroiddata requires `metadata/<applicationId>.yml`.
 
 Store metadata — name, summary, description, icon, feature graphic, screenshots, privacy policy and the per-version changelog — is deliberately **not** in the recipe. It already lives in `duo-android/fastlane/metadata/android/en-US/`, which is the arrangement F-Droid recommends: metadata kept in the app's own source repository is copied into the F-Droid repository automatically, and it is the only way to ship an icon or screenshots. Repeating those fields in the recipe would override the upstream text and then quietly drift away from it.
 
@@ -123,15 +123,15 @@ To submit:
 ```bash
 git clone https://gitlab.com/<your-handle>/fdroiddata.git
 cd fdroiddata
-git checkout -b com.duo.app
+git checkout -b com.openlingo.app
 mkdir -p metadata
-cp /path/to/OpenLingo/duo-android/dist/fdroid/com.duo.app.yml metadata/com.duo.app.yml
+cp /path/to/OpenLingo/duo-android/dist/fdroid/com.openlingo.app.yml metadata/com.openlingo.app.yml
 fdroid readmeta                          # fails loudly on any syntax error
-fdroid rewritemeta com.duo.app           # normalise the file
-fdroid lint com.duo.app                  # must come back clean
-git add metadata/com.duo.app.yml
+fdroid rewritemeta com.openlingo.app           # normalise the file
+fdroid lint com.openlingo.app                  # must come back clean
+git add metadata/com.openlingo.app.yml
 git commit -m "New app: OpenLingo"
-git push origin com.duo.app
+git push origin com.openlingo.app
 ```
 
 `fdroid readmeta` and friends come from fdroidserver (`pip install git+https://gitlab.com/fdroid/fdroidserver.git`). Then open a merge request at <https://gitlab.com/fdroid/fdroiddata/-/merge_requests/new>, titled `New app: OpenLingo`, and fill in the "App inclusion" checklist. Its CI pipeline builds the APK the way the real buildserver does, so a green run is the closest thing to a rehearsal of the submission.

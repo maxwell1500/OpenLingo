@@ -1,0 +1,30 @@
+package com.openlingo.app.data.local.entities
+
+import androidx.room.Entity
+import androidx.room.PrimaryKey
+
+@Entity(tableName = "user_progress")
+data class UserProgressEntity(
+    @PrimaryKey val userId: String,
+    val userName: String = "Guest",
+    val userImageSrc: String = "/mascot.svg",
+    val activeCourseId: Int = 1, // 1 = Spanish, 2 = Japanese
+    val hearts: Int = 5,
+    val points: Int = 0,
+    val streak: Int = 1,
+    val lastActiveDate: String = java.time.LocalDate.now().toString(),
+    val showRomaji: Boolean = true,
+    val soundEnabled: Boolean = true,
+    val hapticsEnabled: Boolean = true,
+    val onboardingSeen: Boolean = false,
+    val brokenStreak: Int = 0,
+    val themeAccent: String = "TEAL",
+    val themeMode: String = "SYSTEM", // SYSTEM, LIGHT, DARK
+    /**
+     * WI-13: the learner's own daily XP goal for the daily quest. The default
+     * keeps the pre-WI-13 behaviour (a fixed 30 XP quest) for a learner who
+     * never touches the setting. See `LocalProgressRepository.DAILY_QUEST_XP_OPTIONS`.
+     */
+    val dailyQuestGoal: Int = 30,
+    val lastSynced: Long = System.currentTimeMillis(),
+)

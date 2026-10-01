@@ -38,7 +38,7 @@
             android:paddingHorizontal="8dp"
             android:paddingVertical="3dp"
             android:text="🔥 1"
-            android:textColor="#FF9600"
+            android:textColor="#E67E22"
             android:textSize="13sp"
             android:textStyle="bold" />
     </LinearLayout>
@@ -71,7 +71,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="0/30 XP"
-            android:textColor="#58CC02"
+            android:textColor="#2E9E6B"
             android:textSize="12sp"
             android:textStyle="bold" />
     </LinearLayout>
@@ -85,7 +85,7 @@
         android:layout_marginTop="6dp"
         android:max="30"
         android:progress="0"
-        android:progressTint="#58CC02" />
+        android:progressTint="#2E9E6B" />
 
     <!-- Action Prompt -->
     <TextView

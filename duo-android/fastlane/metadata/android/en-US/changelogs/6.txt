@@ -1,0 +1,1 @@
+Renamed the app's package to com.openlingo.app. New capybara/onsen color palette throughout. New tagline: "Learn offline. Own your progress."

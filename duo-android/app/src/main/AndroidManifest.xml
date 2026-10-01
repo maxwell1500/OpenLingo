@@ -37,7 +37,7 @@
             android:name=".alarm.DailyResetReceiver"
             android:exported="false">
             <intent-filter>
-                <action android:name="com.duo.app.action.DAILY_RESET" />
+                <action android:name="com.openlingo.app.action.DAILY_RESET" />
             </intent-filter>
         </receiver>
 
@@ -54,7 +54,7 @@
             android:name=".alarm.StreakReminderReceiver"
             android:exported="false">
             <intent-filter>
-                <action android:name="com.duo.app.action.STREAK_REMINDER" />
+                <action android:name="com.openlingo.app.action.STREAK_REMINDER" />
             </intent-filter>
         </receiver>
 

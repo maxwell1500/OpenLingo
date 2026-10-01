@@ -1,7 +1,7 @@
 # Privacy Policy — OpenLingo
 
 **Last updated: 27 September 2026**
-**Applies to: OpenLingo for Android (`com.duo.app`), version 1.1.0 and later**
+**Applies to: OpenLingo for Android (`com.openlingo.app`), version 1.1.0 and later**
 
 OpenLingo is a free, open-source (MIT) language-learning app for Spanish (CEFR A1 → B1) and Japanese (JLPT N5 → N4). Its mascot is a capybara named OpenLingo, who is chill, offline, and does not phone home.
 

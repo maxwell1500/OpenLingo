@@ -33,15 +33,15 @@ val allowDebugSigning =
     allowDebugSigningFlag != null && allowDebugSigningFlag !in setOf("false", "no", "0")
 
 android {
-    namespace = "com.duo.app"
+    namespace = "com.openlingo.app"
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.duo.app"
+        applicationId = "com.openlingo.app"
         minSdk = 26
         targetSdk = 36
-        versionCode = 5
-        versionName = "1.4.0"
+        versionCode = 6
+        versionName = "1.5.0_beta"
     }
 
     signingConfigs {
