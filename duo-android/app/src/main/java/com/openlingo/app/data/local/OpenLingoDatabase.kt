@@ -49,7 +49,7 @@ import com.openlingo.app.data.local.models.ChallengeType
     version = 15,
     exportSchema = false,
 )
-abstract class DuoDatabase : RoomDatabase() {
+abstract class OpenLingoDatabase : RoomDatabase() {
 
     abstract fun courseDao(): CourseDao
     abstract fun lessonDao(): LessonDao
@@ -64,7 +64,7 @@ abstract class DuoDatabase : RoomDatabase() {
 
     companion object {
         @Volatile
-        private var INSTANCE: DuoDatabase? = null
+        private var INSTANCE: OpenLingoDatabase? = null
 
         val MIGRATION_4_5 = object : Migration(4, 5) {
             override fun migrate(db: SupportSQLiteDatabase) {
@@ -189,12 +189,12 @@ abstract class DuoDatabase : RoomDatabase() {
         @JvmStatic
         fun toChallengeType(raw: String): ChallengeType = ChallengeType.fromRaw(raw)
 
-        fun getInstance(context: Context): DuoDatabase {
+        fun getInstance(context: Context): OpenLingoDatabase {
             return INSTANCE ?: synchronized(this) {
                 INSTANCE ?: Room.databaseBuilder(
                     context.applicationContext,
-                    DuoDatabase::class.java,
-                    "duo_local.db",
+                    OpenLingoDatabase::class.java,
+                    "openlingo_local.db",
                 )
                     .addMigrations(MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9, MIGRATION_9_10, MIGRATION_10_11, MIGRATION_11_12, MIGRATION_12_13, MIGRATION_13_14, MIGRATION_14_15)
                     .build()

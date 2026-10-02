@@ -184,5 +184,14 @@ Only pursue after (a) ships and after a real ASR dependency is chosen and size-b
 - `es`/`ja` per-type split in §2 is **[INFERENCE]**, not a direct tally.
 - Unit-level asset mapping was not derivable: the asset tree is flat (`es/`, `ja/` only),
   so a by-unit table would have to be built from `ChallengeEntity`→`LessonEntity` joins.
-- `duo-android/docs/kokoro-tts.md` referenced in the brief **does not exist**;
-  `duo-android/docs/` contains only `CURRICULUM_B1_N4_ROADMAP.md` and `.tmp_inventory.md`.
+- The document referenced in the brief as `duo-android/docs/kokoro-tts.md`
+  **does exist** — the path in the brief was wrong, not the document. It lives
+  at the repository-root **`docs/kokoro-tts.md`**, which is the project's record
+  of the Kokoro-82M audio pipeline, the grapheme-to-phoneme front-ends and the
+  phone-level verification passes. An earlier revision of this audit recorded
+  that the file could not be found and that `duo-android/docs/` held only two
+  files; both statements were wrong and are corrected here.
+- `duo-android/docs/` in fact contains `AUDIT_feature_comparison.md`,
+  `AUDIT_grammar_gap.md`, `AUDIT_pronunciation.md` (this file),
+  `CURRICULUM_B1_N4_ROADMAP.md` and `GRAMMAR_TEACHING_SPEC.md`. The
+  `.tmp_inventory.md` named above no longer exists.

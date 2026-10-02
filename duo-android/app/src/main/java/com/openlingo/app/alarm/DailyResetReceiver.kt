@@ -6,7 +6,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.os.Build
-import com.openlingo.app.DuoApplication
+import com.openlingo.app.OpenLingoApplication
 import java.util.Calendar
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -24,7 +24,7 @@ class DailyResetReceiver : BroadcastReceiver() {
         val pendingResult = goAsync()
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                val app = context.applicationContext as? DuoApplication
+                val app = context.applicationContext as? OpenLingoApplication
                 app?.repository?.refreshDailyState()
                 com.openlingo.app.widget.OpenLingoWidgetProvider.updateAll(context)
             } catch (e: Exception) {

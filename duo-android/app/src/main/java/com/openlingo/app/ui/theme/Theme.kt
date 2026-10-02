@@ -7,11 +7,11 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 
-val DuoGreen = Color(0xFF2E9E6B)
-val DuoBlue = Color(0xFF3D7EA6)
-val DuoYellow = Color(0xFFE8A93C)
-val DuoRed = Color(0xFFC0392B)
-val DuoOrange = Color(0xFFE67E22)
+val OpenLingoGreen = Color(0xFF2E9E6B)
+val OpenLingoBlue = Color(0xFF3D7EA6)
+val OpenLingoYellow = Color(0xFFE8A93C)
+val OpenLingoRed = Color(0xFFC0392B)
+val OpenLingoOrange = Color(0xFFE67E22)
 
 enum class ThemeAccent(
     val label: String,
@@ -41,11 +41,11 @@ enum class ThemeMode {
 }
 
 private val LightColorScheme = lightColorScheme(
-    primary = DuoGreen,
+    primary = OpenLingoGreen,
     onPrimary = Color.White,
-    secondary = DuoBlue,
+    secondary = OpenLingoBlue,
     onSecondary = Color.White,
-    tertiary = DuoYellow,
+    tertiary = OpenLingoYellow,
     background = Color.White,
     surface = Color.White,
     surfaceVariant = Color(0xFFF7F7F7),
@@ -54,11 +54,11 @@ private val LightColorScheme = lightColorScheme(
 )
 
 private val DarkColorScheme = darkColorScheme(
-    primary = DuoGreen,
+    primary = OpenLingoGreen,
     onPrimary = Color.White,
-    secondary = DuoBlue,
+    secondary = OpenLingoBlue,
     onSecondary = Color.White,
-    tertiary = DuoYellow,
+    tertiary = OpenLingoYellow,
     background = Color(0xFF131F24),
     surface = Color(0xFF1A2A30),
     surfaceVariant = Color(0xFF243640),
@@ -67,7 +67,7 @@ private val DarkColorScheme = darkColorScheme(
 )
 
 @Composable
-fun DuoTheme(
+fun OpenLingoTheme(
     accent: ThemeAccent = ThemeAccent.TEAL,
     darkTheme: Boolean = isSystemInDarkTheme(),
     content: @Composable () -> Unit,
@@ -77,7 +77,7 @@ fun DuoTheme(
         onPrimary = Color.White,
         secondary = accent.secondaryColor,
         onSecondary = Color.White,
-        tertiary = DuoYellow,
+        tertiary = OpenLingoYellow,
         background = Color.White,
         surface = Color.White,
         surfaceVariant = Color(0xFFF7F7F7),
@@ -90,7 +90,7 @@ fun DuoTheme(
         onPrimary = Color.White,
         secondary = accent.secondaryColor,
         onSecondary = Color.White,
-        tertiary = DuoYellow,
+        tertiary = OpenLingoYellow,
         background = Color(0xFF131F24),
         surface = Color(0xFF1A2A30),
         surfaceVariant = Color(0xFF243640),

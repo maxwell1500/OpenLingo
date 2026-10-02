@@ -663,7 +663,7 @@ function wireControls() {
 
   $("#sampleN").addEventListener("change", () => {
     const n = parseInt($("#sampleN").value, 10);
-    $("#sampleN").value = String(Number.isFinite(n) && n > 0 ? Math.min(n, 397) : 20);
+    $("#sampleN").value = String(Number.isFinite(n) && n > 0 ? Math.min(n, 395) : 20);
   });
   $("#sampleBtn").addEventListener("click", () => {
     const n = parseInt($("#sampleN").value, 10) || 20;

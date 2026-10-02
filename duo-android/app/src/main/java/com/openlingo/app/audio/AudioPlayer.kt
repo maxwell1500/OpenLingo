@@ -115,7 +115,7 @@ class AudioPlayer(private val context: Context) {
     }
 
     /**
-     * Plays an upbeat, 3-note Duolingo-style chime (C5 -> E5 -> G5) using zero-latency AudioTrack.
+     * Plays an upbeat, 3-note chime (C5 -> E5 -> G5) using zero-latency AudioTrack.
      */
     fun playCorrectSound() {
         scope.launch {

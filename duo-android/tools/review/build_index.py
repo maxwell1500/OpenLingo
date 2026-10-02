@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Regenerate the native-speaker review work list.
 
-Reads the app's 397 bundled clips plus the verification artifacts produced by
+Reads the app's 395 bundled clips plus the verification artifacts produced by
 the earlier automated passes, and writes `data/clips.json` — one row per clip —
 for `index.html` to render.
 

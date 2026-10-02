@@ -1,15 +1,15 @@
 package com.openlingo.app
 
 import android.app.Application
-import com.openlingo.app.data.local.DuoDatabase
+import com.openlingo.app.data.local.OpenLingoDatabase
 import com.openlingo.app.data.repository.LocalProgressRepository
 import com.openlingo.app.audio.AudioPlayer
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-class DuoApplication : Application() {
+class OpenLingoApplication : Application() {
 
-    val database: DuoDatabase by lazy { DuoDatabase.getInstance(this) }
+    val database: OpenLingoDatabase by lazy { OpenLingoDatabase.getInstance(this) }
     val repository: LocalProgressRepository by lazy { LocalProgressRepository(database) }
     val audioPlayer: AudioPlayer by lazy { AudioPlayer(this) }
 

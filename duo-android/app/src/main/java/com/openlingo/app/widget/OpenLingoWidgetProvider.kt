@@ -7,7 +7,7 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.widget.RemoteViews
-import com.openlingo.app.DuoApplication
+import com.openlingo.app.OpenLingoApplication
 import com.openlingo.app.MainActivity
 import com.openlingo.app.R
 import kotlinx.coroutines.CoroutineScope
@@ -32,7 +32,7 @@ class OpenLingoWidgetProvider : AppWidgetProvider() {
 
     companion object {
         fun updateAll(context: Context) {
-            val app = context.applicationContext as? DuoApplication ?: return
+            val app = context.applicationContext as? OpenLingoApplication ?: return
             val widgetManager = AppWidgetManager.getInstance(context)
             val component = ComponentName(context, OpenLingoWidgetProvider::class.java)
             val ids = widgetManager.getAppWidgetIds(component)

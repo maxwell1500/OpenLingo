@@ -1,6 +1,6 @@
 # Pronunciation review
 
-A local web page that puts all 397 language-learning audio clips in front of a
+A local web page that puts all 395 language-learning audio clips in front of a
 **native speaker** and records what they think of them.
 
 It exists because the automated checks already done on this project can prove
@@ -92,7 +92,7 @@ native speaker, save it as `.ogg` under `references/es/` or `references/ja/`
 using the clip's own file name, and reload the page. The buttons appear on
 their own.
 
-### 5. Do not have to do all 397
+### 5. Do not have to do all 395
 
 The bar across the top fills as you go.
 

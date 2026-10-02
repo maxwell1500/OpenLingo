@@ -1,5 +1,25 @@
 # Real Course Content Pipeline — Research & Design Report
 
+> **NOTE — this is not a provenance record for shipped content.**
+>
+> This document is a **historical research and design plan** (dated 2026-09-13)
+> for sourcing and building a real course-content pipeline from third-party
+> corpora — Tatoeba, Kaikki/Wiktionary, EDRDG, Common Voice and related sources.
+> It is kept for the record because the survey and the licensing analysis are
+> useful, and because it explains what was considered.
+>
+> **That pipeline was not adopted, and none of it shipped.** The Spanish and
+> Japanese curriculum actually bundled in the application is **hand-authored
+> original Kotlin content**, written for this project. The application
+> **contains zero third-party corpus text** — no Tatoeba sentences, no
+> Kaikki/Wiktionary entries, no EDRDG or Common Voice material, in any exercise,
+> lesson, option, or audio reference.
+>
+> Read this document as a design exploration, not as a statement of where the
+> shipped content came from. Nothing below describes the current state of the
+> application. For the actual attribution position, see
+> [`../NOTICE`](../NOTICE).
+
 **Date:** 2026-09-13  
 **Target:** OpenLingo, native Android app (Kotlin + Jetpack Compose)  
 **Goal:** Replace toy seed data with real, legally-redistributable multi-unit Spanish and Japanese courses

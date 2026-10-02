@@ -3,7 +3,7 @@ package com.openlingo.app.ui
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.openlingo.app.DuoApplication
+import com.openlingo.app.OpenLingoApplication
 import com.openlingo.app.data.local.entities.CourseEntity
 import com.openlingo.app.data.local.entities.LessonEntity
 import com.openlingo.app.data.local.entities.UnitEntity
@@ -100,8 +100,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         const val MAX_CHECKPOINT_CHALLENGES = 30
     }
 
-    private val repository = (application as DuoApplication).repository
-    private val audioPlayer = (application as DuoApplication).audioPlayer
+    private val repository = (application as OpenLingoApplication).repository
+    private val audioPlayer = (application as OpenLingoApplication).audioPlayer
 
     val userProgress: StateFlow<UserProgressEntity?> = repository.getUserProgress()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)

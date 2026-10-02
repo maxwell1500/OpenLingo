@@ -1,6 +1,6 @@
 package com.openlingo.app.data.repository
 
-import com.openlingo.app.data.local.DuoDatabase
+import com.openlingo.app.data.local.OpenLingoDatabase
 import com.openlingo.app.data.local.entities.ChallengeEntity
 import com.openlingo.app.data.local.entities.ChallengeOptionEntity
 import com.openlingo.app.data.local.entities.ChallengeProgressEntity
@@ -57,7 +57,7 @@ sealed interface AnswerResult {
     data class Incorrect(val remainingHearts: Int) : AnswerResult
 }
 
-class LocalProgressRepository(private val database: DuoDatabase) {
+class LocalProgressRepository(private val database: OpenLingoDatabase) {
 
     companion object {
         const val GUEST_USER_ID = "guest_local"
@@ -139,7 +139,7 @@ class LocalProgressRepository(private val database: DuoDatabase) {
                 userProgressDao.updateStreak(existingUser.userId, 1, today.toString())
             }
             if (daysBetween >= 1) {
-                // New day: hearts refill to full (Duolingo-style daily refill)
+                // New day: hearts refill to full (daily reset)
                 userProgressDao.updateHearts(existingUser.userId, MAX_HEARTS)
             }
         }

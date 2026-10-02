@@ -2,7 +2,7 @@ package com.openlingo.app
 
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
-import com.openlingo.app.data.local.DuoDatabase
+import com.openlingo.app.data.local.OpenLingoDatabase
 import com.openlingo.app.data.local.models.ChallengeType
 import com.openlingo.app.data.repository.LocalProgressRepository
 import com.openlingo.app.dictionary.DictionaryIndex
@@ -37,14 +37,14 @@ import org.robolectric.annotation.Config
 @Config(sdk = [34])
 class DictionaryRepositoryTest {
 
-    private lateinit var db: DuoDatabase
+    private lateinit var db: OpenLingoDatabase
     private lateinit var repository: LocalProgressRepository
 
     @Before
     fun setUp() {
         db = Room.inMemoryDatabaseBuilder(
             ApplicationProvider.getApplicationContext(),
-            DuoDatabase::class.java,
+            OpenLingoDatabase::class.java,
         ).allowMainThreadQueries().build()
         repository = LocalProgressRepository(db)
     }

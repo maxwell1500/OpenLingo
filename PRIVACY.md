@@ -40,7 +40,7 @@ Because there is no backend, we cannot see who you are, which lessons you have c
 
 ## 3. What the app stores on your device
 
-OpenLingo keeps everything locally, in a private, on-device SQLite database (`duo_local.db`) inside the app's own sandboxed storage, plus Android shared preferences for settings. Nothing in that database is readable by other apps on your device (Android app sandboxing enforces this) and nothing is uploaded.
+OpenLingo keeps everything locally, in a private, on-device SQLite database (`openlingo_local.db`) inside the app's own sandboxed storage, plus Android shared preferences for settings. Nothing in that database is readable by other apps on your device (Android app sandboxing enforces this) and nothing is uploaded.
 
 Depending on how you use the app, that local data includes:
 
@@ -83,7 +83,7 @@ If you exported a backup and sent it somewhere, that copy is now under the contr
 Two related notes on device-level behaviour that is controlled by Android, not by us:
 
 - **System backup.** Because `android:allowBackup` is enabled, Android's own backup service may include the app's database and preferences in your device backup (for example, Google system backup). That is Android's backup feature, operating under Google's account settings, and you can exclude the app or turn system backup off in your device settings. We do not have access to that data.
-- **Uninstalling.** Uninstalling OpenLingo removes the app's private storage, including `duo_local.db`, in full.
+- **Uninstalling.** Uninstalling OpenLingo removes the app's private storage, including `openlingo_local.db`, in full.
 
 ---
 

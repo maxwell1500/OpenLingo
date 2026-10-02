@@ -7,7 +7,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 import androidx.sqlite.db.SupportSQLiteOpenHelper
 import androidx.sqlite.db.framework.FrameworkSQLiteOpenHelperFactory
 import androidx.test.core.app.ApplicationProvider
-import com.openlingo.app.data.local.DuoDatabase
+import com.openlingo.app.data.local.OpenLingoDatabase
 import java.io.File
 import kotlinx.coroutines.test.runTest
 import org.junit.After
@@ -152,10 +152,10 @@ class MigrationTest {
 
         val db = Room.databaseBuilder(
             ApplicationProvider.getApplicationContext(),
-            DuoDatabase::class.java,
+            OpenLingoDatabase::class.java,
             dbName,
         )
-            .addMigrations(DuoDatabase.MIGRATION_14_15)
+            .addMigrations(OpenLingoDatabase.MIGRATION_14_15)
             .allowMainThreadQueries()
             .build()
 
@@ -257,7 +257,7 @@ class MigrationTest {
         )
         val migrated = helper.writableDatabase
         try {
-            DuoDatabase.MIGRATION_12_13.migrate(migrated)
+            OpenLingoDatabase.MIGRATION_12_13.migrate(migrated)
 
             val challenges = migrated.columnInfo("challenges")
 
@@ -336,13 +336,13 @@ class MigrationTest {
         // migration throws here.
         val db = Room.databaseBuilder(
             ApplicationProvider.getApplicationContext(),
-            DuoDatabase::class.java,
+            OpenLingoDatabase::class.java,
             dbName,
         )
             .addMigrations(
-                DuoDatabase.MIGRATION_12_13,
-                DuoDatabase.MIGRATION_13_14,
-                DuoDatabase.MIGRATION_14_15,
+                OpenLingoDatabase.MIGRATION_12_13,
+                OpenLingoDatabase.MIGRATION_13_14,
+                OpenLingoDatabase.MIGRATION_14_15,
             )
             .allowMainThreadQueries()
             .build()

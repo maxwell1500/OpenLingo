@@ -135,7 +135,7 @@ fun StrokeDrawingCanvas(
                     ),
                 )
 
-                // Start node indicator circle (Duolingo blue)
+                // Start node indicator circle (accent blue)
                 val startPos = Offset(currentStroke.points[0].x * w, currentStroke.points[0].y * h)
                 drawCircle(
                     color = Color(0xFF3D7EA6),

@@ -48,7 +48,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.core.view.WindowCompat
 import androidx.compose.foundation.rememberScrollState
-import com.openlingo.app.ui.theme.DuoTheme
+import com.openlingo.app.ui.theme.OpenLingoTheme
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -157,7 +157,7 @@ class MainActivity : ComponentActivity() {
                 com.openlingo.app.ui.theme.ThemeMode.DARK -> true
                 else -> isSystemInDarkTheme()
             }
-            DuoTheme(accent = themeAccent, darkTheme = useDarkTheme) {
+            OpenLingoTheme(accent = themeAccent, darkTheme = useDarkTheme) {
                 SideEffect {
                     WindowCompat.getInsetsController(window, window.decorView).apply {
                         isAppearanceLightStatusBars = !useDarkTheme
@@ -179,7 +179,7 @@ class MainActivity : ComponentActivity() {
                     contentWindowInsets = WindowInsets(0, 0, 0, 0),
                     topBar = {
                         if (activeScreen is ActiveScreen.LessonMap) {
-                            DuoTopAppBar(
+                            OpenLingoTopAppBar(
                                 courses = courses,
                                 userProgress = userProgress,
                                 onSelectCourse = viewModel::switchCourse,
@@ -190,7 +190,7 @@ class MainActivity : ComponentActivity() {
                     },
                     bottomBar = {
                         if (activeScreen is ActiveScreen.LessonMap) {
-                            DuoBottomNavigationBar(
+                            OpenLingoBottomNavigationBar(
                                 currentTab = currentTab,
                                 isJapanese = isJapanese,
                                 onSelectTab = viewModel::selectTab,
@@ -395,7 +395,7 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-private fun DuoBottomNavigationBar(
+private fun OpenLingoBottomNavigationBar(
     currentTab: MainTab,
     isJapanese: Boolean,
     onSelectTab: (MainTab) -> Unit,
@@ -495,7 +495,7 @@ private fun DuoBottomNavigationBar(
 // Top App Bar: Course Switcher, Streak, XP, Hearts
 // -------------------------------------------------------------------------
 @Composable
-private fun DuoTopAppBar(
+private fun OpenLingoTopAppBar(
     courses: List<CourseEntity>,
     userProgress: UserProgressEntity?,
     onSelectCourse: (Int) -> Unit,
@@ -1345,7 +1345,7 @@ private fun ExerciseScreen(
                         trackColor = Color(0xFFE5E5E5),
                     )
 
-                    // Romaji / Furigana Toggle Button (Duolingo Japanese style).
+                    // Romaji / Furigana Toggle Button (Japanese-course UI).
                     // Japanese-course chrome only: a Spanish lesson has no romaji
                     // to switch, so the toggle must not render there.
                     if (isJapanese) {

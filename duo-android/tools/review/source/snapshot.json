@@ -2344,41 +2344,6 @@
    ]
   },
   {
-   "clip": "esteis.ogg",
-   "stem": "esteis",
-   "lang": "es",
-   "text": "estéis.",
-   "textProvenance": "manifest:b1_grammar_es_audio_manifest.json",
-   "textConfidence": "manifest+kotlin-agree",
-   "textNotes": "",
-   "declaredReading": "",
-   "kanaReading": "",
-   "sourceIds": "70015",
-   "usage": "OPTION_AUDIO",
-   "challengeTypes": [
-    "CONJUGATE"
-   ],
-   "challengeIds": [
-    "70015"
-   ],
-   "jaAnalysis": null,
-   "esCandidates": [
-    {
-     "optionId": "700150",
-     "challengeId": "70015",
-     "lessonId": "601",
-     "challengeType": "CONJUGATE",
-     "esText": "estéis",
-     "romanisation": "estˈeis",
-     "dialectNote": "",
-     "confidence": "high",
-     "clipText": "estéis.",
-     "clipProvenance": "manifest:b1_grammar_es_audio_manifest.json",
-     "clipConfidence": "manifest+kotlin-agree"
-    }
-   ]
-  },
-  {
    "clip": "estudie_mucho_porque_querria_aprobar.ogg",
    "stem": "estudie_mucho_porque_querria_aprobar",
    "lang": "es",
@@ -3165,41 +3130,6 @@
      "dialectNote": "",
      "confidence": "high",
      "clipText": "hubieras.",
-     "clipProvenance": "manifest:b1b_es_audio_manifest.json",
-     "clipConfidence": "manifest+kotlin-agree"
-    }
-   ]
-  },
-  {
-   "clip": "hubieseis.ogg",
-   "stem": "hubieseis",
-   "lang": "es",
-   "text": "hubieseis.",
-   "textProvenance": "manifest:b1b_es_audio_manifest.json",
-   "textConfidence": "manifest+kotlin-agree",
-   "textNotes": "",
-   "declaredReading": "",
-   "kanaReading": "",
-   "sourceIds": "80024",
-   "usage": "OPTION_AUDIO",
-   "challengeTypes": [
-    "CONJUGATE"
-   ],
-   "challengeIds": [
-    "80024"
-   ],
-   "jaAnalysis": null,
-   "esCandidates": [
-    {
-     "optionId": "800240",
-     "challengeId": "80024",
-     "lessonId": "702",
-     "challengeType": "CONJUGATE",
-     "esText": "hubieseis",
-     "romanisation": "ubhˈieseis",
-     "dialectNote": "",
-     "confidence": "high",
-     "clipText": "hubieseis.",
      "clipProvenance": "manifest:b1b_es_audio_manifest.json",
      "clipConfidence": "manifest+kotlin-agree"
     }

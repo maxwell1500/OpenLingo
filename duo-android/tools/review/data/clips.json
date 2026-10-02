@@ -50,15 +50,15 @@
   "agreed"
  ],
  "summary": {
-  "total": 397,
-  "es": 198,
+  "total": 395,
+  "es": 196,
   "ja": 199,
-  "withAuthoredReading": 383,
+  "withAuthoredReading": 381,
   "withDerivedReading": 13,
   "withNoReading": 1,
-  "withPhonemes": 397,
+  "withPhonemes": 395,
   "byVerdictClass": {
-   "cleared": 121,
+   "cleared": 119,
    "instrument-blind": 72,
    "unclassified-disagreement": 14,
    "fixed-audio-defect": 4,
@@ -2070,41 +2070,6 @@
    "reference": "references/es/escucha.ogg"
   },
   {
-   "clip": "esteis.ogg",
-   "lang": "es",
-   "langLabel": "Spanish",
-   "text": "estéis.",
-   "reading": "estˈeis",
-   "readingKind": "romanisation",
-   "readingSource": "authored table (.scratch/es_romanisation), reviewed by nobody — a draft to correct",
-   "readingNote": "",
-   "readingConfidence": "high",
-   "phonemes": "estˈeis.",
-   "kanaReading": "",
-   "challengeTypes": [
-    "CONJUGATE",
-    "OPTION_AUDIO"
-   ],
-   "challengeIds": [
-    "70015"
-   ],
-   "lessonIds": [
-    "601"
-   ],
-   "usage": "OPTION_AUDIO",
-   "sourceIds": [
-    "70015"
-   ],
-   "textProvenance": "manifest:b1_grammar_es_audio_manifest.json",
-   "textConfidence": "manifest+kotlin-agree",
-   "verdictClass": "cleared",
-   "verdictLabel": "Swept, nothing found",
-   "verdictNote": "the corpus-wide detector sweep raised no flag here",
-   "verdictGloss": "the corpus-wide detector sweep raised no flag for this clip",
-   "audio": "../../app/src/main/assets/audio/es/esteis.ogg",
-   "reference": "references/es/esteis.ogg"
-  },
-  {
    "clip": "estudie_mucho_porque_querria_aprobar.ogg",
    "lang": "es",
    "langLabel": "Spanish",
@@ -2884,41 +2849,6 @@
    "verdictGloss": "the corpus-wide detector sweep raised no flag for this clip",
    "audio": "../../app/src/main/assets/audio/es/hubieras.ogg",
    "reference": "references/es/hubieras.ogg"
-  },
-  {
-   "clip": "hubieseis.ogg",
-   "lang": "es",
-   "langLabel": "Spanish",
-   "text": "hubieseis.",
-   "reading": "ubhˈieseis",
-   "readingKind": "romanisation",
-   "readingSource": "authored table (.scratch/es_romanisation), reviewed by nobody — a draft to correct",
-   "readingNote": "",
-   "readingConfidence": "high",
-   "phonemes": "uβjˈesAs.",
-   "kanaReading": "",
-   "challengeTypes": [
-    "CONJUGATE",
-    "OPTION_AUDIO"
-   ],
-   "challengeIds": [
-    "80024"
-   ],
-   "lessonIds": [
-    "702"
-   ],
-   "usage": "OPTION_AUDIO",
-   "sourceIds": [
-    "80024"
-   ],
-   "textProvenance": "manifest:b1b_es_audio_manifest.json",
-   "textConfidence": "manifest+kotlin-agree",
-   "verdictClass": "cleared",
-   "verdictLabel": "Swept, nothing found",
-   "verdictNote": "the corpus-wide detector sweep raised no flag here",
-   "verdictGloss": "the corpus-wide detector sweep raised no flag for this clip",
-   "audio": "../../app/src/main/assets/audio/es/hubieseis.ogg",
-   "reference": "references/es/hubieseis.ogg"
   },
   {
    "clip": "hubieses.ogg",

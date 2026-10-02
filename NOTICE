@@ -50,3 +50,84 @@ The MIT licence covering this repository continues to apply in full and is
 unchanged. This file is an additional notice, not a replacement: it adds
 context about what the licence covers and who wrote what. Nothing here modifies,
 narrows, or supersedes the terms in [LICENSE](LICENSE).
+
+Third-party components
+----------------------
+
+The MIT licence above covers this repository's own source. The shipped Android
+application additionally incorporates and redistributes the following
+third-party components. Each is licensed under the **Apache License, Version
+2.0**, whose terms apply in full to that component. The list is the set of
+declared runtime dependencies in `duo-android/app/build.gradle.kts`; no
+third-party application source code has been vendored into this repository.
+
+### Apache-2.0 libraries
+
+    Jetpack Compose and Jetpack UI libraries
+      androidx.compose:compose-bom, androidx.compose.ui:ui,
+      androidx.compose.material3:material3, androidx.compose.ui:ui-tooling
+      https://developer.android.com/jetpack/compose
+
+    Jetpack Activity / Lifecycle
+      androidx.activity:activity-compose
+      androidx.lifecycle:lifecycle-runtime-ktx,
+      androidx.lifecycle:lifecycle-runtime-compose,
+      androidx.lifecycle:lifecycle-viewmodel-compose
+      https://developer.android.com/jetpack
+
+    Jetpack Room (local database persistence)
+      androidx.room:room-runtime, androidx.room:room-ktx,
+      androidx.room:room-compiler (code generation, build-time only)
+      https://developer.android.com/training/data-storage/room
+
+    AndroidX Media3 / ExoPlayer (audio playback)
+      androidx.media3:media3-exoplayer, androidx.media3:media3-common
+      https://developer.android.com/media/media3
+
+    Kotlin standard library contributions, coroutines and serialization
+      org.jetbrains.kotlinx:kotlinx-coroutines-android,
+      org.jetbrains.kotlinx:kotlinx-serialization-json
+      https://github.com/Kotlin/kotlinx.coroutines
+      https://github.com/Kotlin/kotlinx.serialization
+
+For the avoidance of doubt: `org.jetbrains.kotlinx:kotlinx-coroutines-android`
+and `org.jetbrains.kotlinx:kotlinx-serialization-json` are Apache-2.0; the Kotlin
+standard library itself is likewise Apache-2.0 and is shipped by the build as a
+dependency rather than vendored here.
+
+Test-only dependencies (`junit:junit`, `org.robolectric:robolectric`,
+`app.cash.turbine:turbine`, `androidx.test:core`,
+`androidx.room:room-testing`, `org.jetbrains.kotlinx:kotlinx-coroutines-test`)
+are **not** part of any shipped artifact. `junit:junit` is additionally licensed
+EPL-1.0 rather than Apache-2.0; it is listed here only for completeness and is
+never redistributed.
+
+The upstream projects are copyright their respective authors and are used
+under the terms of the Apache License, Version 2.0. The complete licence text
+is available at <https://www.apache.org/licenses/LICENSE-2.0>.
+
+### Bundled audio model — Kokoro-82M
+
+All audio bundled with the application under
+`duo-android/app/src/main/assets/audio/` was **generated** by this project using
+the Kokoro-82M text-to-speech model:
+
+    Kokoro-82M (v1.0), hexgrad/Kokoro-82M — Apache License, Version 2.0
+    https://huggingface.co/hexgrad/Kokoro-82M
+
+The model weights are licensed Apache-2.0, which permits redistribution of
+both the weights and the audio derived from them. The generated speech is
+therefore covered by the same permissive terms. No recorded human speech is
+redistributed in the application. Details of the generation pipeline, the
+grapheme-to-phoneme front-ends and the verification passes are recorded in
+[`docs/kokoro-tts.md`](docs/kokoro-tts.md).
+
+### Curriculum content
+
+The Spanish and Japanese curriculum shipped in the application is **hand-
+authored original content** written for this project. No third-party corpus
+text — Tatoeba, Kaikki/Wiktionary, EDRDG, Common Voice or any other source — is
+bundled in the application, so no corpus attribution obligation arises for the
+shipped curriculum. [`docs/content-sourcing.md`](docs/content-sourcing.md)
+describes a research/design pipeline that was considered and not adopted; it is
+a historical design record, **not** a provenance record for shipped content.

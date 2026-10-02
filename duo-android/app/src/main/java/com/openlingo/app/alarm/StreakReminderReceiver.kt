@@ -9,7 +9,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import androidx.core.app.NotificationCompat
-import com.openlingo.app.DuoApplication
+import com.openlingo.app.OpenLingoApplication
 import com.openlingo.app.MainActivity
 import com.openlingo.app.R
 import java.time.LocalDate
@@ -30,7 +30,7 @@ class StreakReminderReceiver : BroadcastReceiver() {
         val pendingResult = goAsync()
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                val app = context.applicationContext as? DuoApplication ?: return@launch
+                val app = context.applicationContext as? OpenLingoApplication ?: return@launch
                 val today = LocalDate.now().toString()
                 val todayXp = app.database.dailyActivityDao().getXpDirect(today) ?: 0
                 val user = app.repository.getUserProgressDirect()

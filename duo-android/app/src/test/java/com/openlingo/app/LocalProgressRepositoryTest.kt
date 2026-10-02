@@ -3,7 +3,7 @@ package com.openlingo.app
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import app.cash.turbine.test
-import com.openlingo.app.data.local.DuoDatabase
+import com.openlingo.app.data.local.OpenLingoDatabase
 import com.openlingo.app.data.repository.AnswerResult
 import com.openlingo.app.data.repository.LocalProgressRepository
 import java.time.LocalDate
@@ -33,14 +33,14 @@ class LocalProgressRepositoryTest {
     /** FSRS stability is a REAL, so a restored value is compared to within rounding. */
     private val FSRS_TOLERANCE = 1e-9
 
-    private lateinit var db: DuoDatabase
+    private lateinit var db: OpenLingoDatabase
     private lateinit var repository: LocalProgressRepository
 
     @Before
     fun setUp() {
         db = Room.inMemoryDatabaseBuilder(
             ApplicationProvider.getApplicationContext(),
-            DuoDatabase::class.java,
+            OpenLingoDatabase::class.java,
         ).allowMainThreadQueries().build()
         repository = LocalProgressRepository(db)
     }

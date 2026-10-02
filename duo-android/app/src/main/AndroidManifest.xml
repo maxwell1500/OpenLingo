@@ -9,9 +9,9 @@
          only plays bundled local assets, so strip the merged permission. -->
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" tools:node="remove" />
     <application
-        android:name=".DuoApplication"
+        android:name=".OpenLingoApplication"
         android:label="OpenLingo"
-        android:theme="@style/Theme.Duo"
+        android:theme="@style/Theme.OpenLingo"
         android:icon="@mipmap/ic_launcher"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:allowBackup="true"

@@ -1,7 +1,7 @@
 # Feature Gap Analysis: OpenLingo vs Duolingo
 
 _Generated from repo ground truth. Every "we have" claim cites a file path in
-`duo-android/app/src/main/java/com/duo/app/`. Every Duolingo-side claim is tagged
+`duo-android/app/src/main/java/com/openlingo/app/`. Every Duolingo-side claim is tagged
 `[FEATURE]` and comes from product knowledge of the Duolingo mobile app, not from
 this repository._
 
