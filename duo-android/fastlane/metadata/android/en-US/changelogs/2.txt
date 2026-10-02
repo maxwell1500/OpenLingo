@@ -1,8 +1,8 @@
 • Checkpoint tests for CEFR A1/B1 and JLPT N5/N4 levels
 • FSRS-4.5 spaced repetition scheduling for flashcard vocabulary review
-• Adaptive difficulty: weakest-skill prioritization in practice and profile
+• Adaptive difficulty: weakest-skill prioritization
 • Story mode: interactive dialogues and reading comprehension challenges
-• Placement test at onboarding to skip ahead based on knowledge
+• Placement test at onboarding to skip ahead
 • JSON backup schema v2 with checkpoint scores and FSRS schedules
 • Dark mode selector (System / Light / Dark)
 • Learn offline. Own your progress. No ads or tracking.

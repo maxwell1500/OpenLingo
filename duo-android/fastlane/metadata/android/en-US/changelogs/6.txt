@@ -1,3 +1,3 @@
 Renamed the app's package to com.openlingo.app. New capybara/onsen color palette throughout. New tagline: "Learn offline. Own your progress."
 
-Placement test fixes. Match-pair boards no longer dead-end: some Japanese boards paired their tiles by a rule that left the first and last tile without a partner, so CHECK never enabled and the lesson could not be finished. The placement test now ramps from words and short sentences up to harder grammar instead of drawing its questions at random, and the score it earns unlocks progress in the course you actually took.
+Placement test fixes. Match-pair boards no longer dead-end on Japanese odd-id pairs. The placement test now difficulty-ramps from words and short sentences up to harder grammar. Scoring is course-aware and grants the displayed tier.
