@@ -413,23 +413,27 @@ class LocalProgressRepository(private val database: OpenLingoDatabase) {
     }
 
     /**
-     * Fast-tracks learner up to a starting unit by marking earlier challenges complete.
-     * Used by the Placement Test.
+     * Fast-tracks the learner by marking every challenge of [unitIds] complete.
+     * Used by the placement test, which derives those units from the course's own
+     * levels — Spanish A1 is 10-17, Japanese N5 is 20-27.
+     *
+     * Taking the units rather than a tier id is what the old shape got wrong: it
+     * hardcoded the Spanish lists for both courses, so a Japanese run unlocked
+     * nothing for the learner and marked 49 Spanish challenges complete instead,
+     * and it also named units 1 and 2, which no course has.
+     *
+     * Throws rather than writing nothing when the units match no challenge: a
+     * silent no-op, or a write against the wrong course, is a corrupted save that
+     * nothing downstream can see.
      */
-    suspend fun completeChallengesUpToUnit(unitId: Int) = withContext(Dispatchers.IO) {
-        val unitIds = when (unitId) {
-            // Placement skipped into Intermediate (A2/N4): mark A1/N5 units complete
-            18 -> listOf(1, 2, 10, 11, 12, 13, 14, 15, 16, 17)
-            14 -> listOf(1, 2, 10, 11, 12, 13)
-            else -> emptyList()
+    suspend fun completeChallengesUpToUnit(unitIds: List<Int>) = withContext(Dispatchers.IO) {
+        check(unitIds.isNotEmpty()) { "placement fast-forward has no units" }
+        val challenges = lessonDao.getChallengesForUnits(unitIds)
+        check(challenges.isNotEmpty()) { "placement fast-forward matched no unit (units $unitIds)" }
+        for (c in challenges) {
+            markChallengeCompletedOnce(c.id)
         }
-        if (unitIds.isNotEmpty()) {
-            val challenges = lessonDao.getChallengesForUnits(unitIds)
-            for (c in challenges) {
-                markChallengeCompletedOnce(c.id)
-            }
-            userProgressDao.addPoints(GUEST_USER_ID, challenges.size * POINTS_PER_CHALLENGE)
-        }
+        userProgressDao.addPoints(GUEST_USER_ID, challenges.size * POINTS_PER_CHALLENGE)
     }
 
     /**

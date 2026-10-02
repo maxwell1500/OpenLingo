@@ -163,8 +163,8 @@ class LocalProgressRepositoryTest {
     fun `placement fast-forward does not duplicate progress rows`() = runTest {
         repository.initializeIfNeeded()
 
-        repository.completeChallengesUpToUnit(14)
-        repository.completeChallengesUpToUnit(14)
+        repository.completeChallengesUpToUnit((10..13).toList())
+        repository.completeChallengesUpToUnit((10..13).toList())
 
         val completedRows = db.challengeProgressDao().getCompletedChallengeIdsDirect("guest_local")
         assertTrue(completedRows.isNotEmpty())

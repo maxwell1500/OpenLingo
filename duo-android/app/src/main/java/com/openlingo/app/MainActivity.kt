@@ -48,6 +48,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.core.view.WindowCompat
 import androidx.compose.foundation.rememberScrollState
+import com.openlingo.app.ui.MatchPairs
 import com.openlingo.app.ui.theme.OpenLingoTheme
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -1284,7 +1285,7 @@ private fun ExerciseScreen(
     val isFillBlank = challenge.type == ChallengeType.FILL_BLANK
     val isAssist = challenge.type == ChallengeType.ASSIST
     val hasSelection = when {
-        isMatchPairs -> exercise.matchedPairIds.size >= options.size
+        isMatchPairs -> MatchPairs.isComplete(options, exercise.matchedPairIds)
         isWordBank -> exercise.selectedWordTileIds.isNotEmpty()
         isFillBlank -> exercise.typedAnswer.isNotBlank()
         else -> exercise.selectedOptionId != null

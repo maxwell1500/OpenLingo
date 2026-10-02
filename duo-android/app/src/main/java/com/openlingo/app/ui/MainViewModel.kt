@@ -612,41 +612,111 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
         viewModelScope.launch {
             val courseId = checkpointCourseId
-            val allUnitIds = if (courseId == 1) listOf(10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 30, 31, 32, 33, 34, 35, 36, 37)
-                            else listOf(20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 40, 41, 42, 43, 44, 45, 46, 47)
-            val sample = repository.getChallengesForUnits(allUnitIds).shuffled().take(25)
-            if (sample.isNotEmpty()) {
-                currentLessonChallenges = sample
-                lessonPointsAccumulated = 0
-                lessonMistakes = 0
-                lessonCombo = 0
-                val first = sample[0]
-                first.challenge.audioSrc?.let { playVoiceIfEnabled(it) }
-                _activeScreen.value = ActiveScreen.Exercise(
-                    lessonId = -1,
-                    challengeIndex = 0,
-                    totalChallenges = sample.size,
-                    currentChallenge = first,
-                )
-            }
+            val sample = samplePlacementChallenges(courseId)
+            // A course whose units no longer match the band map is a curriculum bug the
+            // placement screen cannot show: the learner would be left on a button that
+            // does nothing. Fail loudly rather than swallow it.
+            require(sample.isNotEmpty()) { "placement has no challenges for course $courseId" }
+            currentLessonChallenges = sample
+            lessonPointsAccumulated = 0
+            lessonMistakes = 0
+            lessonCombo = 0
+            val first = sample[0]
+            first.challenge.audioSrc?.let { playVoiceIfEnabled(it) }
+            _activeScreen.value = ActiveScreen.Exercise(
+                lessonId = -1,
+                challengeIndex = 0,
+                totalChallenges = sample.size,
+                currentChallenge = first,
+            )
         }
     }
 
+    /**
+     * Draws the placement run's challenges as a difficulty ramp: a fixed quota per
+     * band, shuffled within the band, concatenated easiest-first so the run starts
+     * with words and short sentences and saves the advanced grammar for last.
+     *
+     * The bands come from [getUnitIdsForLevel] — the same map the checkpoints draw
+     * from — because the two courses number their units independently. Spanish runs
+     * take 12 A1 + 8 A2 + 5 B1; Japanese runs take 14 N5 + 11 N4. A band short of
+     * its quota is backfilled from the next band(s) only, never from an easier one,
+     * so the run stays at 25 (or at every challenge the course has, if fewer).
+     */
+    private suspend fun samplePlacementChallenges(courseId: Int): List<ChallengeWithOptions> {
+        val bands: List<Pair<String, Int>> = if (courseId == 1) {
+            listOf("A1" to 12, "A2" to 8, "B1" to 5)
+        } else {
+            listOf("N5" to 14, "N4" to 11)
+        }
+        // Each band's full pool, shuffled once so the within-band order is random.
+        val pools = bands.map { (level, _) ->
+            repository.getChallengesForUnits(getUnitIdsForLevel(courseId, level)).shuffled()
+        }
+        // Allocation per band: start at the quota, then push any deficit to the
+        // harder bands' surplus so the run never backfills from an easier band.
+        val alloc = bands.map { (_, quota) -> quota }.toMutableList()
+        for (i in bands.indices) {
+            if (alloc[i] > pools[i].size) {
+                val deficit = alloc[i] - pools[i].size
+                alloc[i] = pools[i].size
+                var need = deficit
+                for (j in (i + 1) until bands.size) {
+                    if (need <= 0) break
+                    val surplus = pools[j].size - alloc[j]
+                    val move = minOf(need, surplus)
+                    alloc[j] += move
+                    need -= move
+                }
+            }
+        }
+        return bands.indices.flatMap { i -> pools[i].take(alloc[i]) }
+    }
+
+    /**
+     * Scores a finished placement run and fast-forwards the learner's course.
+     *
+     * The units come from the course's own levels — the same [getUnitIdsForLevel]
+     * the checkpoints draw from — because the two courses number their units
+     * independently: Spanish A1 is 10-17 and Japanese N5 is 20-27. A Japanese run
+     * used to be answered with the Spanish unit ids, which unlocked nothing for
+     * the learner and marked 49 Spanish challenges complete instead.
+     */
     fun applyPlacementScore(correct: Int, total: Int) {
         val percent = if (total > 0) (correct * 100) / total else 0
+        val courseId = checkpointCourseId
         viewModelScope.launch {
-            when {
-                percent >= 80 -> repository.completeChallengesUpToUnit(18) // Jump to A2 / N4
-                percent >= 50 -> repository.completeChallengesUpToUnit(14) // Jump to mid-A1 / mid-N5
-                else -> { /* Start at beginning */ }
+            val completed = when {
+                percent >= 80 -> placementFastForwardUnits(courseId, advanced = true)
+                percent >= 50 -> placementFastForwardUnits(courseId, advanced = false)
+                else -> emptyList() // Start at the beginning: nothing is marked complete.
+            }
+            if (completed.isNotEmpty()) {
+                repository.completeChallengesUpToUnit(completed)
             }
             repository.setOnboardingSeen()
             refreshProfileStats()
             _activeScreen.value = ActiveScreen.LessonMap
         }
     }
+
+    /**
+     * The units a placement score completes: the whole level below the tier for a
+     * pass, its first half for a partial score. Spanish A1 is 10-17, so a pass
+     * completes 10-17 (starting A2) and a partial score completes 10-13 (starting
+     * mid-A1); Japanese N5 is 20-27, so the same tiers complete 20-27 and 20-23.
+     *
+     * An unknown course has no such level, and the empty list it gets is what the
+     * repository refuses, rather than silently writing nothing.
+     */
+    private fun placementFastForwardUnits(courseId: Int, advanced: Boolean): List<Int> {
+        val level = if (courseId == 2) "N5" else "A1"
+        val units = getUnitIdsForLevel(courseId, level)
+        return if (advanced) units else units.take(units.size / 2)
+    }
     fun startLesson(lessonId: Int) {
         isInPracticeSession = false
+        isInCheckpoint = false
         viewModelScope.launch {
             val challenges = repository.getChallengesForLesson(lessonId)
             if (challenges.isNotEmpty()) {
@@ -667,6 +737,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun startMistakePractice() {
+        // Defensive: a practice session is not a checkpoint, however the learner
+        // arrived here (an abandoned placement run used to leave the flag set).
+        isInCheckpoint = false
         viewModelScope.launch {
             val challenges = repository.getMistakeChallenges(userProgress.value?.activeCourseId ?: 1)
             if (challenges.isNotEmpty()) {
@@ -724,20 +797,33 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             return
         }
 
-        // Paired by consecutive IDs: (2k, 2k+1) where 2k+1 = 2k + 1
-        val isPair = (firstId xor 1) == optionId
-        if (isPair) {
+        // The board's pairs are the authored consecutive pairs, so the pairing is
+        // positional over the id-ascending board — see MatchPairs, and why `id xor 1`
+        // could never clear the first and last tile of a board authored from an odd id.
+        val options = current.currentChallenge.options
+        if (MatchPairs.isPair(options, firstId, optionId)) {
             if (hapticsOn()) com.openlingo.app.feedback.Haptics.tick(getApplication())
             val nextMatched = current.matchedPairIds + setOf(firstId, optionId)
-            val allMatched = nextMatched.size >= current.currentChallenge.options.size
+            val allMatched = MatchPairs.isComplete(options, nextMatched)
             _activeScreen.value = current.copy(
                 selectedPairFirstId = null,
                 matchedPairIds = nextMatched,
                 feedback = if (allMatched) FeedbackState.Correct(pointsGained = 10, combo = 0) else null,
             )
             if (allMatched) {
+                // The board grades itself, so it tallies here too: the answer is
+                // already known to be correct, and the score must not wait on the
+                // write below — the learner can hit CONTINUE before it lands.
+                recordCheckpointAnswer(current.currentChallenge.challenge.id, isCorrect = true)
                 viewModelScope.launch {
-                    repository.submitAnswer(current.currentChallenge.challenge.id, isCorrect = true)
+                    // Placement is practice: isPractice keeps this write free of the
+                    // completion / XP / quest / streak side effects, exactly as the
+                    // CHECK path does for every other exercise type.
+                    repository.submitAnswer(
+                        current.currentChallenge.challenge.id,
+                        isCorrect = true,
+                        isPractice = isInPracticeSession,
+                    )
                 }
                 if (soundOn()) audioPlayer.playCorrectSound()
                 if (hapticsOn()) com.openlingo.app.feedback.Haptics.correct(getApplication())
@@ -747,6 +833,18 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             if (hapticsOn()) com.openlingo.app.feedback.Haptics.incorrect(getApplication())
             _activeScreen.value = current.copy(selectedPairFirstId = null)
         }
+    }
+
+    /**
+     * The checkpoint tally for one graded challenge: a correct item counts toward
+     * the score, a missed one is queued for review. Both the CHECK path
+     * ([checkAnswer]) and the match-pairs board, which grades itself when its last
+     * pair clears, have to run this — the board used to submit its answer without
+     * tallying, so every board in a placement run scored zero.
+     */
+    private fun recordCheckpointAnswer(challengeId: Int, isCorrect: Boolean) {
+        if (!isInCheckpoint) return
+        if (isCorrect) checkpointCorrect += 1 else checkpointMissedIds = checkpointMissedIds + challengeId
     }
 
     fun removeWordTile(optionId: Int) {
@@ -819,10 +917,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
 
         viewModelScope.launch {
-            val isCheckpoint = isInCheckpoint
             when (val result = repository.submitAnswer(current.currentChallenge.challenge.id, isCorrect, isPractice = isInPracticeSession)) {
                 is AnswerResult.Correct -> {
-                    if (isCheckpoint) checkpointCorrect += 1
+                    recordCheckpointAnswer(current.currentChallenge.challenge.id, isCorrect = true)
                     if (soundOn()) audioPlayer.playCorrectSound()
                     lessonPointsAccumulated += result.pointsGained
                     lessonCombo += 1
@@ -838,7 +935,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     )
                 }
                 is AnswerResult.Incorrect -> {
-                    if (isCheckpoint) checkpointMissedIds = checkpointMissedIds + current.currentChallenge.challenge.id
+                    recordCheckpointAnswer(current.currentChallenge.challenge.id, isCorrect = false)
                     if (soundOn()) audioPlayer.playIncorrectSound()
                     if (hapticsOn()) com.openlingo.app.feedback.Haptics.incorrect(getApplication())
                     lessonMistakes += 1
@@ -964,7 +1061,15 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         audioPlayer.stopVoice()
     }
 
+    /**
+     * Leaves the exercise screen. The session flags go with it: an abandoned
+     * placement run used to keep `isInCheckpoint` set, so the next ordinary lesson
+     * ended in the checkpoint branch and its CONTINUE granted a placement unlock
+     * for a test the learner never finished.
+     */
     fun exitExercise() {
+        isInCheckpoint = false
+        isInPracticeSession = false
         _activeScreen.value = ActiveScreen.LessonMap
     }
 
