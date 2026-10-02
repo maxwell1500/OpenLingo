@@ -1594,10 +1594,10 @@ ChallengeOptionEntity(id = 501260, challengeId = 50226, text = "Estudio español
 ChallengeOptionEntity(id = 501280, challengeId = 50228, text = "Aunque", romaji = "ˈaunke", correct = true),
 ChallengeOptionEntity(id = 501281, challengeId = 50228, text = "costaba", romaji = "kostˈabha", correct = true),
 ChallengeOptionEntity(id = 501282, challengeId = 50228, text = "mucho", romaji = "mˈucho", correct = true),
+ChallengeOptionEntity(id = 501283, challengeId = 50228, text = "compramos", romaji = "komprˈamos", correct = true),
 ChallengeOptionEntity(id = 501284, challengeId = 50228, text = "dos", romaji = "dos", correct = true),
 ChallengeOptionEntity(id = 501285, challengeId = 50228, text = "bicicletas", romaji = "bisiklˈetas", correct = true),
                 ChallengeOptionEntity(id = 501286, challengeId = 50228, text = "también", correct = false, errorTag = "WRONG_FORM"),
-ChallengeOptionEntity(id = 501283, challengeId = 50228, text = "compramos", romaji = "komprˈamos", correct = true),
                 ChallengeOptionEntity(id = 501287, challengeId = 50228, text = "además", correct = false, errorTag = "WRONG_FORM"),
 
 

@@ -68,8 +68,26 @@ sealed interface ActiveScreen {
         val level: String,
         val correct: Int,
         val total: Int,
+        /**
+         * Whether the run cleared the bar the unlock uses: 80/50 for a placement
+         * ([placementOutcome]), 70% for a level checkpoint. The screen reads this
+         * instead of re-deriving a threshold, so it cannot disagree with the unlock.
+         */
+        val passed: Boolean,
+        /**
+         * The tier a placement run earned, named the way the unlock grants it
+         * ("A2", "mid-A1", "A1", "N4", "mid-N5", "N5"). Null for a level
+         * checkpoint, which grants no tier.
+         */
+        val tierLabel: String? = null,
     ) : ActiveScreen
     data object Settings : ActiveScreen
+}
+
+/** A placement run's earned tier: the label the result screen shows and the units the unlock completes. */
+internal data class PlacementOutcome(val label: String, val units: List<Int>) {
+    /** True when the score earned a tier at all (50% or better). */
+    val passed: Boolean get() = units.isNotEmpty()
 }
 
 sealed interface FeedbackState {
@@ -95,9 +113,14 @@ sealed interface FeedbackState {
 @OptIn(ExperimentalCoroutinesApi::class)
 class MainViewModel(application: Application) : AndroidViewModel(application) {
 
-    /** Longest session a checkpoint may run; held-out items are never dropped to fit. */
     private companion object {
         const val MAX_CHECKPOINT_CHALLENGES = 30
+        /** A placement score at or above this completes the level below the tier. */
+        const val PLACEMENT_ADVANCED_PERCENT = 80
+        /** A placement score at or above this completes half of that level. */
+        const val PLACEMENT_PARTIAL_PERCENT = 50
+        /** A level checkpoint's own pass mark; it grants no tier. */
+        const val CHECKPOINT_PASS_PERCENT = 70
     }
 
     private val repository = (application as OpenLingoApplication).repository
@@ -167,6 +190,18 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     val currentTab: StateFlow<MainTab> = _currentTab.asStateFlow()
     private val _completedLessonCount = MutableStateFlow(0)
     val completedLessonCount: StateFlow<Int> = _completedLessonCount.asStateFlow()
+
+    /**
+     * Set when a placement run cannot start (no profile yet, or no challenges to
+     * draw). The UI shows it and calls [clearPlacementError]; the session flags are
+     * never flipped for a start that failed.
+     */
+    private val _placementError = MutableStateFlow<String?>(null)
+    val placementError: StateFlow<String?> = _placementError.asStateFlow()
+
+    fun clearPlacementError() {
+        _placementError.value = null
+    }
 
     /** Refreshes Profile aggregates (lesson completions) from local tables. */
     fun refreshProfileStats() {
@@ -602,21 +637,76 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    /**
+     * The bands a placement run draws from, and each band's quota, per course.
+     * A course the app does not know has no bands: the caller turns that into a
+     * visible "unavailable" instead of silently drawing the Japanese pool.
+     */
+    private fun placementBands(courseId: Int): List<Pair<String, Int>> = when (courseId) {
+        1 -> listOf("A1" to 12, "A2" to 8, "B1" to 5)
+        2 -> listOf("N5" to 14, "N4" to 11)
+        else -> error("placement has no band map for course $courseId")
+    }
+
+    /**
+     * The tier a placement score earns, and the units the unlock completes.
+     *
+     * One source of truth: [applyPlacementScore] fast-forwards [PlacementOutcome.units]
+     * and the result screen shows [PlacementOutcome.label], so a 70-79% run can no
+     * longer be shown as a pass into a tier it did not reach. An unknown course
+     * fails closed rather than borrowing another course's levels.
+     */
+    internal fun placementOutcome(courseId: Int, correct: Int, total: Int): PlacementOutcome {
+        val percent = if (total > 0) (correct * 100) / total else 0
+        val level = when (courseId) {
+            1 -> "A1"
+            2 -> "N5"
+            else -> error("placement has no fast-forward level for course $courseId")
+        }
+        val units = getUnitIdsForLevel(courseId, level)
+        return when {
+            percent >= PLACEMENT_ADVANCED_PERCENT -> PlacementOutcome(
+                label = if (courseId == 2) "N4" else "A2",
+                units = units,
+            )
+            percent >= PLACEMENT_PARTIAL_PERCENT -> PlacementOutcome(
+                label = if (courseId == 2) "mid-N5" else "mid-A1",
+                units = units.take(units.size / 2),
+            )
+            else -> PlacementOutcome(label = level, units = emptyList())
+        }
+    }
+
     fun startPlacementTest() {
-        isInPracticeSession = true
-        isInCheckpoint = true
-        checkpointCourseId = userProgress.value?.activeCourseId ?: 1
+        val courseId = userProgress.value?.activeCourseId
+        if (courseId == null) {
+            // Fail closed: with no profile there is no course to draw from, and
+            // defaulting to Spanish would test the wrong language behind the
+            // learner's back.
+            _placementError.value = "Placement test is unavailable right now — try again in a moment"
+            return
+        }
+        checkpointCourseId = courseId
         checkpointLevel = "Placement"
         checkpointCorrect = 0
         checkpointMissedIds = emptyList()
 
         viewModelScope.launch {
-            val courseId = checkpointCourseId
-            val sample = samplePlacementChallenges(courseId)
-            // A course whose units no longer match the band map is a curriculum bug the
-            // placement screen cannot show: the learner would be left on a button that
-            // does nothing. Fail loudly rather than swallow it.
-            require(sample.isNotEmpty()) { "placement has no challenges for course $courseId" }
+            val sample = runCatching { samplePlacementChallenges(courseId) }.getOrElse {
+                // An unknown course — or a curriculum whose units no longer match
+                // the band map — has no pool. Say so instead of leaving the button
+                // inert with the session flags already flipped.
+                _placementError.value = "Placement test is unavailable for this course"
+                return@launch
+            }
+            if (sample.isEmpty()) {
+                _placementError.value = "Placement test is unavailable for this course"
+                return@launch
+            }
+            // Only a real run flips the session flags, so a start that fails
+            // cannot corrupt the next lesson's scoring.
+            isInPracticeSession = true
+            isInCheckpoint = true
             currentLessonChallenges = sample
             lessonPointsAccumulated = 0
             lessonMistakes = 0
@@ -644,11 +734,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
      * so the run stays at 25 (or at every challenge the course has, if fewer).
      */
     private suspend fun samplePlacementChallenges(courseId: Int): List<ChallengeWithOptions> {
-        val bands: List<Pair<String, Int>> = if (courseId == 1) {
-            listOf("A1" to 12, "A2" to 8, "B1" to 5)
-        } else {
-            listOf("N5" to 14, "N4" to 11)
-        }
+        val bands = placementBands(courseId)
         // Each band's full pool, shuffled once so the within-band order is random.
         val pools = bands.map { (level, _) ->
             repository.getChallengesForUnits(getUnitIdsForLevel(courseId, level)).shuffled()
@@ -676,23 +762,16 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     /**
      * Scores a finished placement run and fast-forwards the learner's course.
      *
-     * The units come from the course's own levels — the same [getUnitIdsForLevel]
-     * the checkpoints draw from — because the two courses number their units
-     * independently: Spanish A1 is 10-17 and Japanese N5 is 20-27. A Japanese run
-     * used to be answered with the Spanish unit ids, which unlocked nothing for
-     * the learner and marked 49 Spanish challenges complete instead.
+     * The tier — and therefore the units — comes from [placementOutcome], the
+     * same call the result screen reads its pass/fail and label from, so the
+     * unlock and the screen can never disagree about what the score earned.
      */
     fun applyPlacementScore(correct: Int, total: Int) {
-        val percent = if (total > 0) (correct * 100) / total else 0
         val courseId = checkpointCourseId
         viewModelScope.launch {
-            val completed = when {
-                percent >= 80 -> placementFastForwardUnits(courseId, advanced = true)
-                percent >= 50 -> placementFastForwardUnits(courseId, advanced = false)
-                else -> emptyList() // Start at the beginning: nothing is marked complete.
-            }
-            if (completed.isNotEmpty()) {
-                repository.completeChallengesUpToUnit(completed)
+            val units = placementOutcome(courseId, correct, total).units
+            if (units.isNotEmpty()) {
+                repository.completeChallengesUpToUnit(units)
             }
             repository.setOnboardingSeen()
             refreshProfileStats()
@@ -700,20 +779,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    /**
-     * The units a placement score completes: the whole level below the tier for a
-     * pass, its first half for a partial score. Spanish A1 is 10-17, so a pass
-     * completes 10-17 (starting A2) and a partial score completes 10-13 (starting
-     * mid-A1); Japanese N5 is 20-27, so the same tiers complete 20-27 and 20-23.
-     *
-     * An unknown course has no such level, and the empty list it gets is what the
-     * repository refuses, rather than silently writing nothing.
-     */
-    private fun placementFastForwardUnits(courseId: Int, advanced: Boolean): List<Int> {
-        val level = if (courseId == 2) "N5" else "A1"
-        val units = getUnitIdsForLevel(courseId, level)
-        return if (advanced) units else units.take(units.size / 2)
-    }
     fun startLesson(lessonId: Int) {
         isInPracticeSession = false
         isInCheckpoint = false
@@ -832,19 +897,39 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         } else {
             if (hapticsOn()) com.openlingo.app.feedback.Haptics.incorrect(getApplication())
             _activeScreen.value = current.copy(selectedPairFirstId = null)
+            // A wrong pair is a wrong answer for this challenge, exactly as a
+            // wrong tap is on every other exercise type: it books the miss for
+            // the checkpoint score and the practice list, rather than only
+            // clearing the selection.
+            recordCheckpointAnswer(current.currentChallenge.challenge.id, isCorrect = false)
+            viewModelScope.launch {
+                repository.submitAnswer(
+                    current.currentChallenge.challenge.id,
+                    isCorrect = false,
+                    isPractice = isInPracticeSession,
+                )
+            }
         }
     }
 
     /**
      * The checkpoint tally for one graded challenge: a correct item counts toward
      * the score, a missed one is queued for review. Both the CHECK path
-     * ([checkAnswer]) and the match-pairs board, which grades itself when its last
-     * pair clears, have to run this — the board used to submit its answer without
-     * tallying, so every board in a placement run scored zero.
+     * ([checkAnswer]) and the match-pairs board, which grades itself, have to run
+     * this — the board used to submit its answer without tallying, so every board
+     * in a placement run scored zero.
+     *
+     * A challenge is booked once. A board the learner fumbled and then cleared is
+     * still a miss: the bad pair already booked it, and counting it correct as
+     * well would push `correct` above what the practice list shows.
      */
     private fun recordCheckpointAnswer(challengeId: Int, isCorrect: Boolean) {
         if (!isInCheckpoint) return
-        if (isCorrect) checkpointCorrect += 1 else checkpointMissedIds = checkpointMissedIds + challengeId
+        when {
+            challengeId in checkpointMissedIds -> Unit
+            isCorrect -> checkpointCorrect += 1
+            else -> checkpointMissedIds = checkpointMissedIds + challengeId
+        }
     }
 
     fun removeWordTile(optionId: Int) {
@@ -998,12 +1083,22 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             val missedIds = checkpointMissedIds
             val level = checkpointLevel
             val courseId = checkpointCourseId
+            // The screen reads the same outcome the unlock will apply, so a
+            // 70-79% placement is not shown as a pass into a tier it did not reach.
+            val placement = if (level == "Placement") placementOutcome(courseId, correct, total) else null
+            val passed = placement?.passed
+                ?: (total > 0 && (correct * 100) / total >= CHECKPOINT_PASS_PERCENT)
             if (soundOn()) audioPlayer.playFanfare()
             if (hapticsOn()) com.openlingo.app.feedback.Haptics.celebrate(getApplication())
             refreshProfileStats()
             viewModelScope.launch {
                 val userId = userProgress.value?.userId ?: "guest_local"
-                repository.saveCheckpointScore(userId, courseId, level, correct, total)
+                // A placement is not a level checkpoint: its row would carry the
+                // level "Placement", which nothing renders and a backup would
+                // carry forever. Only a real checkpoint is persisted.
+                if (level != "Placement") {
+                    repository.saveCheckpointScore(userId, courseId, level, correct, total)
+                }
                 if (missedIds.isNotEmpty()) {
                     repository.queueMistakes(missedIds)
                 }
@@ -1011,6 +1106,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                     level = level,
                     correct = correct,
                     total = total,
+                    passed = passed,
+                    tierLabel = placement?.label,
                 )
                 com.openlingo.app.widget.OpenLingoWidgetProvider.updateAll(getApplication())
             }

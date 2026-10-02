@@ -26,6 +26,8 @@ import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -284,6 +286,139 @@ class PlacementFlowTest {
         assertEquals("a perfect run must complete all of A1", a1Challenges, completed intersect a1Challenges)
     }
 
+    // --------------------------------------------- findings 7, 8, 13 (tiers/guard)
+
+    @Test
+    fun `a placement tier is the one the unlock grants, not a flat pass mark`() {
+        // 79% is the partial tier, not the advanced tier the old >=70 screen implied.
+        assertEquals("mid-A1", viewModel.placementOutcome(1, 79, 100).label)
+        assertEquals("A2", viewModel.placementOutcome(1, 80, 100).label)
+        assertEquals("mid-A1", viewModel.placementOutcome(1, 50, 100).label)
+        assertEquals("A1", viewModel.placementOutcome(1, 49, 100).label)
+        assertTrue(viewModel.placementOutcome(1, 50, 100).passed)
+        assertFalse(viewModel.placementOutcome(1, 49, 100).passed)
+        assertEquals("mid-N5", viewModel.placementOutcome(2, 79, 100).label)
+        assertEquals("N4", viewModel.placementOutcome(2, 80, 100).label)
+        assertEquals("N5", viewModel.placementOutcome(2, 49, 100).label)
+        // The units are the ones the unlock fast-forwards: a pass completes A1
+        // (10-17), the partial tier half of it, a miss nothing.
+        assertEquals((10..17).toList(), viewModel.placementOutcome(1, 80, 100).units)
+        assertEquals(listOf(10, 11, 12, 13), viewModel.placementOutcome(1, 50, 100).units)
+        assertTrue(viewModel.placementOutcome(1, 49, 100).units.isEmpty())
+        // An unknown course fails closed instead of borrowing Spanish levels.
+        val unknown = runCatching { viewModel.placementOutcome(3, 80, 100) }.exceptionOrNull()
+        assertTrue("an unknown course must fail closed, was $unknown", unknown is IllegalStateException)
+    }
+
+    @Test
+    fun `the placement result screen names the tier the unlock grants`() = runTest {
+        seedSelectChallenges(4)
+        switchTo(courseId = 2)
+        startPlacement()
+        // 3 of 4 correct = 75%: the partial tier, not the N4 tier the old >=70
+        // pass mark would have implied.
+        answerRun(correct = 3, wrong = 1)
+        val result = viewModel.activeScreen.first { it is ActiveScreen.CheckpointResult }
+            as ActiveScreen.CheckpointResult
+        assertEquals(3, result.correct)
+        assertEquals(4, result.total)
+        assertTrue("a 75% placement must be a pass into the partial tier", result.passed)
+        assertEquals("mid-N5", result.tierLabel)
+
+        // The tier the screen named is the one the unlock lands: mid-N5 is 20-23.
+        viewModel.closeCheckpointResult()
+        viewModel.activeScreen.first { it is ActiveScreen.LessonMap }
+        assertEquals(
+            repository.getChallengesForUnits((20..23).toList()).map { it.challenge.id }.toSet(),
+            repository.getCompletedChallengeIds().first().toSet(),
+        )
+    }
+
+    @Test
+    fun `a placement run with an empty pool says so and stays off the exercise screen`() = runTest {
+        // A course with units but no challenges: the sampler has nothing to draw.
+        seedSelectChallenges(0)
+        switchTo(courseId = 2)
+        viewModel.startPlacementTest()
+        // The failure surfaces as a message, not a crash and not a dead button.
+        val message = withContext(Dispatchers.IO) {
+            withTimeout(5_000) { viewModel.placementError.first { it != null } }
+        }
+        assertTrue("no message was shown for an empty placement pool", message.orEmpty().isNotEmpty())
+        assertTrue(
+            "an empty pool must not open the exercise screen: ${viewModel.activeScreen.value}",
+            viewModel.activeScreen.value is ActiveScreen.LessonMap,
+        )
+    }
+
+    @Test
+    fun `a placement start with no profile fails closed`() = runTest {
+        // A fresh ViewModel has not collected userProgress yet, so the active
+        // course is unknown. The old `?: 1` would have drawn the Spanish pool.
+        val fresh = MainViewModel(app)
+        assertNull(fresh.userProgress.value)
+        fresh.startPlacementTest()
+        assertTrue(
+            "an unknown course must report why it did not start",
+            fresh.placementError.value != null,
+        )
+        assertTrue(
+            "an unknown course must not open an exercise: ${fresh.activeScreen.value}",
+            fresh.activeScreen.value is ActiveScreen.LessonMap,
+        )
+    }
+
+    // -------------------------------------------------- finding 10 (wrong pair)
+
+    @Test
+    fun `a wrong match-pairs pair is scored as a miss`() = runTest {
+        seedOneMatchPairsBoard()
+        switchTo(courseId = 2)
+        val exercise = startPlacement()
+        val boardId = exercise.currentChallenge.challenge.id
+        val pairs = MatchPairs.pairings(exercise.currentChallenge.options)
+        // Two tiles from different pairs.
+        viewModel.selectPairTile(pairs[0].first)
+        viewModel.selectPairTile(pairs[1].first)
+        awaitAnswerLanded()
+
+        val stats = repository.getExerciseTypeStats().first()
+            .first { it.type == ChallengeType.MATCH_PAIRS.rawValue }
+        assertEquals("the bad pair was not recorded as an attempt", 1, stats.attempts)
+        assertEquals("the bad pair was recorded as correct", 0, stats.correct)
+
+        // Clearing the board afterwards does not un-miss it.
+        clearBoard(exercise)
+        awaitMatchPairsCorrect(1)
+        viewModel.nextChallengeOrFinish()
+        val result = viewModel.activeScreen.first { it is ActiveScreen.CheckpointResult }
+            as ActiveScreen.CheckpointResult
+        assertEquals(0, result.correct)
+        assertEquals(1, result.total)
+        assertTrue(
+            "a fumbled board was not queued for practice",
+            repository.getMistakeChallenges(2).any { it.challenge.id == boardId },
+        )
+    }
+
+    // ----------------------------------------- finding 14 (orphan checkpoint row)
+
+    @Test
+    fun `a placement run writes no checkpoint row`() = runTest {
+        switchTo(courseId = 2)
+        startPlacement()
+        driveToTheEnd()
+        viewModel.activeScreen.first { it is ActiveScreen.CheckpointResult }
+        assertTrue("a placement run persisted a checkpoint row", checkpointRows().isEmpty())
+
+        // Control: a real level checkpoint still persists its score.
+        viewModel.startCheckpoint("N5")
+        viewModel.activeScreen.first { it is ActiveScreen.Exercise }
+        driveToTheEnd()
+        viewModel.activeScreen.first { it is ActiveScreen.CheckpointResult }
+        assertEquals(listOf("N5"), checkpointRows().map { it.level })
+    }
+
     // --------------------------------------------------------------------- helpers
 
     private suspend fun switchTo(courseId: Int) {
@@ -456,5 +591,81 @@ class PlacementFlowTest {
                 return bands
             }
         }
+    }
+
+    /** A Japanese corpus of [count] SELECT challenges, one correct option each. */
+    private suspend fun seedSelectChallenges(count: Int) = withContext(Dispatchers.IO) {
+        db.clearAllTables()
+        db.courseDao().insertCourses(listOf(CourseEntity(id = 2, title = "Japanese", imageSrc = "🇯🇵")))
+        db.courseDao().insertUnits(
+            listOf(UnitEntity(id = 20, courseId = 2, title = "Unit 1: N5", description = "", orderIndex = 0)),
+        )
+        db.courseDao().insertLessons(
+            listOf(LessonEntity(id = 401, unitId = 20, title = "Lesson: particles", orderIndex = 0)),
+        )
+        val challenges = (0 until count).map { i ->
+            ChallengeEntity(
+                id = 70000 + i,
+                lessonId = 401,
+                type = ChallengeType.SELECT,
+                question = "Pick $i",
+                orderIndex = i,
+            )
+        }
+        db.lessonDao().insertChallenges(challenges)
+        db.lessonDao().insertOptions(
+            challenges.flatMap { challenge ->
+                listOf(
+                    ChallengeOptionEntity(
+                        id = challenge.id * 10 + 1,
+                        challengeId = challenge.id,
+                        text = "right",
+                        correct = true,
+                    ),
+                    ChallengeOptionEntity(
+                        id = challenge.id * 10 + 2,
+                        challengeId = challenge.id,
+                        text = "wrong",
+                        correct = false,
+                    ),
+                )
+            },
+        )
+        repository.resetAllProgress()
+        repository.setSoundEnabled(false)
+        repository.setHapticsEnabled(false)
+    }
+
+    /**
+     * Answers a running session: [correct] screens right, then [wrong] screens
+     * wrong, advancing after each. Used where the score itself is the point.
+     */
+    private suspend fun answerRun(correct: Int, wrong: Int) {
+        repeat(correct + wrong) { i ->
+            val exercise = viewModel.activeScreen.value as? ActiveScreen.Exercise
+                ?: error("the session ended early at answer $i")
+            val options = exercise.currentChallenge.options
+            viewModel.selectOption(
+                if (i < correct) options.first { it.correct }.id else options.first { !it.correct }.id,
+            )
+            viewModel.checkAnswer()
+            viewModel.activeScreen.first { (it as? ActiveScreen.Exercise)?.feedback != null }
+            viewModel.nextChallengeOrFinish()
+        }
+    }
+
+    /** Waits until the running board has recorded [correct] correct attempts. */
+    private suspend fun awaitMatchPairsCorrect(correct: Int) = withContext(Dispatchers.IO) {
+        withTimeout(5_000) {
+            repository.getExerciseTypeStats().first { stats ->
+                stats.any { it.type == ChallengeType.MATCH_PAIRS.rawValue && it.correct == correct }
+            }
+        }
+        delay(100)
+    }
+
+    /** The checkpoint rows the guest has persisted. */
+    private suspend fun checkpointRows() = withContext(Dispatchers.IO) {
+        db.checkpointScoreDao().getAllScoresDirect(LocalProgressRepository.GUEST_USER_ID)
     }
 }

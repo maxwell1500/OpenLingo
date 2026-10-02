@@ -40,15 +40,35 @@ object MatchPairs {
         firstId != secondId && partnerOf(options, firstId) == secondId
 
     /**
-     * True when every tile that *has* a partner has been matched.
+     * True when every tile of a well-formed board has been matched.
      *
-     * The board's pairs are what the learner clears, so a tile with no partner
-     * cannot block: a malformed board (an odd option set, a stray distractor)
-     * stays completable instead of soft-locking the lesson. No shipped board has
-     * one — MatchPairsTest pins that.
+     * A board is well-formed when every tile has a partner. An unpaired tile is
+     * an authoring error, not a shape the learner can clear: ignoring it used to
+     * declare a malformed board complete with a tile still on it and score
+     * "Nicely done!" for a board that cannot be finished. Fail loudly instead —
+     * [MatchPairsTest] pins every shipped board well-formed, so this can only
+     * fire on a data typo.
      */
-    fun isComplete(options: List<ChallengeOptionEntity>, matchedIds: Set<Int>): Boolean =
-        partners(options).keys.all { it in matchedIds }
+    fun isComplete(options: List<ChallengeOptionEntity>, matchedIds: Set<Int>): Boolean {
+        val ids = options.map { it.id }.sorted()
+        check(ids.size % 2 == 0) {
+            "malformed MATCH_PAIRS board: ${ids.size} tiles cannot be paired"
+        }
+        val partnerMap = partners(options)
+        check(partnerMap.size == ids.size) {
+            "malformed MATCH_PAIRS board: a tile has no partner"
+        }
+        return ids.all { it in matchedIds }
+    }
+
+    /**
+     * The board's display order: a fresh permutation each time it is composed, so
+     * a board does not lay out identically on every run and device. It used to be
+     * `shuffled(Random(options.hashCode()))`, a seed derived from the option ids,
+     * which made the solution memorisable.
+     */
+    fun shuffledBoard(options: List<ChallengeOptionEntity>): List<ChallengeOptionEntity> =
+        options.shuffled()
 
     /** `id -> partner id` for every tile that has a partner. */
     private fun partners(options: List<ChallengeOptionEntity>): Map<Int, Int> =

@@ -142,6 +142,7 @@ class MainActivity : ComponentActivity() {
             val unitDrillCounts by viewModel.unitDrillCounts.collectAsStateWithLifecycle()
             val typeStats by viewModel.exerciseTypeStats.collectAsStateWithLifecycle()
             val dictionary by viewModel.dictionary.collectAsStateWithLifecycle()
+            val placementError by viewModel.placementError.collectAsStateWithLifecycle()
             // WI-11: which definition sheet is open, if any. Held here rather
             // than in ActiveScreen because a lookup is an overlay on whatever
             // the learner is already doing, not a place they navigated to.
@@ -166,6 +167,12 @@ class MainActivity : ComponentActivity() {
                     }
                 }
                 val context = LocalContext.current
+                LaunchedEffect(placementError) {
+                    placementError?.let { message ->
+                        android.widget.Toast.makeText(context, message, android.widget.Toast.LENGTH_SHORT).show()
+                        viewModel.clearPlacementError()
+                    }
+                }
                 val onFreeRefill: () -> Unit = {
                     viewModel.refillHearts()
                     if (userProgress?.hapticsEnabled != false) com.openlingo.app.feedback.Haptics.tick(context)
@@ -332,6 +339,8 @@ class MainActivity : ComponentActivity() {
                                     level = screen.level,
                                     correct = screen.correct,
                                     total = screen.total,
+                                    passed = screen.passed,
+                                    tierLabel = screen.tierLabel,
                                     onDone = viewModel::closeCheckpointResult,
                                 )
                             }
@@ -1895,7 +1904,7 @@ private fun MatchPairsContent(
         color = Color(0xFF777777),
     )
     Spacer(modifier = Modifier.height(12.dp))
-    val shuffled = remember(options) { options.shuffled(kotlin.random.Random(options.hashCode())) }
+    val shuffled = remember(options) { MatchPairs.shuffledBoard(options) }
     shuffled.chunked(2).forEach { row ->
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -2431,10 +2440,11 @@ private fun CheckpointScreen(
     level: String,
     correct: Int,
     total: Int,
+    passed: Boolean,
+    tierLabel: String?,
     onDone: () -> Unit,
 ) {
     val percent = if (total > 0) (correct * 100) / total else 0
-    val passed = percent >= 70
     val missed = total - correct
 
     val trophyScale by animateFloatAsState(
@@ -2491,6 +2501,17 @@ private fun CheckpointScreen(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
 
+            if (tierLabel != null) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = if (passed) "Placed into $tierLabel" else "Starting at $tierLabel",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = if (passed) Color(0xFF2E9E6B) else Color(0xFFE67E22),
+                    textAlign = TextAlign.Center,
+                )
+            }
+
             if (missed > 0) {
                 Spacer(modifier = Modifier.height(16.dp))
                 Text(
@@ -2510,7 +2531,9 @@ private fun CheckpointScreen(
                     .fillMaxWidth(0.7f),
             ) {
                 Text(
-                    text = if (passed) "Continue" else "Review Mistakes",
+                    // No review flow exists — the button only closes the result —
+                    // so it must not promise one.
+                    text = "Continue",
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
                 )

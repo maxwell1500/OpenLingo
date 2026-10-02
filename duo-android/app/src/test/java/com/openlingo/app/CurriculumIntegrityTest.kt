@@ -1143,4 +1143,33 @@ class CurriculumIntegrityTest {
             failures,
         )
     }
+
+    /**
+     * The WORD_BANK grader (`MainViewModel.checkAnswer`) builds its answer key as
+     * the correct options sorted by id, so a learner who assembles the sentence
+     * is compared against id order. That is the authored sentence only while the
+     * tiles are authored in ascending id order — a board written out of order
+     * becomes unanswerable as authored. Pin it.
+     */
+    @Test
+    fun `a word bank's correct tiles spell its sentence in ascending id order`() {
+        val optionsByChallenge = allPayloads.flatMap { it.options }.groupBy { it.challengeId }
+        val outOfOrder = mutableListOf<String>()
+        allPayloads.flatMap { it.challenges }
+            .filter { it.type == ChallengeType.WORD_BANK }
+            .forEach { challenge ->
+                val correct = optionsByChallenge[challenge.id].orEmpty().filter { it.correct }
+                val authoredOrder = correct.map { it.id }
+                val gradedOrder = correct.sortedBy { it.id }.map { it.id }
+                if (authoredOrder != gradedOrder) {
+                    outOfOrder += "challenge ${challenge.id} ('${challenge.question}'): authored " +
+                        "${authoredOrder.joinToString()} but graded in ${gradedOrder.joinToString()}"
+                }
+            }
+        assertEquals(
+            "WORD_BANK tiles must be authored in the ascending id order the grader uses: $outOfOrder",
+            emptyList<String>(),
+            outOfOrder,
+        )
+    }
 }

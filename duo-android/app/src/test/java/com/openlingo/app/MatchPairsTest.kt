@@ -160,17 +160,42 @@ class MatchPairsTest {
     }
 
     @Test
-    fun `a tile with no partner cannot block a board`() {
-        // Not a shipped shape — every board in the corpus is even — but a stray
-        // tile must leave the lesson completable rather than soft-lock it.
+    fun `a malformed board is rejected instead of scored complete`() {
+        // Not a shipped shape — every board in the corpus is even, and
+        // assertClearable pins that — but a stray tile used to be ignored, so a
+        // malformed board was declared complete with the tile still on it. It is
+        // an authoring error and must fail loudly instead.
         val board = listOf(
             option(1, "one"),
             option(2, "two"),
             option(3, "stray"),
         )
         assertNull(MatchPairs.partnerOf(board, 3))
-        assertTrue(MatchPairs.isComplete(board, setOf(1, 2)))
-        assertFalse(MatchPairs.isComplete(board, setOf(1)))
+        val thrown = runCatching { MatchPairs.isComplete(board, setOf(1, 2)) }.exceptionOrNull()
+        assertTrue(
+            "a board with an unpaired tile must be rejected, was $thrown",
+            thrown is IllegalStateException,
+        )
+    }
+
+    @Test
+    fun `a board's display order is a random permutation of its tiles`() {
+        val board = listOf(
+            option(6300581, "休まれる"),
+            option(6300582, "休ませる"),
+            option(6300583, "待たれる"),
+            option(6300584, "待たせる"),
+            option(6300585, "飲まれる"),
+            option(6300586, "飲ませる"),
+            option(6300587, "書かれる"),
+            option(6300588, "書かせる"),
+        )
+        val orders = (1..50).map { MatchPairs.shuffledBoard(board).map { it.id } }
+        // The old seed was the option ids, so every call returned the same order.
+        assertTrue("the board lays out identically every time: ${orders.first()}", orders.distinct().size > 1)
+        orders.forEach { order ->
+            assertEquals(board.map { it.id }.sorted(), order.sorted())
+        }
     }
 
     private fun option(id: Int, text: String) =
