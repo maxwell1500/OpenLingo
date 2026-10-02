@@ -58,7 +58,7 @@ Builds:
 
   - versionName: '1.5.0_beta'
     versionCode: 6
-    commit: 95a03b8d0f9ef47f57377e94f3fe3b3ea6fa75f6
+    commit: 88b23ac437e6d7813bc757680d548e51fef3d1fc
     subdir: duo-android
     # A cold build — Gradle 9.6.0 download, AGP 9.4.0, KSP, Room, Compose —
     # has no warm cache to lean on, so drop the 2-hour server default.
