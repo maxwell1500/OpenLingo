@@ -36,7 +36,7 @@ Repo: https://github.com/maxwell1500/OpenLingo.git
 Builds:
   - versionName: '1.5.0_beta'
     versionCode: 6
-    commit: 88b23ac437e6d7813bc757680d548e51fef3d1fc
+    commit: f3b2490490f31c4f7fe2df323a952584aab5a811
     subdir: duo-android
     # A cold build — Gradle 9.6.0 download, AGP 9.4.0, KSP, Room, Compose —
     # has no warm cache to lean on, so drop the 2-hour server default.
