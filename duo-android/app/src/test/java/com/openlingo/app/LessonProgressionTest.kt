@@ -263,32 +263,21 @@ class LessonProgressionTest {
      * wrong option; an INTRO card gets none, because it presents rather than asks.
      */
     private suspend fun seedLesson(vararg challenges: Pair<Int, ChallengeType>) =
-        withContext(Dispatchers.IO) {
-            db.clearAllTables()
-            db.courseDao().insertCourses(listOf(CourseEntity(id = 1, title = "Spanish", imageSrc = "🇪🇸")))
-            db.courseDao().insertUnits(
-                listOf(UnitEntity(id = 10, courseId = 1, title = "Unit 1: A1", description = "", orderIndex = 0)),
-            )
-            db.courseDao().insertLessons(
-                listOf(LessonEntity(id = 101, unitId = 10, title = "Lesson: basics", orderIndex = 0)),
-            )
-            db.lessonDao().insertChallenges(
-                challenges.mapIndexed { index, (id, type) ->
-                    ChallengeEntity(id = id, lessonId = 101, type = type, question = "Q$id", orderIndex = index)
-                },
-            )
-            db.lessonDao().insertOptions(
-                challenges.filter { (_, type) -> type != ChallengeType.INTRO }.flatMap { (id, _) ->
-                    listOf(
-                        ChallengeOptionEntity(id = id * 10 + 1, challengeId = id, text = "right", correct = true),
-                        ChallengeOptionEntity(id = id * 10 + 2, challengeId = id, text = "wrong", correct = false),
-                    )
-                },
-            )
-            repository.resetAllProgress()
-            repository.setSoundEnabled(false)
-            repository.setHapticsEnabled(false)
-        }
+        db.seedOneLessonCorpus(
+            course = CourseEntity(id = 1, title = "Spanish", imageSrc = "🇪🇸"),
+            unit = UnitEntity(id = 10, courseId = 1, title = "Unit 1: A1", description = "", orderIndex = 0),
+            lesson = LessonEntity(id = 101, unitId = 10, title = "Lesson: basics", orderIndex = 0),
+            challenges = challenges.mapIndexed { index, (id, type) ->
+                ChallengeEntity(id = id, lessonId = 101, type = type, question = "Q$id", orderIndex = index)
+            },
+            options = challenges.filter { (_, type) -> type != ChallengeType.INTRO }.flatMap { (id, _) ->
+                listOf(
+                    ChallengeOptionEntity(id = id * 10 + 1, challengeId = id, text = "right", correct = true),
+                    ChallengeOptionEntity(id = id * 10 + 2, challengeId = id, text = "wrong", correct = false),
+                )
+            },
+            repository = repository,
+        )
 
     /** Opens the seeded lesson, waiting for the profile so sound stays off. */
     private suspend fun startLesson(): ActiveScreen.Exercise {

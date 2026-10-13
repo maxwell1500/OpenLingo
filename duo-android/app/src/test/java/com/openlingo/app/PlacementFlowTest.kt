@@ -448,14 +448,18 @@ class PlacementFlowTest {
      * Answers every challenge of the running session correctly, waiting for each
      * answer before advancing, and stops when the session ends.
      *
+     * [onChallengeShown] runs once per challenge as it appears — the band recorder
+     * uses it, so both drivers are one loop rather than two copies that must agree.
+     *
      * The session's last answer ends it asynchronously (lesson complete,
      * checkpoint result or the practice tab), so the loop waits for that screen
      * rather than spinning on the challenge it just answered.
      */
-    private suspend fun driveToTheEnd() {
+    private suspend fun driveToTheEnd(onChallengeShown: suspend (ActiveScreen.Exercise) -> Unit = {}) {
         var answered = 0
         while (true) {
             val screen = viewModel.activeScreen.value as? ActiveScreen.Exercise ?: return
+            onChallengeShown(screen)
             answerCurrentCorrectly()
             viewModel.nextChallengeOrFinish()
             check(++answered < 200) { "the session did not end after $answered answers" }
@@ -512,17 +516,12 @@ class PlacementFlowTest {
      * placement sampler takes 25 of the course's challenges, so a corpus of one
      * challenge is what makes a placement session deterministic.
      */
-    private suspend fun seedOneMatchPairsBoard() = withContext(Dispatchers.IO) {
-        db.clearAllTables()
-        db.courseDao().insertCourses(listOf(CourseEntity(id = 2, title = "Japanese", imageSrc = "🇯🇵")))
-        db.courseDao().insertUnits(
-            listOf(UnitEntity(id = 20, courseId = 2, title = "Unit 1: N5", description = "", orderIndex = 0)),
-        )
-        db.courseDao().insertLessons(
-            listOf(LessonEntity(id = 401, unitId = 20, title = "Lesson: passive and causative", orderIndex = 0)),
-        )
-        db.lessonDao().insertChallenges(
-            listOf(
+    private suspend fun seedOneMatchPairsBoard() =
+        db.seedOneLessonCorpus(
+            course = CourseEntity(id = 2, title = "Japanese", imageSrc = "🇯🇵"),
+            unit = UnitEntity(id = 20, courseId = 2, title = "Unit 1: N5", description = "", orderIndex = 0),
+            lesson = LessonEntity(id = 401, unitId = 20, title = "Lesson: passive and causative", orderIndex = 0),
+            challenges = listOf(
                 ChallengeEntity(
                     id = 62029,
                     lessonId = 401,
@@ -531,9 +530,7 @@ class PlacementFlowTest {
                     orderIndex = 0,
                 ),
             ),
-        )
-        db.lessonDao().insertOptions(
-            listOf(
+            options = listOf(
                 "休まれる" to 6300581,
                 "休ませる" to 6300582,
                 "待たれる" to 6300583,
@@ -545,11 +542,8 @@ class PlacementFlowTest {
             ).map { (text, id) ->
                 ChallengeOptionEntity(id = id, challengeId = 62029, text = text, correct = true)
             },
+            repository = repository,
         )
-        repository.resetAllProgress()
-        repository.setSoundEnabled(false)
-        repository.setHapticsEnabled(false)
-    }
 
     /**
      * Maps a challenge to the band its unit belongs to, using the same level→unit
@@ -578,31 +572,12 @@ class PlacementFlowTest {
      */
     private suspend fun driveRecordingBands(bandOf: (ChallengeWithOptions) -> String): List<String> {
         val bands = mutableListOf<String>()
-        var answered = 0
-        while (true) {
-            val screen = viewModel.activeScreen.value as? ActiveScreen.Exercise ?: return bands
-            bands.add(bandOf(screen.currentChallenge))
-            answerCurrentCorrectly()
-            viewModel.nextChallengeOrFinish()
-            check(++answered < 200) { "the session did not end after $answered answers" }
-            val next = viewModel.activeScreen.value
-            if (next is ActiveScreen.Exercise && next.challengeIndex == screen.challengeIndex) {
-                viewModel.activeScreen.first { it !is ActiveScreen.Exercise }
-                return bands
-            }
-        }
+        driveToTheEnd { screen -> bands.add(bandOf(screen.currentChallenge)) }
+        return bands
     }
 
     /** A Japanese corpus of [count] SELECT challenges, one correct option each. */
-    private suspend fun seedSelectChallenges(count: Int) = withContext(Dispatchers.IO) {
-        db.clearAllTables()
-        db.courseDao().insertCourses(listOf(CourseEntity(id = 2, title = "Japanese", imageSrc = "🇯🇵")))
-        db.courseDao().insertUnits(
-            listOf(UnitEntity(id = 20, courseId = 2, title = "Unit 1: N5", description = "", orderIndex = 0)),
-        )
-        db.courseDao().insertLessons(
-            listOf(LessonEntity(id = 401, unitId = 20, title = "Lesson: particles", orderIndex = 0)),
-        )
+    private suspend fun seedSelectChallenges(count: Int) {
         val challenges = (0 until count).map { i ->
             ChallengeEntity(
                 id = 70000 + i,
@@ -612,9 +587,12 @@ class PlacementFlowTest {
                 orderIndex = i,
             )
         }
-        db.lessonDao().insertChallenges(challenges)
-        db.lessonDao().insertOptions(
-            challenges.flatMap { challenge ->
+        db.seedOneLessonCorpus(
+            course = CourseEntity(id = 2, title = "Japanese", imageSrc = "🇯🇵"),
+            unit = UnitEntity(id = 20, courseId = 2, title = "Unit 1: N5", description = "", orderIndex = 0),
+            lesson = LessonEntity(id = 401, unitId = 20, title = "Lesson: particles", orderIndex = 0),
+            challenges = challenges,
+            options = challenges.flatMap { challenge ->
                 listOf(
                     ChallengeOptionEntity(
                         id = challenge.id * 10 + 1,
@@ -630,10 +608,8 @@ class PlacementFlowTest {
                     ),
                 )
             },
+            repository = repository,
         )
-        repository.resetAllProgress()
-        repository.setSoundEnabled(false)
-        repository.setHapticsEnabled(false)
     }
 
     /**

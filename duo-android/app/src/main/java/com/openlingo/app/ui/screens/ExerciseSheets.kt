@@ -27,7 +27,7 @@ import androidx.compose.ui.unit.sp
 import com.openlingo.app.data.repository.LocalProgressRepository
 
 @Composable
-private fun OutOfHeartsSheet(
+internal fun OutOfHeartsSheet(
     onRefill: () -> Unit,
     onExit: () -> Unit,
     modifier: Modifier = Modifier,
