@@ -56,7 +56,20 @@ class AchievementsTest {
 
     @Test
     fun `catalog holds nine achievements on the Japanese course`() {
-        assertEquals(9, evaluateAchievements(0, 1, 0, 0, 0, isJapanese = true).size)
+        // The Spanish shelf is the same catalog minus the two kana achievements, so
+        // the size relationship is pinned here rather than two bare totals — a new
+        // achievement shows up on both shelves or the test says which shelf forgot.
+        val spanish = evaluateAchievements(0, 1, 0, 0, 0, isJapanese = false)
+        val japanese = evaluateAchievements(0, 1, 0, 0, 0, isJapanese = true)
+        assertEquals(
+            "the Japanese catalog is the Spanish one plus the three kana achievements",
+            spanish.size + 3,
+            japanese.size,
+        )
+        assertEquals(
+            setOf("kana-start", "kana-ten", "kana-master"),
+            japanese.map { it.first.id }.toSet() - spanish.map { it.first.id }.toSet(),
+        )
     }
 
     /**
@@ -67,11 +80,11 @@ class AchievementsTest {
     @Test
     fun `kana achievements are Japanese only`() {
         val spanish = evaluateAchievements(0, 1, 46, 0, 0, isJapanese = false)
-        assertTrue(
+        assertEquals(
             "the Spanish shelf offers a kana achievement",
-            spanish.none { it.first.id.startsWith("kana-") },
+            0,
+            spanish.count { it.first.id.startsWith("kana-") },
         )
-        assertEquals(6, spanish.size)
         assertTrue(unlockedIds(kana = 46, isJapanese = false).none { it.startsWith("kana-") })
     }
 }

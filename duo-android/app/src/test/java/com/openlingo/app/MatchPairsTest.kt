@@ -111,18 +111,35 @@ class MatchPairsTest {
         placementBoards.forEach(::assertClearable)
     }
 
+    /**
+     * Challenge 62029's board, read out of the shipped corpus instead of typed by
+     * hand: eight tiles authored from the odd id 6300581 — the shape that could
+     * not pair under the old `id xor 1` rule. If the corpus drops or renumbers
+     * this board the tests below fail loudly rather than quietly testing ids
+     * that no longer ship.
+     */
+    private val authoredBoard: List<ChallengeOptionEntity> =
+        Corpus.allPayloads.flatMap { it.options }
+            .filter { it.challengeId == 62029 }
+            .also { check(it.size == 8) { "corpus board 62029 lost its eight tiles" } }
+
     @Test
     fun `a board authored from an odd id pairs its first two tiles`() {
-        // 62029 is the shape the placement path draws: 休まれる, 休ませる, 待たれる,
-        // 待たせる — ids 6300581..6300584. Under `id xor 1` none of them paired.
-        val board = listOf(
-            option(6300581, "休まれる"),
-            option(6300582, "休ませる"),
-            option(6300583, "待たれる"),
-            option(6300584, "待たせる"),
+        // 休まれる, 休ませる, 待たれる, 待たせる — ids 6300581..6300584. Under `id xor 1`
+        // none of them paired.
+        val board = authoredBoard
+        assertEquals(
+            "62029 is the odd-first-id board the old rule could not pair",
+            1,
+            board.minOf { it.id } % 2,
         )
         assertEquals(
-            listOf(6300581 to 6300582, 6300583 to 6300584),
+            listOf(
+                6300581 to 6300582,
+                6300583 to 6300584,
+                6300585 to 6300586,
+                6300587 to 6300588,
+            ),
             MatchPairs.pairings(board),
         )
         assertTrue(MatchPairs.isPair(board, 6300581, 6300582))
@@ -136,15 +153,16 @@ class MatchPairsTest {
 
     @Test
     fun `a board is incomplete until its last pair is matched`() {
-        val board = listOf(
-            option(6300581, "休まれる"),
-            option(6300582, "休ませる"),
-            option(6300583, "待たれる"),
-            option(6300584, "待たせる"),
-        )
+        val board = authoredBoard
         assertFalse(MatchPairs.isComplete(board, emptySet()))
         assertFalse(MatchPairs.isComplete(board, setOf(6300581, 6300582)))
-        assertTrue(MatchPairs.isComplete(board, setOf(6300581, 6300582, 6300583, 6300584)))
+        assertFalse(MatchPairs.isComplete(board, setOf(6300581, 6300582, 6300583, 6300584)))
+        assertTrue(
+            MatchPairs.isComplete(
+                board,
+                setOf(6300581, 6300582, 6300583, 6300584, 6300585, 6300586, 6300587, 6300588),
+            ),
+        )
     }
 
     @Test
@@ -168,16 +186,7 @@ class MatchPairsTest {
 
     @Test
     fun `a board's display order is a random permutation of its tiles`() {
-        val board = listOf(
-            option(6300581, "休まれる"),
-            option(6300582, "休ませる"),
-            option(6300583, "待たれる"),
-            option(6300584, "待たせる"),
-            option(6300585, "飲まれる"),
-            option(6300586, "飲ませる"),
-            option(6300587, "書かれる"),
-            option(6300588, "書かせる"),
-        )
+        val board = authoredBoard
         val orders = (1..50).map { MatchPairs.shuffledBoard(board).map { it.id } }
         // The old seed was the option ids, so every call returned the same order.
         assertTrue("the board lays out identically every time: ${orders.first()}", orders.distinct().size > 1)

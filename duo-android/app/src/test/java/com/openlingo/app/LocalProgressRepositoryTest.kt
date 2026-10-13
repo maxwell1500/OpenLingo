@@ -52,32 +52,47 @@ class LocalProgressRepositoryTest {
         db.close()
     }
 
-    private suspend fun lessonChallengeCount(lessonId: Int): Int =
-        db.lessonDao().getChallengesForLesson(lessonId).size
-
     @Test
     fun `seed locks the content contract and is idempotent`() = runTest {
         repository.initializeIfNeeded()
 
         val spanishUnits = db.courseDao().getUnitsForCourseDirect(1)
         val japaneseUnits = db.courseDao().getUnitsForCourseDirect(2)
+        // 18 units per course is the README's stated course shape.
         assertEquals(18, spanishUnits.size)
         assertEquals(18, japaneseUnits.size)
         assertEquals((0 until 18).toList(), spanishUnits.map { it.orderIndex })
         assertEquals((0 until 18).toList(), japaneseUnits.map { it.orderIndex })
 
-        var lessons = 0
-        var challenges = 0
-        (spanishUnits + japaneseUnits).forEach { unit ->
-            db.courseDao().getLessonsForUnit(unit.id).test {
-                val unitLessons = awaitItem()
-                lessons += unitLessons.size
-                unitLessons.forEach { lesson ->
-                    challenges += lessonChallengeCount(lesson.id)
-                }
-            }
+        val seededIds = mutableSetOf<Int>()
+        val seededOptionIds = mutableSetOf<Int>()
+        val challengesWithoutOptions = mutableListOf<Int>()
+        // heldOut rows are seeded but excluded from every lesson-path query, so the
+        // universe is read whole — a held-out item that never landed is exactly as
+        // broken as a taught one that never landed.
+        db.lessonDao().getAllChallenges().forEach { challenge ->
+            assertTrue("challenge ${challenge.id} is seeded twice", seededIds.add(challenge.id))
         }
-        assertEquals(752, challenges)
+        db.lessonDao().getAllOptions().forEach { option ->
+            assertTrue("option ${option.id} is seeded twice", seededOptionIds.add(option.id))
+            if (option.challengeId !in seededIds) challengesWithoutOptions += option.challengeId
+        }
+        assertTrue("options point at unseeded challenges: $challengesWithoutOptions", challengesWithoutOptions.isEmpty())
+        val optionChallengeIds = db.lessonDao().getAllOptions().map { it.challengeId }.toSet()
+        val challengesWithoutAnyOption = seededIds - optionChallengeIds
+        assertTrue("challenges with no options at all: $challengesWithoutAnyOption", challengesWithoutAnyOption.isEmpty())
+
+        // The exact corpus size is deliberately NOT pinned as a magic number: it
+        // moves with every content PR, and a hand-updated total that was edited
+        // without thought would pass silently. Pinned instead: every payload
+        // challenge reaches the database, ids are globally unique, and the corpus
+        // is far past anything an authoring accident could leave behind. (The
+        // payload total is one query away when a number is genuinely wanted.)
+        val payloadChallengeIds = Corpus.allPayloads.flatMap { it.challenges }.map { it.id }
+        payloadChallengeIds.forEach { id ->
+            assertTrue("payload challenge $id never reached the database", id in seededIds)
+        }
+        assertTrue("corpus collapsed to ${seededIds.size} challenges", seededIds.size >= 700)
 
         // Re-running the seed must not duplicate or drop rows.
         repository.initializeIfNeeded()
@@ -91,6 +106,9 @@ class LocalProgressRepositoryTest {
 
         val spanishHeldOut = repository.getHeldOutChallengesForUnits(listOf(18, 19))
         val japaneseHeldOut = repository.getHeldOutChallengesForUnits(listOf(28, 29, 40, 41))
+        // Pool sizes are the README's stated checkpoint contract: A2 draws from
+        // 4 held-out items, N4 from 10 — A1 and N5 have no held-out pool at all,
+        // which the last assertion pins.
         assertEquals(4, spanishHeldOut.size)
         assertEquals(10, japaneseHeldOut.size)
         // A held-out item that carries no rule could not assess generalisation.
