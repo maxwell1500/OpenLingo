@@ -1,3 +1,1 @@
-Renamed the app's package to com.openlingo.app. New capybara/onsen color palette throughout. New tagline: "Learn offline. Own your progress."
-
-Placement test fixes. Match-pair boards no longer dead-end on Japanese odd-id pairs. The placement test now difficulty-ramps from words and short sentences up to harder grammar. Scoring is course-aware and grants the displayed tier.
+Overhaul landed: curriculum on one authoring DSL, MainActivity split into screens, one dictionary key rule, integrity suite split by concern, README numbers measured from the seed. Suite: 241 tests green.
