@@ -247,7 +247,11 @@ internal fun ExerciseScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(horizontal = 20.dp),
+                .padding(horizontal = 20.dp)
+                // A kana match board is eight rows of tiles plus the prompt, the
+                // question and the rule card; without scroll the last rows sit
+                // under the bottom bar, where no tap can reach them.
+                .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(20.dp),
         ) {
             Spacer(modifier = Modifier.height(4.dp))
@@ -262,7 +266,7 @@ internal fun ExerciseScreen(
                     meaning = introMeaning,
                     ruleText = ruleText,
                     onPlayAudio = { onPlayVoice(introAudioSrc ?: "", audioSpeed, introGlyph) },
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier.fillMaxWidth(),
                 )
             } else {
             // Prompt
@@ -605,10 +609,11 @@ private fun IntroChallengeCard(
     // word. The same threshold sets the glyph size, so a two-kana digraph still
     // gets the large display treatment rather than being shrunk as a "word".
     val isKana = glyph.trim().length in 1..2
+    // The screen's body column scrolls, so this card needs no scroll of its own;
+    // a nested same-axis scroller would eat the gesture the parent should get.
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .verticalScroll(rememberScrollState())
             .padding(vertical = 8.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(16.dp),
