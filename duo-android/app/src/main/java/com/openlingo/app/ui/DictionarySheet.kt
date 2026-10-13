@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.openlingo.app.dictionary.Dictionary
 import com.openlingo.app.dictionary.DictionaryEntry
+import com.openlingo.app.dictionary.DictionaryIndex
 import com.openlingo.app.dictionary.NO_GLOSS_NOTICE
 
 /**
@@ -166,9 +167,13 @@ private fun FactChip(text: String) {
  * The tap is turned into a character offset with the laid-out
  * [TextLayoutResult], and that offset is handed to [Dictionary.resolveTap] — so
  * the question of "which word did they mean" is answered in one tested place
- * rather than guessed here. A tap that resolves to nothing does nothing: there
- * is no fallback, because a sheet that opened on the wrong word would be worse
- * than no sheet.
+ * rather than guessed here.
+ *
+ * A tap that resolves to no headword is not silent: the sheet still opens, on
+ * the tapped word itself, and says the app holds no definition for it. The
+ * alternative is a gesture that does nothing, which reads as broken, and the
+ * word shown is the token the resolver already found under the tap — never a
+ * guessed definition.
  *
  * [preferWholeTerm] is for the per-unit vocabulary list, where the rendered
  * string is the term rather than a sentence containing it. See
@@ -231,7 +236,27 @@ private fun resolveAt(
     val laidOut = result ?: return
     val offset = laidOut.getOffsetForPosition(position)
     val hit = if (preferWholeTerm) dictionary.resolveTerm(text, offset) else dictionary.resolveTap(text, offset)
-    hit?.let { onLookup(it.entry) }
+    if (hit != null) {
+        onLookup(hit.entry)
+        return
+    }
+
+    // Dead-tap feedback (1.4b): a tap on a word the index does not hold still
+    // has a word under it, and the sheet says so rather than staying silent.
+    // The token comes from the resolver's own [DictionaryIndex.tokenize] and
+    // [DictionaryIndex.nearestToken], so the word shown is exactly the one the
+    // learner tapped, never a guess at one.
+    val tokens = DictionaryIndex.tokenize(text)
+    val at = DictionaryIndex.nearestToken(tokens, offset) ?: return
+    val range = tokens[at]
+    val tappedWord = text.substring(range.first, range.last + 1).trim()
+    if (tappedWord.none { it.isLetterOrDigit() }) return
+    onLookup(
+        DictionaryEntry(
+            term = tappedWord,
+            gloss = "No definition for \"$tappedWord\" in the app yet.",
+        ),
+    )
 }
 
 /**

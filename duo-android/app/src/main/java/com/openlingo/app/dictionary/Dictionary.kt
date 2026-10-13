@@ -192,7 +192,9 @@ class Dictionary internal constructor(
  * read is deliberately narrow ([GLOSS_ANCHORS]) and fires only when the
  * challenge has exactly one correct answer, so a prompt that quotes a *slot*
  * rather than a meaning — `Which present form of hablar goes with 'yo'?` — is
- * read as nothing instead of being turned into a false gloss of `hablo`.
+ * read as nothing instead of being turned into a false gloss of `hablo`. An
+ * `INTRO` card is read even more directly: its prompt is the English the card
+ * exists to introduce, so the prompt is the gloss with no quote to find.
  *
  * **What becomes the part of speech.** A `CONJUGATE` challenge is by
  * construction a verb drill, so its correct answer is a verb form. Nothing
@@ -261,10 +263,16 @@ object DictionaryIndex {
             // the corpus today, but that is a property of the content, not a
             // property of the rule — so the type check states it outright and
             // the count is only the second line of defence.
-            val promptGloss = if (challenge.type == ChallengeType.WORD_BANK) {
-                null
-            } else {
-                quotedGloss(challenge.question)?.takeIf { correct.size == 1 }
+            //
+            // An INTRO card is the other shape that states its meaning without
+            // quoting it: the prompt *is* the English the card introduces and
+            // the option is the word itself, so the prompt is read whole rather
+            // than out of quotes. Nothing else on the card could be a gloss, so
+            // there is nothing here to disambiguate.
+            val promptGloss = when (challenge.type) {
+                ChallengeType.WORD_BANK -> null
+                ChallengeType.INTRO -> challenge.question.trim().takeIf { it.isNotEmpty() }
+                else -> quotedGloss(challenge.question)?.takeIf { correct.size == 1 }
             }
 
             val assembled = if (challenge.type == ChallengeType.WORD_BANK) {
@@ -275,12 +283,23 @@ object DictionaryIndex {
 
             for (option in correct) {
                 val term = option.text.trim()
-                if (term.isEmpty()) continue
-                val entry = pending.getOrPut(key(term)) { Pending(term) }
+                // Stripped before the emptiness check, not after: an option that
+                // is nothing but punctuation would otherwise be filed under the
+                // empty key and every lookup for `""` would find it.
+                val headword = surface(term)
+                if (headword.isEmpty()) continue
+                val entry = pending.getOrPut(key(term)) { Pending(headword) }
 
                 option.romaji?.let { if (entry.romaji == null) entry.romaji = it }
                 promptGloss?.let { if (entry.gloss == null) entry.gloss = it }
                 option.audioSrc?.let { if (entry.audioSrc == null) entry.audioSrc = it }
+                // An INTRO card carries the clip on the challenge rather than the
+                // option, and it speaks the word being introduced, so it is the
+                // entry's own. Every other type keeps its challenge audio to
+                // itself: a LISTEN clip is the whole sentence, not the word.
+                if (challenge.type == ChallengeType.INTRO) {
+                    challenge.audioSrc?.let { if (entry.audioSrc == null) entry.audioSrc = it }
+                }
                 if (challenge.type == ChallengeType.CONJUGATE && entry.partOfSpeech == null) {
                     entry.partOfSpeech = "verb"
                 }
@@ -297,8 +316,9 @@ object DictionaryIndex {
         // wins over a gloss read back out of a prompt.
         for (word in vocab) {
             val term = word.foreign.trim()
-            if (term.isEmpty()) continue
-            val entry = pending.getOrPut(key(term)) { Pending(term) }
+            val headword = surface(term)
+            if (headword.isEmpty()) continue
+            val entry = pending.getOrPut(key(term)) { Pending(headword) }
             if (!word.romaji.isNullOrBlank()) entry.romaji = word.romaji
             if (!word.translation.isNullOrBlank()) entry.gloss = word.translation
             if (!word.audioSrc.isNullOrBlank()) entry.audioSrc = word.audioSrc
@@ -311,14 +331,39 @@ object DictionaryIndex {
     /**
      * Comparison key for an authored term.
      *
-     * Identical to [com.openlingo.app.ui.UnitVocabularyIndex.key] on purpose — the
-     * unit vocabulary list and the dictionary must not disagree about whether
-     * `Café` and `café` are the same word, and neither is allowed a layering
-     * dependency on the other. `DictionaryIndexTest` pins them together. Not
-     * accent-folded: whether `café` and `cafe` are one word is a content
-     * decision, not a matcher's to make.
+     * Identical to [com.openlingo.app.ui.UnitVocabularyIndex.key] apart from the
+     * edge punctuation below, and the two are still pinned together by
+     * `DictionaryIndexTest` for every form they agree on. Neither depends on the
+     * other.
+     *
+     * **Why the punctuation strip.** A Spanish option is authored as a complete
+     * utterance — `¡Hola!`, `¿Dónde está el restaurante?`, `me duele la
+     * garganta.` — while [tokenize] hands the resolver bare letter runs:
+     * `Hola`, `Dónde`. Keyed unstripped, `¡Hola!` was filed under `¡hola!` and
+     * the tap resolver searched for `hola`, so the app held a headword for
+     * "hello" that its own resolver could never reach. Stripping the edge
+     * punctuation makes the two written forms one word without touching
+     * accents: whether `café` and `cafe` are one word stays a content decision,
+     * not a matcher's.
+     *
+     * Only the *edges* are stripped, never the interior, and only the marks
+     * below: `Un café, por favor` keeps its comma and stays one phrase, and the
+     * full stop of a Japanese `。` is not in the set, so the run-plus-punctuation
+     * case [resolveTap] already handles is untouched.
      */
-    fun key(term: String): String = term.trim().lowercase()
+    fun key(term: String): String = surface(term).lowercase()
+
+    /**
+     * The term as it is worth showing: whitespace trimmed, edge punctuation off,
+     * case preserved. `¡Hola!` reads as `Hola` on the definition sheet, which is
+     * the form the learner tapped, rather than as the punctuation the author
+     * wrapped it in.
+     */
+    private fun surface(term: String): String =
+        term.trim().trim { it in EDGE_PUNCTUATION }
+
+    /** Spanish and English marks that carry no part of a word's identity. */
+    private const val EDGE_PUNCTUATION = "¡!¿?.,;:"
 
     private class Pending(val term: String) {
         var romaji: String? = null

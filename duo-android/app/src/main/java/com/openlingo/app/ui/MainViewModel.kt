@@ -5,6 +5,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.openlingo.app.OpenLingoApplication
 import com.openlingo.app.data.local.entities.CourseEntity
+import com.openlingo.app.data.local.entities.ChallengeOptionEntity
 import com.openlingo.app.data.local.entities.LessonEntity
 import com.openlingo.app.data.local.entities.UnitEntity
 import com.openlingo.app.data.local.entities.UserProgressEntity
@@ -91,7 +92,7 @@ internal data class PlacementOutcome(val label: String, val units: List<Int>) {
 }
 
 sealed interface FeedbackState {
-    data class Correct(val pointsGained: Int, val combo: Int = 0) : FeedbackState
+    data class Correct(val pointsGained: Int, val combo: Int = 0, val streakRepaired: Boolean = false) : FeedbackState
     /**
      * [ruleText] is carried for challenges that teach a rule (FILL_BLANK above
      * all): the learner sees *why* the answer was wrong at the moment they got
@@ -478,6 +479,21 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private var lessonPointsAccumulated: Int = 0
     private var lessonMistakes: Int = 0
     private var lessonCombo: Int = 0
+
+    /**
+     * Challenges missed during the current pass of the lesson, in the order they were
+     * missed. When the pass ends this is replayed as a heart-free "Review what you
+     * missed" round rather than finishing the lesson; a challenge is queued at most
+     * once however many times it is missed.
+     */
+    private val lessonRetryQueue = mutableListOf<ChallengeWithOptions>()
+
+    /**
+     * True while [lessonRetryQueue] is being replayed. A miss in this round is still
+     * recorded for the persistent review list but costs no heart, so recovery can
+     * never leave the learner worse off than the lesson already did.
+     */
+    private var isReviewingMistakes = false
     val dailyQuest: StateFlow<DailyQuest> = repository.getDailyQuest()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), DailyQuest(0, 30))
 
@@ -782,6 +798,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     fun startLesson(lessonId: Int) {
         isInPracticeSession = false
         isInCheckpoint = false
+        isReviewingMistakes = false
+        lessonRetryQueue.clear()
         viewModelScope.launch {
             val challenges = repository.getChallengesForLesson(lessonId)
             if (challenges.isNotEmpty()) {
@@ -805,6 +823,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         // Defensive: a practice session is not a checkpoint, however the learner
         // arrived here (an abandoned placement run used to leave the flag set).
         isInCheckpoint = false
+        isReviewingMistakes = false
+        lessonRetryQueue.clear()
         viewModelScope.launch {
             val challenges = repository.getMistakeChallenges(userProgress.value?.activeCourseId ?: 1)
             if (challenges.isNotEmpty()) {
@@ -828,9 +848,38 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         val current = _activeScreen.value as? ActiveScreen.Exercise ?: return
         if (current.feedback != null) return // Already checked
         _activeScreen.value = current.copy(selectedOptionId = optionId)
-        // Play pronunciation if option has audio
+        // Pronounce the tap, so an option with no clip still says itself.
         val option = current.currentChallenge.options.find { it.id == optionId }
-        option?.audioSrc?.let { playVoiceIfEnabled(it) }
+        pronounceOption(option)
+    }
+
+    /**
+     * Pronounce the option behind a tap, with a text-to-speech fallback.
+     *
+     * Every tile that carries an `audioSrc` plays its bundled clip, and every
+     * tile that does not still says its own word. That second case is the point:
+     * Spanish Unit 1's word bank spells `¡Hola!`, `buenos` and `días` as tiles
+     * with no clip between them, and a silent tile is indistinguishable from a
+     * broken one — the learner cannot tell "this word is unavailable" from
+     * "this word does not exist", which is exactly the dead-tap boundary the
+     * dictionary refuses to blur.
+     *
+     * `fallbackText` is also handed to [playVoiceIfEnabled] itself, because that
+     * parameter covers the case where the option *does* name a clip and the file
+     * turns out to be missing from the bundle. Without it a broken asset and an
+     * absent one behave differently, which is not a distinction worth preserving.
+     *
+     * One helper for every tile type, so the word bank cannot drift back into
+     * being the one exercise type whose tiles are mute.
+     */
+    private fun pronounceOption(option: ChallengeOptionEntity?) {
+        if (option == null) return
+        val audio = option.audioSrc?.takeIf { it.isNotBlank() }
+        if (audio != null) {
+            playVoiceIfEnabled(audio, fallbackText = option.text)
+        } else if (option.text.isNotBlank()) {
+            speakText(option.text)
+        }
     }
 
     fun selectWordTile(optionId: Int) {
@@ -838,7 +887,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         if (current.feedback != null) return
         if (current.selectedWordTileIds.contains(optionId)) return
         val option = current.currentChallenge.options.find { it.id == optionId }
-        option?.audioSrc?.let { playVoiceIfEnabled(it) }
+        pronounceOption(option)
         _activeScreen.value = current.copy(
             selectedWordTileIds = current.selectedWordTileIds + optionId
         )
@@ -850,7 +899,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         if (current.matchedPairIds.contains(optionId)) return
 
         val option = current.currentChallenge.options.find { it.id == optionId }
-        option?.audioSrc?.let { playVoiceIfEnabled(it) }
+        pronounceOption(option)
 
         val firstId = current.selectedPairFirstId
         if (firstId == null) {
@@ -932,9 +981,18 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    /**
+     * Takes a placed tile back off the sentence.
+     *
+     * The assembled chip is also where a learner checks how a word sounds before
+     * committing it, and this is the only tap on a tile that has left the bank —
+     * so it speaks the word it is returning. Removing is otherwise silent, and a
+     * silent tile looks broken in exactly the way a mute tile did.
+     */
     fun removeWordTile(optionId: Int) {
         val current = _activeScreen.value as? ActiveScreen.Exercise ?: return
         if (current.feedback != null) return
+        pronounceOption(current.currentChallenge.options.find { it.id == optionId })
         _activeScreen.value = current.copy(
             selectedWordTileIds = current.selectedWordTileIds - optionId
         )
@@ -950,6 +1008,18 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     fun checkAnswer() {
         val current = _activeScreen.value as? ActiveScreen.Exercise ?: return
         val challenge = current.currentChallenge.challenge
+
+        // An INTRO card presents a new word, kana or concept: there is nothing to grade,
+        // so it writes nothing at all. No heart, no streak, no XP, no completion and no
+        // mistake — the screen only has to offer CONTINUE, which advances the lesson.
+        if (challenge.type == ChallengeType.INTRO) {
+            if (current.feedback == null) {
+                _activeScreen.value = current.copy(
+                    feedback = FeedbackState.Correct(pointsGained = 0, combo = 0),
+                )
+            }
+            return
+        }
 
         val isCorrect: Boolean
         val correctSolution: String
@@ -1002,7 +1072,12 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
 
         viewModelScope.launch {
-            when (val result = repository.submitAnswer(current.currentChallenge.challenge.id, isCorrect, isPractice = isInPracticeSession)) {
+            // A recovery-round miss is heart-free: it is still recorded for the
+            // persistent review list, but practice mode stops it from taking a heart.
+            // A recovery-round *correct* answer is graded normally, so the challenge it
+            // recovers is marked complete and the lesson it belongs to can finish.
+            val isPracticeWrite = isInPracticeSession || (isReviewingMistakes && !isCorrect)
+            when (val result = repository.submitAnswer(current.currentChallenge.challenge.id, isCorrect, isPractice = isPracticeWrite)) {
                 is AnswerResult.Correct -> {
                     recordCheckpointAnswer(current.currentChallenge.challenge.id, isCorrect = true)
                     if (soundOn()) audioPlayer.playCorrectSound()
@@ -1016,11 +1091,21 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                         ).show()
                     }
                     _activeScreen.value = current.copy(
-                        feedback = FeedbackState.Correct(result.pointsGained, lessonCombo)
+                        feedback = FeedbackState.Correct(result.pointsGained, lessonCombo, result.streakRepaired)
                     )
                 }
                 is AnswerResult.Incorrect -> {
                     recordCheckpointAnswer(current.currentChallenge.challenge.id, isCorrect = false)
+                    // A miss in a lesson is replayed before the lesson can finish, and a
+                    // miss inside the recovery round is replayed again: the loop ends
+                    // only when the learner clears it. Dedup keeps a challenge queued
+                    // once however many times it is missed.
+                    if (!isInPracticeSession && !isInCheckpoint) {
+                        val missed = current.currentChallenge
+                        if (lessonRetryQueue.none { it.challenge.id == missed.challenge.id }) {
+                            lessonRetryQueue.add(missed)
+                        }
+                    }
                     if (soundOn()) audioPlayer.playIncorrectSound()
                     if (hapticsOn()) com.openlingo.app.feedback.Haptics.incorrect(getApplication())
                     lessonMistakes += 1
@@ -1120,8 +1205,36 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             _activeScreen.value = ActiveScreen.LessonMap
             _currentTab.value = MainTab.Practice
             com.openlingo.app.widget.OpenLingoWidgetProvider.updateAll(getApplication())
+        } else if (lessonRetryQueue.isNotEmpty()) {
+            // The pass ended with misses: replay them as a heart-free "Review what you
+            // missed" round instead of finishing. A miss in that round is queued again,
+            // so this repeats until the learner clears the queue. Reached only for an
+            // ordinary lesson — the checkpoint and practice branches above returned for
+            // their own sessions.
+            val review = lessonRetryQueue.toList()
+            lessonRetryQueue.clear()
+            isReviewingMistakes = true
+            currentLessonChallenges = review
+            val first = review.first()
+            first.challenge.audioSrc?.let { playVoiceIfEnabled(it) }
+            _activeScreen.value = ActiveScreen.Exercise(
+                lessonId = current.lessonId,
+                challengeIndex = 0,
+                totalChallenges = review.size,
+                currentChallenge = first,
+            )
         } else {
             // Regular lesson completed.
+            val wasReviewingMistakes = isReviewingMistakes
+            isReviewingMistakes = false
+            if (wasReviewingMistakes) {
+                // The learner just completed the "Review what you missed" recovery round!
+                // Refund the heart that was lost on the original miss.
+                viewModelScope.launch {
+                    repository.refundHeart(1)
+                    repository.recordKanaMasteryForLesson(current.lessonId)
+                }
+            }
             if (soundOn()) audioPlayer.playFanfare()
             if (hapticsOn()) com.openlingo.app.feedback.Haptics.celebrate(getApplication())
             refreshProfileStats()
@@ -1167,6 +1280,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     fun exitExercise() {
         isInCheckpoint = false
         isInPracticeSession = false
+        isReviewingMistakes = false
+        lessonRetryQueue.clear()
         _activeScreen.value = ActiveScreen.LessonMap
     }
 

@@ -102,29 +102,82 @@ ChallengeOptionEntity(id = 10302, challengeId = 1080, text = "Cuenta", romaji = 
                 LessonEntity(id = 108, unitId = 13, title = "Lesson 8: Habits & Home", orderIndex = 1),
             ),
             challenges = listOf(
-                ChallengeEntity(id = 1023, lessonId = 107, type = ChallengeType.SELECT, question = "What is 'I speak Spanish'?", audioSrc = "asset:///audio/es/yo_hablo_espanol.ogg", orderIndex = 0),
+                ChallengeEntity(id = 10270, lessonId = 107, type = ChallengeType.INTRO, question = "I speak (-ar verb)", orderIndex = 0),
+                ChallengeEntity(id = 10271, lessonId = 107, type = ChallengeType.INTRO, question = "I eat (-er verb)", orderIndex = 1),
+                ChallengeEntity(id = 10272, lessonId = 107, type = ChallengeType.INTRO, question = "I live (-ir verb)", orderIndex = 2),
+                ChallengeEntity(id = 10273, lessonId = 107, type = ChallengeType.INTRO, question = "Madrid", orderIndex = 3),
+                ChallengeEntity(
+                    id = 1023, lessonId = 107, type = ChallengeType.SELECT,
+                    question = "What is 'I speak Spanish'?",
+                    audioSrc = "asset:///audio/es/yo_hablo_espanol.ogg",
+                    orderIndex = 4,
+                    grammaticalFocus = "es.present_person",
+                    ruleText = "Regular -ar verbs in the present drop -ar and add -o for 'yo': yo hablo 'I speak'. Neither comemos nor vivo uses the -ar root hablar. español is the word for Spanish.",
+                ),
+                ChallengeEntity(
+                    id = 10274, lessonId = 107, type = ChallengeType.SELECT,
+                    question = "Translate: 'I eat apples'",
+                    orderIndex = 5,
+                    grammaticalFocus = "es.present_person",
+                    ruleText = "Regular -er verbs in the present drop -er and add -o for 'yo': yo como 'I eat'. manzanas means apples.",
+                ),
                 ChallengeEntity(
                     id = 1024, lessonId = 107, type = ChallengeType.WORD_BANK,
                     question = "Assemble: 'I live in Madrid'",
-                    orderIndex = 1,
+                    orderIndex = 6,
                     grammaticalFocus = "es.present_person",
                     ruleText = "Regular -ir verbs in the present drop the -ir and add the person ending: yo vivo, tú vives, él vive, nosotros vivimos, ellos viven.\nAfter 'yo' the ending is always -o: neither vives nor viven can follow it.",
                 ),
-                ChallengeEntity(id = 1025, lessonId = 107, type = ChallengeType.LISTEN, question = "Tap what you hear", audioSrc = "asset:///audio/es/yo_como_manzanas.ogg", orderIndex = 2),
+                ChallengeEntity(id = 1025, lessonId = 107, type = ChallengeType.LISTEN, question = "Tap what you hear", audioSrc = "asset:///audio/es/yo_como_manzanas.ogg", orderIndex = 7),
 
-                ChallengeEntity(id = 1026, lessonId = 108, type = ChallengeType.SELECT, question = "Translate: 'We study Spanish'", orderIndex = 0),
+                // Lesson 8 teaches the two verbs this unit's title promises before
+                // it grades them: estudiar as an -ar and comer as an -er, with the
+                // nouns that fill their slots. Every distractor below is a word
+                // one of these four cards introduces — the untaught "Ellos estudian
+                // inglés" that used to sit here was the cold-term defect item 5.2
+                // is meant to catch.
+                ChallengeEntity(id = 10260, lessonId = 108, type = ChallengeType.INTRO, question = "We study", orderIndex = 0),
+                ChallengeEntity(id = 10261, lessonId = 108, type = ChallengeType.INTRO, question = "Spanish", orderIndex = 1),
+                ChallengeEntity(id = 10262, lessonId = 108, type = ChallengeType.INTRO, question = "He eats", orderIndex = 2),
+                ChallengeEntity(id = 10263, lessonId = 108, type = ChallengeType.INTRO, question = "Bread", orderIndex = 3),
+
+                ChallengeEntity(id = 1026, lessonId = 108, type = ChallengeType.SELECT, question = "Translate: 'We study Spanish'", orderIndex = 4),
+                ChallengeEntity(id = 10264, lessonId = 108, type = ChallengeType.SELECT, question = "Translate: 'He eats bread'", orderIndex = 5),
+
                 ChallengeEntity(
                     id = 1027, lessonId = 108, type = ChallengeType.WORD_BANK,
                     question = "Assemble: 'He eats bread'",
-                    orderIndex = 1,
+                    orderIndex = 6,
                     grammaticalFocus = "es.present_person",
                     ruleText = "Regular -er verbs in the present: yo como, tú comes, él come, nosotros comemos, ellos comen.\nÉl takes the third person ending, so él come. como is also the word 'as' — in this frame only come fits.",
                 ),
+
+                // The only clip that speaks this lesson's own verb, so it is the
+                // only LISTEN whose key the learner can actually hear. The two
+                // wrong forms are the nosotros and the preterite of the same verb:
+                // right word, wrong person and wrong tense.
+                ChallengeEntity(
+                    id = 10265, lessonId = 108, type = ChallengeType.LISTEN,
+                    question = "Tap what you hear",
+                    audioSrc = "asset:///audio/es/estudio_espanol_para_viajar_a_espana.ogg",
+                    orderIndex = 7,
+                    grammaticalFocus = "es.present_person",
+                    ruleText = "An -ar verb in the present drops the -ar and adds the person ending: yo estudio, tú estudias, él estudia, nosotros estudiamos, ellos estudian.\nAfter 'yo' the ending is always -o: neither estudiamos nor estudió can follow it.",
+                ),
             ),
             options = listOf(
-ChallengeOptionEntity(id = 10078, challengeId = 1023, text = "Yo hablo español", romaji = "yˈo ˈabhlo españˈol", correct = true, audioSrc = "asset:///audio/es/yo_hablo_espanol.ogg"),
-                ChallengeOptionEntity(id = 10079, challengeId = 1023, text = "Yo como manzana", correct = false),
-                ChallengeOptionEntity(id = 10080, challengeId = 1023, text = "Yo vivo aquí", correct = false),
+                ChallengeOptionEntity(id = 300260, challengeId = 10270, text = "Hablo", correct = true),
+                ChallengeOptionEntity(id = 300261, challengeId = 10271, text = "Como", correct = true),
+                ChallengeOptionEntity(id = 300262, challengeId = 10272, text = "Vivo", correct = true),
+                ChallengeOptionEntity(id = 300263, challengeId = 10273, text = "Madrid", correct = true),
+
+                ChallengeOptionEntity(id = 10078, challengeId = 1023, text = "Yo hablo español", romaji = "yˈo ˈabhlo españˈol", correct = true, audioSrc = "asset:///audio/es/yo_hablo_espanol.ogg"),
+                ChallengeOptionEntity(id = 10079, challengeId = 1023, text = "Yo vivo en Madrid", correct = false, errorTag = "WRONG_PERSON"),
+                ChallengeOptionEntity(id = 10080, challengeId = 1023, text = "Yo como manzana", correct = false),
+
+                ChallengeOptionEntity(id = 300264, challengeId = 10274, text = "Yo como manzanas", correct = true),
+                ChallengeOptionEntity(id = 300265, challengeId = 10274, text = "Yo hablo manzanas", correct = false, errorTag = "WRONG_PERSON"),
+                ChallengeOptionEntity(id = 300266, challengeId = 10274, text = "Yo vivo en manzanas", correct = false),
 
                 ChallengeOptionEntity(id = 10081, challengeId = 1024, text = "Yo vivo", correct = true),
                 ChallengeOptionEntity(id = 10082, challengeId = 1024, text = "en", correct = true),
@@ -137,8 +190,22 @@ ChallengeOptionEntity(id = 10085, challengeId = 1025, text = "Yo como manzanas",
                 ChallengeOptionEntity(id = 10086, challengeId = 1025, text = "Yo como mañana", correct = false),
                 ChallengeOptionEntity(id = 10087, challengeId = 1025, text = "Yo cómo manzanas", correct = false),
 
+                // One option per INTRO: the card renders options.firstOrNull() and
+                // never composes the list, so a decoy would be unauthentic.
+                ChallengeOptionEntity(id = 300184, challengeId = 10260, text = "Estudiamos", romaji = "estudjˈamos", correct = true),
+                ChallengeOptionEntity(id = 300185, challengeId = 10261, text = "El español", romaji = "el espaˈɲol", correct = true),
+                ChallengeOptionEntity(id = 300186, challengeId = 10262, text = "Él come", romaji = "el ˈkome", correct = true),
+                ChallengeOptionEntity(id = 300187, challengeId = 10263, text = "El pan", romaji = "el ˈpan", correct = true),
+
+                // The untaught "Ellos estudian inglés" distractor is gone: both
+                // wrong answers are now taught words in the wrong frame.
                 ChallengeOptionEntity(id = 10088, challengeId = 1026, text = "Nosotros estudiamos español", correct = true),
-                ChallengeOptionEntity(id = 10089, challengeId = 1026, text = "Ellos estudian inglés", correct = false),
+                ChallengeOptionEntity(id = 300188, challengeId = 1026, text = "Nosotros hablamos español", correct = false),
+                ChallengeOptionEntity(id = 300189, challengeId = 1026, text = "Nosotros comemos pan", correct = false),
+
+                ChallengeOptionEntity(id = 300190, challengeId = 10264, text = "Él come pan", correct = true),
+                ChallengeOptionEntity(id = 300191, challengeId = 10264, text = "Él come español", correct = false),
+                ChallengeOptionEntity(id = 300192, challengeId = 10264, text = "Él estudia pan", correct = false),
 
                 ChallengeOptionEntity(id = 10090, challengeId = 1027, text = "Él", correct = true),
                 ChallengeOptionEntity(id = 10091, challengeId = 1027, text = "come", correct = true),
@@ -146,6 +213,12 @@ ChallengeOptionEntity(id = 10085, challengeId = 1025, text = "Yo como manzanas",
                 ChallengeOptionEntity(id = 10093, challengeId = 1027, text = "como", correct = false, errorTag = "WRONG_PERSON"),
 
                 ChallengeOptionEntity(id = 300001, challengeId = 1027, text = "comen", correct = false, errorTag = "WRONG_PERSON"),
+
+                // The clip is "estudio español…": yo, present. Both wrong forms are
+                // named in the rule text, which is what makes them gradeable.
+                ChallengeOptionEntity(id = 300193, challengeId = 10265, text = "Estudio español", romaji = "estˈudjo espaˈɲol", correct = true, audioSrc = "asset:///audio/es/estudio_espanol_para_viajar_a_espana.ogg"),
+                ChallengeOptionEntity(id = 300194, challengeId = 10265, text = "Estudiamos español", correct = false, errorTag = "WRONG_PERSON"),
+                ChallengeOptionEntity(id = 300195, challengeId = 10265, text = "Estudió español", correct = false, errorTag = "WRONG_TENSE"),
             )
         ),
 
@@ -162,19 +235,49 @@ ChallengeOptionEntity(id = 10085, challengeId = 1025, text = "Yo como manzanas",
                 LessonEntity(id = 109, unitId = 14, title = "Lesson 9: Finding Places", orderIndex = 0),
             ),
             challenges = listOf(
-                ChallengeEntity(id = 1028, lessonId = 109, type = ChallengeType.SELECT, question = "Which phrase means 'To the right'?", orderIndex = 0),
+                ChallengeEntity(id = 10280, lessonId = 109, type = ChallengeType.INTRO, question = "To the right", orderIndex = 0),
+                ChallengeEntity(id = 10281, lessonId = 109, type = ChallengeType.INTRO, question = "To the left", orderIndex = 1),
+                ChallengeEntity(id = 10282, lessonId = 109, type = ChallengeType.INTRO, question = "Straight ahead", orderIndex = 2),
+                ChallengeEntity(
+                    id = 10283, lessonId = 109, type = ChallengeType.INTRO,
+                    question = "The station",
+                    audioSrc = "asset:///audio/es/la_estacion.ogg",
+                    orderIndex = 3,
+                ),
+
+                ChallengeEntity(id = 1028, lessonId = 109, type = ChallengeType.SELECT, question = "Which phrase means 'To the right'?", orderIndex = 4),
+                ChallengeEntity(id = 10284, lessonId = 109, type = ChallengeType.SELECT, question = "Which phrase means 'To the left'?", orderIndex = 5),
                 ChallengeEntity(
                     id = 1029, lessonId = 109, type = ChallengeType.WORD_BANK,
                     question = "Assemble: 'The hotel is here'",
-                    orderIndex = 1,
+                    orderIndex = 6,
                     grammaticalFocus = "es.ser_estar",
                     ruleText = "estar marks location and temporary states: El hotel está aquí.\nser marks identity and lasting qualities: El hotel es grande, La casa es mi casa. With a place word you need está; están would not agree with the singular 'el hotel'.",
                 ),
+                ChallengeEntity(
+                    id = 10285, lessonId = 109, type = ChallengeType.LISTEN,
+                    question = "Tap what you hear",
+                    audioSrc = "asset:///audio/es/la_estacion.ogg",
+                    orderIndex = 7,
+                ),
             ),
             options = listOf(
+                ChallengeOptionEntity(id = 300170, challengeId = 10280, text = "A la derecha", correct = true),
+                ChallengeOptionEntity(id = 300180, challengeId = 10280, text = "To the right", correct = false),
+                ChallengeOptionEntity(id = 300171, challengeId = 10281, text = "A la izquierda", correct = true),
+                ChallengeOptionEntity(id = 300181, challengeId = 10281, text = "To the left", correct = false),
+                ChallengeOptionEntity(id = 300172, challengeId = 10282, text = "Todo recto", correct = true),
+                ChallengeOptionEntity(id = 300182, challengeId = 10282, text = "Straight ahead", correct = false),
+                ChallengeOptionEntity(id = 300173, challengeId = 10283, text = "La estación", correct = true, audioSrc = "asset:///audio/es/la_estacion.ogg"),
+                ChallengeOptionEntity(id = 300183, challengeId = 10283, text = "The station", correct = false),
+
                 ChallengeOptionEntity(id = 10094, challengeId = 1028, text = "A la derecha", correct = true),
                 ChallengeOptionEntity(id = 10095, challengeId = 1028, text = "A la izquierda", correct = false),
                 ChallengeOptionEntity(id = 10096, challengeId = 1028, text = "Todo recto", correct = false),
+
+                ChallengeOptionEntity(id = 300174, challengeId = 10284, text = "A la izquierda", correct = true),
+                ChallengeOptionEntity(id = 300175, challengeId = 10284, text = "A la derecha", correct = false),
+                ChallengeOptionEntity(id = 300176, challengeId = 10284, text = "Todo recto", correct = false),
 
                 ChallengeOptionEntity(id = 10097, challengeId = 1029, text = "El hotel", correct = true),
                 ChallengeOptionEntity(id = 10098, challengeId = 1029, text = "está", correct = true),
@@ -182,6 +285,10 @@ ChallengeOptionEntity(id = 10085, challengeId = 1025, text = "Yo como manzanas",
                 ChallengeOptionEntity(id = 10100, challengeId = 1029, text = "es", correct = false, errorTag = "WRONG_COPULA"),
 
                 ChallengeOptionEntity(id = 300002, challengeId = 1029, text = "están", correct = false, errorTag = "WRONG_PERSON"),
+
+                ChallengeOptionEntity(id = 300177, challengeId = 10285, text = "La estación", correct = true),
+                ChallengeOptionEntity(id = 300178, challengeId = 10285, text = "El hotel", correct = false),
+                ChallengeOptionEntity(id = 300179, challengeId = 10285, text = "La calle", correct = false),
             )
         )
     )

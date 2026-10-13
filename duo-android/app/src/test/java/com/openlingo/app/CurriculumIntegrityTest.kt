@@ -11,6 +11,7 @@ import com.openlingo.app.data.local.models.ChallengeType
 import com.openlingo.app.grammar.AnswerGrader
 import com.openlingo.app.grammar.GrammarFocus
 import java.io.File
+import java.text.Normalizer
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -263,7 +264,11 @@ class CurriculumIntegrityTest {
                 "challenge ${challenge.id} has no correct option",
                 options.any { it.correct },
             )
-            if (challenge.type != ChallengeType.LISTEN) {
+            // INTRO is a single-term discovery card: `IntroChallengeCard` renders
+            // `options.firstOrNull()` and never composes the option list, so a
+            // decoy would be authoring a distractor that cannot be shown. LISTEN
+            // is exempt for the same reason — the clip is the stimulus.
+            if (challenge.type != ChallengeType.LISTEN && challenge.type != ChallengeType.INTRO) {
                 assertTrue(
                     "${challenge.type.rawValue} challenge ${challenge.id} needs at least 2 options",
                     options.size >= 2,
@@ -1171,5 +1176,365 @@ class CurriculumIntegrityTest {
             emptyList<String>(),
             outOfOrder,
         )
+    }
+
+    /**
+     * An `INTRO` card is exempt from the distractor requirement above, which
+     * moves its burden onto its own content: it must actually say something.
+     *
+     * The card is a single-term discovery panel — it renders
+     * `options.firstOrNull()` and falls back to the challenge question when no
+     * option carries a term. A blank in either place renders an empty card that
+     * teaches nothing while still advancing the lesson, which is exactly the
+     * silent-failure class this suite exists to catch. And because the term may
+     * speak itself, a clip the assets do not carry is a mute card.
+     */
+    @Test
+    fun `all INTRO challenges have valid non-blank text and audio`() {
+        val optionsByChallenge = allPayloads.flatMap { it.options }.groupBy { it.challengeId }
+        val available = File("src/main/assets/audio")
+            .walkTopDown()
+            .filter { it.isFile }
+            .map { it.name }
+            .toSet()
+
+        val blanks = mutableListOf<String>()
+        val brokenAudio = mutableListOf<String>()
+        allPayloads.flatMap { it.challenges }
+            .filter { it.type == ChallengeType.INTRO }
+            .forEach { challenge ->
+                val term = optionsByChallenge[challenge.id].orEmpty().firstOrNull()?.text
+                if (challenge.question.isNullOrBlank() && term.isNullOrBlank()) {
+                    blanks += "INTRO challenge ${challenge.id} has neither a question nor a term to show"
+                }
+                val src = challenge.audioSrc
+                if (!src.isNullOrBlank() && src.substringAfterLast("/") !in available) {
+                    brokenAudio += "INTRO challenge ${challenge.id} points at $src, which is not in assets"
+                }
+            }
+
+        assertEquals(
+            "INTRO cards with nothing to show: $blanks",
+            emptyList<String>(),
+            blanks,
+        )
+        assertEquals(
+            "INTRO cards pointing at audio that is not in assets: $brokenAudio",
+            emptyList<String>(),
+            brokenAudio,
+        )
+    }
+
+    /**
+     * Lesson pacing bounds on the on-path corpus.
+     *
+     * `LessonDao.getChallengesForLesson` filters `heldOut = 0`, so a lesson's
+     * real length is its on-path count. Both extremes are authoring defects the
+     * other tests cannot see: a stub of one or two challenges passes every
+     * integrity check while teaching nothing, and a 50-challenge marathon is a
+     * session the learner abandons long before the crown. The floor catches
+     * stubs, the ceiling catches a merge that dumped a whole unit into one
+     * lesson.
+     */
+    @Test
+    fun `on-path lesson pacing falls within pedagogical bounds`() {
+        val outOfBounds = mutableListOf<String>()
+        allPayloads.forEach { payload ->
+            payload.lessons.forEach { lesson ->
+                val onPath = payload.challenges.count { it.lessonId == lesson.id && !it.heldOut }
+                if (onPath < MIN_ON_PATH_CHALLENGES || onPath > MAX_ON_PATH_CHALLENGES) {
+                    outOfBounds += "lesson ${lesson.id} ('${lesson.title}') in unit ${payload.unit.id} " +
+                        "has $onPath on-path challenges, outside " +
+                        "$MIN_ON_PATH_CHALLENGES..$MAX_ON_PATH_CHALLENGES"
+                }
+            }
+        }
+        assertEquals(
+            "lessons whose on-path length is a stub or a marathon: $outOfBounds",
+            emptyList<String>(),
+            outOfBounds,
+        )
+    }
+
+    // =====================================================================
+    // SPEC items 5.1 and 5.2 - a lesson teaches a term before it grades on
+    // it, and a wrong answer is never a word the learner has never met.
+    // =====================================================================
+
+    /**
+     * The challenge types whose option text the learner reads as words.
+     *
+     * `LISTEN` is excluded from both rules below, and the exclusion is the
+     * point rather than a loophole. A LISTEN item's stimulus is the clip, and
+     * its distractors are deliberately near-homophone forms of what the clip
+     * speaks - `三入` against 三人, `百円` against 千円. The learner is never
+     * asked to recognise those as words, only to pick the one that sounds like
+     * the audio, so they are not vocabulary a lesson has to teach first. Every
+     * other choice type puts the option text in front of the learner to be
+     * read, which is exactly where an untaught word does its damage.
+     */
+    private val vocabularyChallengeTypes = setOf(ChallengeType.SELECT, ChallengeType.WORD_BANK)
+
+    /** A Japanese run inside an otherwise Latin text. */
+    private val japaneseRun = Regex("[぀-ヿ一-鿿]+")
+
+    /** A Latin/numeric word, used once the text has been case- and accent-folded. */
+    private val latinWord = Regex("[\\p{L}\\p{N}]+")
+
+    /**
+     * Japanese has no capitalisation and no accents, so the only folding it
+     * needs is diacritic removal: `Él` and `él` are the same word and `está`
+     * and `esta` are the same word.
+     */
+    private fun latinize(text: String): String =
+        Normalizer.normalize(text.lowercase(), Normalizer.Form.NFD)
+            .replace("\\p{M}+".toRegex(), "")
+
+    /**
+     * Case markers, stripped longest-first so `三人が` is looked up as the
+     * noun `三人` rather than as a string that appears nowhere else. A stem is
+     * never reduced to nothing.
+     */
+    private val japaneseParticles =
+        listOf("から", "まで", "が", "を", "は", "に", "で", "と", "も", "の", "へ", "や")
+
+    private fun stripParticles(text: String): String {
+        var stem = text
+        var stripped = true
+        while (stripped) {
+            stripped = false
+            for (particle in japaneseParticles) {
+                if (stem.length > particle.length && stem.endsWith(particle)) {
+                    stem = stem.dropLast(particle.length)
+                    stripped = true
+                }
+            }
+        }
+        return stem
+    }
+
+    /**
+     * Every word the given texts put in front of the learner, in the one
+     * normalised form the two rules compare against. Japanese has no spaces,
+     * so a Japanese run counts as a single word and is stored without its
+     * case marker.
+     */
+    private fun taughtWords(texts: Iterable<String>): Set<String> =
+        texts.flatMap { text ->
+            latinWord.findAll(latinize(text)).map { it.value } +
+                japaneseRun.findAll(text).map { stripParticles(it.value) }
+        }.filter { it.isNotBlank() }.toSet()
+
+    /** The same normalisation applied to the string under test. */
+    private fun wordsOf(text: String): List<String> =
+        if (japaneseRun.containsMatchIn(text)) {
+            japaneseRun.findAll(text).map { stripParticles(it.value) }.toList()
+        } else {
+            latinWord.findAll(latinize(text)).map { it.value }.toList()
+        }
+
+    /**
+     * Closed-class Spanish: articles, pronouns and prepositions. These are the
+     * grammar a sentence carries rather than the vocabulary it teaches, so
+     * `Nosotros estudiamos español` is taught the moment `estudiamos` and
+     * `español` are, and neither `El hotel` nor `Él come pan` is a failure
+     * because of its articles and pronouns.
+     */
+    private val closedClassWords = setOf(
+        "a", "al", "de", "del", "en", "con", "por", "para", "sin", "sobre", "hasta",
+        "desde", "entre", "hacia", "y", "e", "o",
+        "el", "la", "los", "las", "un", "una", "unos", "unas",
+        "yo", "tu", "ella", "nosotros", "vosotros", "ellos", "ellas",
+        "me", "te", "se", "lo", "le", "les", "nos",
+    )
+
+    private fun isTaught(text: String, taught: Set<String>): Boolean {
+        val words = wordsOf(text)
+        return words.isEmpty() || words.all { it in taught || it in closedClassWords }
+    }
+
+    /**
+     * SPEC item 5.1: a lesson with `INTRO` cards has to introduce before it
+     * grades, and the graded item has to stay inside the vocabulary the lesson
+     * has already put in front of the learner.
+     *
+     * An `INTRO` card is the only card that teaches without testing - it
+     * renders `options.firstOrNull()` and asks nothing. So if one of them sits
+     * after the first graded challenge the learner is asked about a term they
+     * were never shown, and if a graded item reaches outside the taught words
+     * the same answer is graded on a word nothing in the lesson ever said.
+     * Neither defect is visible to the other tests in this file: ids, order
+     * contiguity and distractor tags are all satisfied by an item that tests
+     * `Ellos estudian inglés` and by a card that arrives one step late.
+     *
+     * "Taught" means shown on an `INTRO` card of the same lesson, or written
+     * out on the rule card the app renders next to that very item - the rule
+     * card is a teaching surface, not decoration, and challenge 1029 states
+     * `El hotel está aquí.` in full before asking the learner to assemble it.
+     * Everything else fails: challenge 1026's `Nosotros estudiamos español`
+     * carries no rule card and is held to the four `INTRO` cards alone.
+     */
+    @Test
+    fun `lessons with INTRO cards introduce terms before graded testing`() {
+        val misordered = mutableListOf<String>()
+        val untaught = mutableListOf<String>()
+        var lessonsWithIntros = 0
+
+        allPayloads.forEach { payload ->
+            val optionsByChallenge = payload.options.groupBy { it.challengeId }
+            payload.lessons.forEach { lesson ->
+                val challenges = payload.challenges.filter { it.lessonId == lesson.id }
+                val intros = challenges.filter { it.type == ChallengeType.INTRO }
+                if (intros.isEmpty()) return@forEach
+                lessonsWithIntros++
+
+                val firstGraded = challenges
+                    .filterNot { it.type == ChallengeType.INTRO }
+                    .minOfOrNull { it.orderIndex }
+                if (firstGraded != null) {
+                    intros
+                        .filter { it.orderIndex > firstGraded }
+                        .forEach { intro ->
+                            misordered += "INTRO challenge ${intro.id} sits at orderIndex " +
+                                "${intro.orderIndex}, after the first graded challenge in lesson " +
+                                "${lesson.id} (orderIndex $firstGraded), so the lesson grades a " +
+                                "term before the card that introduces it"
+                        }
+                }
+
+                val cardTerms = intros.flatMap { card ->
+                    optionsByChallenge[card.id].orEmpty().map { it.text }
+                } + intros.map { it.question }
+                val introduced = taughtWords(cardTerms)
+
+                challenges
+                    .filter { it.type in vocabularyChallengeTypes }
+                    .forEach { challenge ->
+                        val taught = introduced + taughtWords(listOfNotNull(challenge.ruleText))
+                        optionsByChallenge[challenge.id].orEmpty()
+                            .filter { it.correct }
+                            .filterNot { isTaught(it.text, taught) }
+                            .forEach { option ->
+                                untaught += "challenge ${challenge.id} ('${challenge.question}') " +
+                                    "grades on '${option.text}', which lesson ${lesson.id} never " +
+                                    "shows on an INTRO card or on its own rule card; the cards " +
+                                    "teach ${cardTerms.distinct()}"
+                            }
+                    }
+            }
+        }
+
+        assertTrue(
+            "no lesson in the corpus teaches a term on an INTRO card, so this " +
+                "test proves nothing",
+            lessonsWithIntros > 0,
+        )
+        assertEquals(
+            "INTRO cards that do not come first in their lesson: $misordered",
+            emptyList<String>(),
+            misordered,
+        )
+        assertEquals(
+            "graded items that test a term the lesson never introduced: $untaught",
+            emptyList<String>(),
+            untaught,
+        )
+    }
+
+    /**
+     * SPEC item 5.2: once a lesson is rebuilt around `INTRO` cards, every wrong
+     * answer has to be a word the learner has met - either in its right frame
+     * or with a stated reason for being wrong.
+     *
+     * A wrong answer is allowed two kinds. It may carry an `errorTag`, which is
+     * what the in-context hint is built from and what tells the learner
+     * `están` misses because the noun is singular. Or it may be assembled from
+     * words the course teaches elsewhere - `Nosotros comemos pan` is a real
+     * mistake the learner can make, because `comemos` is named on the
+     * `es.present_person` rule card and `pan` is on an `INTRO` card of lesson
+     * 108. What it may not be is a word from nowhere: `Ellos estudian inglés`
+     * was unreachable vocabulary sitting in a lesson that never mentions
+     * inglés, so the only thing it could teach was that Spanish items sometimes
+     * contain words you have never been shown.
+     *
+     * The first assertion pins that specific regression by id, so it cannot be
+     * satisfied by rebuilding the challenge around different words; the second
+     * is the general rule that would have caught it.
+     */
+    @Test
+    fun `rebuilt lessons contain no untaught vocabulary distractors and defend against known regressions`() {
+        val optionsByChallenge = allPayloads.flatMap { it.options }.groupBy { it.challengeId }
+        val courseOfLesson = allPayloads
+            .flatMap { payload -> payload.lessons.map { it.id to payload.unit.courseId } }
+            .toMap()
+
+        val coldTerms = optionsByChallenge[1026].orEmpty()
+            .filterNot { it.correct }
+            .filter { latinize(it.text).contains("ingles") }
+            .map { it.id }
+        assertEquals(
+            "challenge 1026 distractors that reintroduce the untaught cold term " +
+                "inglés, which lesson 108 never teaches",
+            emptyList<Int>(),
+            coldTerms,
+        )
+
+        val taughtByCourse = mutableMapOf<Int, Set<String>>()
+        allPayloads.forEach { payload ->
+            val taught = taughtWords(
+                payload.options.filter { it.correct }.map { it.text } +
+                    payload.challenges.mapNotNull { it.ruleText } +
+                    payload.challenges
+                        .filter { it.type == ChallengeType.INTRO }
+                        .map { it.question },
+            )
+            val course = payload.unit.courseId
+            taughtByCourse[course] = taughtByCourse.getOrElse(course) { emptySet() } + taught
+        }
+
+        val untaught = mutableListOf<String>()
+        var lessonsChecked = 0
+        allPayloads.forEach { payload ->
+            val optionsInUnit = payload.options.groupBy { it.challengeId }
+            payload.lessons.forEach { lesson ->
+                val challenges = payload.challenges.filter { it.lessonId == lesson.id }
+                if (challenges.none { it.type == ChallengeType.INTRO }) return@forEach
+                lessonsChecked++
+                val course = courseOfLesson.getValue(lesson.id)
+                val taught = taughtByCourse.getValue(course)
+                challenges
+                    .filter { it.type in vocabularyChallengeTypes }
+                    .flatMap { challenge ->
+                        optionsInUnit[challenge.id].orEmpty().map { challenge to it }
+                    }
+                    .filterNot { it.second.correct }
+                    .filter { it.second.errorTag == null }
+                    .filterNot { isTaught(it.second.text, taught) }
+                    .forEach { (challenge, option) ->
+                        untaught += "lesson ${lesson.id} offers '${option.text}' as a wrong " +
+                            "answer on challenge ${challenge.id} ('${challenge.question}'); it " +
+                            "carries no errorTag and none of its words is taught anywhere in " +
+                            "course $course"
+                    }
+            }
+        }
+
+        assertTrue(
+            "no lesson with INTRO cards was checked, so this test proves nothing",
+            lessonsChecked > 0,
+        )
+        assertEquals(
+            "wrong answers built from vocabulary the course never teaches: $untaught",
+            emptyList<String>(),
+            untaught,
+        )
+    }
+
+    private companion object {
+        /** A lesson shorter than this is a stub, not a lesson. */
+        const val MIN_ON_PATH_CHALLENGES = 3
+
+        /** Past this a lesson stops being a session and becomes a marathon. */
+        const val MAX_ON_PATH_CHALLENGES = 30
     }
 }

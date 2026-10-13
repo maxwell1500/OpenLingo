@@ -319,17 +319,28 @@ class LocalProgressRepository(private val database: OpenLingoDatabase) {
                 }
             } else {
                 if (!isPractice) {
-                    val newHearts = (user.hearts - 1).coerceAtLeast(0)
-                    userProgressDao.updateHearts(GUEST_USER_ID, newHearts)
-                    lessonDao.getChallengeById(challengeId)?.let { challenge ->
+                    val challenge = lessonDao.getChallengeById(challengeId)
+                    if (challenge?.type == ChallengeType.LISTEN) {
+                        // LISTEN mistakes are audio mis-hears, not knowledge gaps.
+                        // Record the mistake for review but do NOT deduct hearts.
                         mistakeDao.upsertMistake(
                             com.openlingo.app.data.local.entities.MistakeEntity(
                                 challengeId = challengeId,
                                 lessonId = challenge.lessonId,
                             )
                         )
+                        AnswerResult.Incorrect(remainingHearts = user.hearts)
+                    } else {
+                        val newHearts = (user.hearts - 1).coerceAtLeast(0)
+                        userProgressDao.updateHearts(GUEST_USER_ID, newHearts)
+                        mistakeDao.upsertMistake(
+                            com.openlingo.app.data.local.entities.MistakeEntity(
+                                challengeId = challengeId,
+                                lessonId = challenge?.lessonId ?: 0,
+                            )
+                        )
+                        AnswerResult.Incorrect(remainingHearts = newHearts)
                     }
-                    AnswerResult.Incorrect(remainingHearts = newHearts)
                 } else {
                     // Practice mode: still record the miss so it stays in the queue,
                     // but no heart loss.
@@ -654,6 +665,34 @@ class LocalProgressRepository(private val database: OpenLingoDatabase) {
         )
     }
 
+    /**
+     * Refunds [amount] hearts, capped at [MAX_HEARTS]. Used when the learner
+     * completes the mistake recovery loop — the heart lost on the original miss
+     * is given back as a reward for clearing the review.
+     */
+    suspend fun refundHeart(amount: Int = 1) = withContext(Dispatchers.IO) {
+        val user = userProgressDao.getUserProgressDirect(GUEST_USER_ID) ?: return@withContext
+        val newHearts = (user.hearts + amount).coerceAtMost(MAX_HEARTS)
+        userProgressDao.updateHearts(GUEST_USER_ID, newHearts)
+    }
+
+    /**
+     * Awards character mastery for the kana taught in a lesson.
+     * Lesson 200 covers the first five hiragana vowels; lesson 201 covers
+     * the か and さ rows.
+     */
+    suspend fun recordKanaMasteryForLesson(lessonId: Int) = withContext(Dispatchers.IO) {
+        when (lessonId) {
+            200 -> listOf("あ", "い", "う", "え", "お")
+            201 -> listOf("か", "き", "く", "け", "こ", "さ", "し", "す", "せ", "そ")
+            else -> return@withContext
+        }.forEach { char ->
+            characterMasteryDao.upsertMastery(
+                CharacterMasteryEntity(character = char, script = "HIRAGANA")
+            )
+        }
+    }
+
     fun getMistakes(courseId: Int): Flow<List<com.openlingo.app.data.local.entities.MistakeEntry>> =
         mistakeDao.getMistakeEntries(courseId).flowOn(Dispatchers.IO)
 
@@ -689,148 +728,227 @@ class LocalProgressRepository(private val database: OpenLingoDatabase) {
         )
         courseDao.insertLessons(
             listOf(
-                LessonEntity(id = 100, unitId = 10, title = "Lesson 1: Greetings & Nouns", orderIndex = 0),
-                LessonEntity(id = 101, unitId = 10, title = "Lesson 2: Common Phrases", orderIndex = 1),
-                LessonEntity(id = 102, unitId = 11, title = "Lesson 3: Family Members", orderIndex = 0),
-                LessonEntity(id = 103, unitId = 11, title = "Lesson 4: Introductions", orderIndex = 1),
+                LessonEntity(id = 100, unitId = 10, title = "Lesson 1: Greetings & Essentials", orderIndex = 0),
+                LessonEntity(id = 101, unitId = 10, title = "Lesson 2: Common & Polite Phrases", orderIndex = 1),
+                LessonEntity(id = 102, unitId = 11, title = "Lesson 3: People & Family", orderIndex = 0),
+                LessonEntity(id = 103, unitId = 11, title = "Lesson 4: Introductions & Identity", orderIndex = 1),
             )
         )
 
-        // Challenges for Lesson 100 (Unit 1)
+        // Challenges for Lesson 100 (Unit 1): Greetings & Essentials
+        // INTRO -> Recognition -> Production -> LISTEN
         lessonDao.insertChallenges(
             listOf(
-                ChallengeEntity(id = 1001, lessonId = 100, type = ChallengeType.SELECT, question = "Which one of these is 'The man'?", orderIndex = 0),
-                ChallengeEntity(id = 1002, lessonId = 100, type = ChallengeType.ASSIST, question = "Translate: 'Good morning'", audioSrc = "asset:///audio/es/buenos_dias.ogg", orderIndex = 1),
-                ChallengeEntity(id = 1003, lessonId = 100, type = ChallengeType.WORD_BANK, question = "Translate: 'Hello, good morning'", orderIndex = 2),
-                ChallengeEntity(id = 1004, lessonId = 100, type = ChallengeType.LISTEN, question = "Tap what you hear", audioSrc = "asset:///audio/es/buenos_dias.ogg", orderIndex = 3),
+                // An INTRO card's question is the ENGLISH it introduces; the
+                // word itself lives on the option (below). Filing the Spanish
+                // word into `question` made the card show its own word as its
+                // own meaning line, and made DictionaryIndex file "De nada" as
+                // its own gloss — a tautology that beat the honest
+                // "You're welcome" taught later in the same unit.
+                ChallengeEntity(id = 1001, lessonId = 100, type = ChallengeType.INTRO, question = "Hello", romaji = "ˈola", audioSrc = "asset:///audio/es/hola.ogg", orderIndex = 0),
+                ChallengeEntity(id = 1002, lessonId = 100, type = ChallengeType.INTRO, question = "Good morning", romaji = "bˈuenos dˈias", audioSrc = "asset:///audio/es/buenos_dias.ogg", orderIndex = 1),
+                ChallengeEntity(id = 1003, lessonId = 100, type = ChallengeType.INTRO, question = "Goodbye", orderIndex = 2),
+                ChallengeEntity(id = 1004, lessonId = 100, type = ChallengeType.SELECT, question = "Which one means 'Hello'?", orderIndex = 3),
+                ChallengeEntity(id = 1005, lessonId = 100, type = ChallengeType.SELECT, question = "Which phrase means 'Good morning'?", orderIndex = 4),
+                ChallengeEntity(id = 1006, lessonId = 100, type = ChallengeType.ASSIST, question = "___ días", orderIndex = 5),
+                ChallengeEntity(id = 1007, lessonId = 100, type = ChallengeType.WORD_BANK, question = "Translate: 'Hello, good morning'", orderIndex = 6),
+                ChallengeEntity(id = 1008, lessonId = 100, type = ChallengeType.LISTEN, question = "Tap what you hear", audioSrc = "asset:///audio/es/buenos_dias.ogg", orderIndex = 7),
             )
         )
         lessonDao.insertOptions(
             listOf(
-ChallengeOptionEntity(id = 10001, challengeId = 1001, text = "El hombre", romaji = "el ˈombre", correct = true, audioSrc = "asset:///audio/es/el_padre.ogg"),
-ChallengeOptionEntity(id = 10002, challengeId = 1001, text = "La mujer", romaji = "la mujˈer", correct = false, audioSrc = "asset:///audio/es/la_madre.ogg"),
-                ChallengeOptionEntity(id = 10003, challengeId = 1001, text = "La manzana", correct = false),
+                // INTRO cards: one option each with text + romaji
+                ChallengeOptionEntity(id = 1000100, challengeId = 1001, text = "¡Hola!", romaji = "ˈola", correct = true, audioSrc = "asset:///audio/es/hola.ogg"),
+                ChallengeOptionEntity(id = 1000101, challengeId = 1002, text = "Buenos días", romaji = "bˈuenos dˈias", correct = true, audioSrc = "asset:///audio/es/buenos_dias.ogg"),
+                ChallengeOptionEntity(id = 1000102, challengeId = 1003, text = "Adiós", correct = true),
 
-ChallengeOptionEntity(id = 10004, challengeId = 1002, text = "Buenos días", romaji = "bˈuenos dˈias", correct = true, audioSrc = "asset:///audio/es/buenos_dias.ogg"),
-                ChallengeOptionEntity(id = 10005, challengeId = 1002, text = "Buenas noches", correct = false),
-ChallengeOptionEntity(id = 10006, challengeId = 1002, text = "Hola", romaji = "ˈola", correct = false, audioSrc = "asset:///audio/es/hola.ogg"),
+                // SELECT 1004: "Which one means 'Hello'?"
+                ChallengeOptionEntity(id = 1000103, challengeId = 1004, text = "¡Hola!", romaji = "ˈola", correct = true),
+                ChallengeOptionEntity(id = 1000104, challengeId = 1004, text = "Buenos días", romaji = "bˈuenos dˈias", correct = false),
+                ChallengeOptionEntity(id = 1000105, challengeId = 1004, text = "Adiós", correct = false),
 
-                // Word Bank for 1003: "¡Hola! buenos días"
-                ChallengeOptionEntity(id = 10007, challengeId = 1003, text = "¡Hola!", correct = true),
-                ChallengeOptionEntity(id = 10008, challengeId = 1003, text = "buenos", correct = true),
-                ChallengeOptionEntity(id = 10009, challengeId = 1003, text = "días", correct = true),
-                ChallengeOptionEntity(id = 10010, challengeId = 1003, text = "adiós", correct = false),
-                ChallengeOptionEntity(id = 10011, challengeId = 1003, text = "noche", correct = false),
+                // SELECT 1005: "Which phrase means 'Good morning'?"
+                ChallengeOptionEntity(id = 1000106, challengeId = 1005, text = "Buenos días", romaji = "bˈuenos dˈias", correct = true),
+                ChallengeOptionEntity(id = 1000107, challengeId = 1005, text = "Adiós", correct = false),
+                ChallengeOptionEntity(id = 1000108, challengeId = 1005, text = "¡Hola!", romaji = "ˈola", correct = false),
 
-ChallengeOptionEntity(id = 10012, challengeId = 1004, text = "Buenos días", romaji = "bˈuenos dˈias", correct = true),
-                ChallengeOptionEntity(id = 10013, challengeId = 1004, text = "Buenos noches", correct = false),
-                ChallengeOptionEntity(id = 10014, challengeId = 1004, text = "Buenas días", correct = false),
+                // ASSIST 1006: "___ días"
+                ChallengeOptionEntity(id = 1000109, challengeId = 1006, text = "Buenos", correct = true),
+                ChallengeOptionEntity(id = 1000110, challengeId = 1006, text = "Adiós", correct = false),
+                ChallengeOptionEntity(id = 1000111, challengeId = 1006, text = "Hola", correct = false),
+
+                // WORD_BANK 1007: "¡Hola! buenos días"
+                ChallengeOptionEntity(id = 1000112, challengeId = 1007, text = "¡Hola!", correct = true),
+                ChallengeOptionEntity(id = 1000113, challengeId = 1007, text = "buenos", correct = true),
+                ChallengeOptionEntity(id = 1000114, challengeId = 1007, text = "días", correct = true),
+                ChallengeOptionEntity(id = 1000115, challengeId = 1007, text = "adiós", correct = false),
+
+                // LISTEN 1008
+                ChallengeOptionEntity(id = 1000116, challengeId = 1008, text = "Buenos días", romaji = "bˈuenos dˈias", correct = true),
+                ChallengeOptionEntity(id = 1000117, challengeId = 1008, text = "Buenas noches", correct = false),
+                ChallengeOptionEntity(id = 1000118, challengeId = 1008, text = "¡Hola!", romaji = "ˈola", correct = false),
             )
         )
 
-        // Challenges for Lesson 101 (Unit 1)
+        // Challenges for Lesson 101 (Unit 1): Common & Polite Phrases
         lessonDao.insertChallenges(
             listOf(
-                ChallengeEntity(id = 1005, lessonId = 101, type = ChallengeType.SELECT, question = "How do you say 'Thank you'?", audioSrc = "asset:///audio/es/gracias.ogg", orderIndex = 0),
-                ChallengeEntity(id = 1006, lessonId = 101, type = ChallengeType.WORD_BANK, question = "Translate: 'Yes, please'", orderIndex = 1),
-                ChallengeEntity(id = 1007, lessonId = 101, type = ChallengeType.LISTEN, question = "Tap what you hear", audioSrc = "asset:///audio/es/por_favor.ogg", orderIndex = 2),
-                ChallengeEntity(id = 1008, lessonId = 101, type = ChallengeType.SELECT, question = "What is 'You're welcome'?", audioSrc = "asset:///audio/es/de_nada.ogg", orderIndex = 3),
+                ChallengeEntity(id = 1009, lessonId = 101, type = ChallengeType.INTRO, question = "Please", romaji = "por fabhˈor", audioSrc = "asset:///audio/es/por_favor.ogg", orderIndex = 0),
+                ChallengeEntity(id = 1010, lessonId = 101, type = ChallengeType.INTRO, question = "Thank you", romaji = "grˈasias", audioSrc = "asset:///audio/es/gracias.ogg", orderIndex = 1),
+                ChallengeEntity(id = 1011, lessonId = 101, type = ChallengeType.INTRO, question = "You're welcome", romaji = "de nˈadha", audioSrc = "asset:///audio/es/de_nada.ogg", orderIndex = 2),
+                ChallengeEntity(id = 1012, lessonId = 101, type = ChallengeType.INTRO, question = "Yes", orderIndex = 3),
+                ChallengeEntity(id = 1013, lessonId = 101, type = ChallengeType.SELECT, question = "How do you say 'Thank you'?", audioSrc = "asset:///audio/es/gracias.ogg", orderIndex = 4),
+                ChallengeEntity(id = 1014, lessonId = 101, type = ChallengeType.SELECT, question = "What is 'You're welcome'?", audioSrc = "asset:///audio/es/de_nada.ogg", orderIndex = 5),
+                ChallengeEntity(id = 1015, lessonId = 101, type = ChallengeType.ASSIST, question = "Sí, por ___", orderIndex = 6),
+                ChallengeEntity(id = 100010, lessonId = 101, type = ChallengeType.WORD_BANK, question = "Translate: 'Yes, please'", orderIndex = 7),
+                ChallengeEntity(id = 100011, lessonId = 101, type = ChallengeType.LISTEN, question = "Tap what you hear", audioSrc = "asset:///audio/es/por_favor.ogg", orderIndex = 8),
             )
         )
         lessonDao.insertOptions(
             listOf(
-ChallengeOptionEntity(id = 10015, challengeId = 1005, text = "Muchas gracias", romaji = "mˈuchas grˈasias", correct = true, audioSrc = "asset:///audio/es/gracias.ogg"),
-ChallengeOptionEntity(id = 10016, challengeId = 1005, text = "De nada", romaji = "de nˈadha", correct = false, audioSrc = "asset:///audio/es/de_nada.ogg"),
-ChallengeOptionEntity(id = 10017, challengeId = 1005, text = "Por favor", romaji = "por fabhˈor", correct = false, audioSrc = "asset:///audio/es/por_favor.ogg"),
+                // INTRO cards
+                ChallengeOptionEntity(id = 1000119, challengeId = 1009, text = "Por favor", romaji = "por fabhˈor", correct = true, audioSrc = "asset:///audio/es/por_favor.ogg"),
+                ChallengeOptionEntity(id = 1000120, challengeId = 1010, text = "Gracias", romaji = "grˈasias", correct = true, audioSrc = "asset:///audio/es/gracias.ogg"),
+                ChallengeOptionEntity(id = 1000121, challengeId = 1011, text = "De nada", romaji = "de nˈadha", correct = true, audioSrc = "asset:///audio/es/de_nada.ogg"),
+                ChallengeOptionEntity(id = 1000122, challengeId = 1012, text = "Sí", correct = true),
 
-                // Word Bank for 1006: "Sí por favor"
-                ChallengeOptionEntity(id = 10018, challengeId = 1006, text = "Sí", correct = true),
-                ChallengeOptionEntity(id = 10019, challengeId = 1006, text = "por", correct = true),
-                ChallengeOptionEntity(id = 10020, challengeId = 1006, text = "favor", correct = true),
-                ChallengeOptionEntity(id = 10021, challengeId = 1006, text = "no", correct = false),
-                ChallengeOptionEntity(id = 10022, challengeId = 1006, text = "gracias", correct = false),
+                // SELECT 1013: "How do you say 'Thank you'?"
+                ChallengeOptionEntity(id = 1000123, challengeId = 1013, text = "Muchas gracias", romaji = "mˈuchas grˈasias", correct = true),
+                ChallengeOptionEntity(id = 1000124, challengeId = 1013, text = "De nada", romaji = "de nˈadha", correct = false),
+                ChallengeOptionEntity(id = 1000125, challengeId = 1013, text = "Por favor", romaji = "por fabhˈor", correct = false),
 
-ChallengeOptionEntity(id = 10023, challengeId = 1007, text = "Por favor", romaji = "por fabhˈor", correct = true),
-                ChallengeOptionEntity(id = 10024, challengeId = 1007, text = "Por favores", correct = false),
-                ChallengeOptionEntity(id = 10025, challengeId = 1007, text = "Por la favor", correct = false),
+                // SELECT 1014: "What is 'You're welcome'?"
+                ChallengeOptionEntity(id = 1000126, challengeId = 1014, text = "De nada", romaji = "de nˈadha", correct = true),
+                ChallengeOptionEntity(id = 1000127, challengeId = 1014, text = "Gracias", romaji = "grˈasias", correct = false),
+                ChallengeOptionEntity(id = 1000128, challengeId = 1014, text = "Por favor", romaji = "por fabhˈor", correct = false),
 
-ChallengeOptionEntity(id = 10026, challengeId = 1008, text = "De nada", romaji = "de nˈadha", correct = true, audioSrc = "asset:///audio/es/de_nada.ogg"),
-                ChallengeOptionEntity(id = 10027, challengeId = 1008, text = "Perdón", correct = false),
-                ChallengeOptionEntity(id = 10028, challengeId = 1008, text = "Hasta luego", correct = false),
+                // ASSIST 1015: "Sí, por ___"
+                ChallengeOptionEntity(id = 1000129, challengeId = 1015, text = "favor", correct = true),
+                ChallengeOptionEntity(id = 1000130, challengeId = 1015, text = "gracias", correct = false),
+                ChallengeOptionEntity(id = 1000131, challengeId = 1015, text = "nada", correct = false),
+
+                // WORD_BANK 100010: "Sí por favor"
+                ChallengeOptionEntity(id = 1000132, challengeId = 100010, text = "Sí", correct = true),
+                ChallengeOptionEntity(id = 1000133, challengeId = 100010, text = "por", correct = true),
+                ChallengeOptionEntity(id = 1000134, challengeId = 100010, text = "favor", correct = true),
+                ChallengeOptionEntity(id = 1000135, challengeId = 100010, text = "gracias", correct = false),
+                ChallengeOptionEntity(id = 1000136, challengeId = 100010, text = "de", correct = false),
+
+                // LISTEN 100011
+                ChallengeOptionEntity(id = 1000137, challengeId = 100011, text = "Por favor", romaji = "por fabhˈor", correct = true),
+                ChallengeOptionEntity(id = 1000138, challengeId = 100011, text = "Gracias", romaji = "grˈasias", correct = false),
+                ChallengeOptionEntity(id = 1000139, challengeId = 100011, text = "De nada", romaji = "de nˈadha", correct = false),
             )
         )
 
-        // Challenges for Lesson 102 (Unit 2: Family)
+        // Challenges for Lesson 102 (Unit 2): People & Family — La mujer PROMOTED
         lessonDao.insertChallenges(
             listOf(
-                ChallengeEntity(id = 1009, lessonId = 102, type = ChallengeType.SELECT, question = "Translate: 'The father'", audioSrc = "asset:///audio/es/el_padre.ogg", orderIndex = 0),
-                ChallengeEntity(id = 1010, lessonId = 102, type = ChallengeType.SELECT, question = "Translate: 'The mother'", audioSrc = "asset:///audio/es/la_madre.ogg", orderIndex = 1),
-                ChallengeEntity(id = 1011, lessonId = 102, type = ChallengeType.WORD_BANK, question = "Translate: 'The father and the mother'", orderIndex = 2),
-                ChallengeEntity(id = 1012, lessonId = 102, type = ChallengeType.LISTEN, question = "Tap what you hear", audioSrc = "asset:///audio/es/la_familia.ogg", orderIndex = 3),
+                ChallengeEntity(id = 100012, lessonId = 102, type = ChallengeType.INTRO, question = "The man", romaji = "el ˈombre", orderIndex = 0),
+                ChallengeEntity(id = 100013, lessonId = 102, type = ChallengeType.INTRO, question = "The woman", romaji = "la mujˈer", orderIndex = 1),
+                ChallengeEntity(id = 100014, lessonId = 102, type = ChallengeType.INTRO, question = "The father", romaji = "el pˈadhre", audioSrc = "asset:///audio/es/el_padre.ogg", orderIndex = 2),
+                ChallengeEntity(id = 100015, lessonId = 102, type = ChallengeType.INTRO, question = "The mother", romaji = "la mˈadhre", audioSrc = "asset:///audio/es/la_madre.ogg", orderIndex = 3),
+                ChallengeEntity(id = 100016, lessonId = 102, type = ChallengeType.INTRO, question = "The family", romaji = "la famˈilia", audioSrc = "asset:///audio/es/la_familia.ogg", orderIndex = 4),
+                ChallengeEntity(id = 100017, lessonId = 102, type = ChallengeType.SELECT, question = "Translate: 'The father'", orderIndex = 5),
+                ChallengeEntity(id = 100018, lessonId = 102, type = ChallengeType.SELECT, question = "Translate: 'The mother'", orderIndex = 6),
+                ChallengeEntity(id = 100019, lessonId = 102, type = ChallengeType.SELECT, question = "Translate: 'The woman'", orderIndex = 7),
+                ChallengeEntity(id = 100020, lessonId = 102, type = ChallengeType.MATCH_PAIRS, question = "Match each person to their meaning", orderIndex = 8),
+                ChallengeEntity(id = 100021, lessonId = 102, type = ChallengeType.WORD_BANK, question = "Translate: 'The father and the mother'", orderIndex = 9),
+                ChallengeEntity(id = 100022, lessonId = 102, type = ChallengeType.LISTEN, question = "Tap what you hear", audioSrc = "asset:///audio/es/la_familia.ogg", orderIndex = 10),
             )
         )
         lessonDao.insertOptions(
             listOf(
-ChallengeOptionEntity(id = 10029, challengeId = 1009, text = "El padre", romaji = "el pˈadhre", correct = true, audioSrc = "asset:///audio/es/el_padre.ogg"),
-ChallengeOptionEntity(id = 10030, challengeId = 1009, text = "La madre", romaji = "la mˈadhre", correct = false, audioSrc = "asset:///audio/es/la_madre.ogg"),
-                ChallengeOptionEntity(id = 10031, challengeId = 1009, text = "El hermano", correct = false),
+                // INTRO cards
+                ChallengeOptionEntity(id = 1000140, challengeId = 100012, text = "El hombre", romaji = "el ˈombre", correct = true),
+                ChallengeOptionEntity(id = 1000141, challengeId = 100013, text = "La mujer", romaji = "la mujˈer", correct = true),
+                ChallengeOptionEntity(id = 1000142, challengeId = 100014, text = "El padre", romaji = "el pˈadhre", correct = true, audioSrc = "asset:///audio/es/el_padre.ogg"),
+                ChallengeOptionEntity(id = 1000143, challengeId = 100015, text = "La madre", romaji = "la mˈadhre", correct = true, audioSrc = "asset:///audio/es/la_madre.ogg"),
+                ChallengeOptionEntity(id = 1000144, challengeId = 100016, text = "La familia", romaji = "la famˈilia", correct = true, audioSrc = "asset:///audio/es/la_familia.ogg"),
 
-ChallengeOptionEntity(id = 10032, challengeId = 1010, text = "La madre", romaji = "la mˈadhre", correct = true, audioSrc = "asset:///audio/es/la_madre.ogg"),
-                ChallengeOptionEntity(id = 10033, challengeId = 1010, text = "La hermana", correct = false),
-                ChallengeOptionEntity(id = 10034, challengeId = 1010, text = "La niña", correct = false),
+                // SELECT 100017: "Translate: 'The father'"
+                ChallengeOptionEntity(id = 1000145, challengeId = 100017, text = "El padre", romaji = "el pˈadhre", correct = true),
+                ChallengeOptionEntity(id = 1000146, challengeId = 100017, text = "La madre", romaji = "la mˈadhre", correct = false),
+                ChallengeOptionEntity(id = 1000147, challengeId = 100017, text = "El hombre", romaji = "el ˈombre", correct = false),
 
-                // Word Bank for 1011: "El padre y la madre"
-                ChallengeOptionEntity(id = 10035, challengeId = 1011, text = "El", correct = true),
-                ChallengeOptionEntity(id = 10036, challengeId = 1011, text = "padre", correct = true),
-                ChallengeOptionEntity(id = 10037, challengeId = 1011, text = "y", correct = true),
-                ChallengeOptionEntity(id = 10038, challengeId = 1011, text = "la", correct = true),
-                ChallengeOptionEntity(id = 10039, challengeId = 1011, text = "madre", correct = true),
-                ChallengeOptionEntity(id = 10040, challengeId = 1011, text = "hijo", correct = false),
+                // SELECT 100018: "Translate: 'The mother'"
+                ChallengeOptionEntity(id = 1000148, challengeId = 100018, text = "La madre", romaji = "la mˈadhre", correct = true),
+                ChallengeOptionEntity(id = 1000149, challengeId = 100018, text = "La mujer", romaji = "la mujˈer", correct = false),
+                ChallengeOptionEntity(id = 1000150, challengeId = 100018, text = "El padre", romaji = "el pˈadhre", correct = false),
 
-ChallengeOptionEntity(id = 10041, challengeId = 1012, text = "La familia", romaji = "la famˈilia", correct = true),
-                ChallengeOptionEntity(id = 10042, challengeId = 1012, text = "El familia", correct = false),
-                ChallengeOptionEntity(id = 10043, challengeId = 1012, text = "La familiar", correct = false),
+                // SELECT 100019: "Translate: 'The woman'"
+                ChallengeOptionEntity(id = 1000151, challengeId = 100019, text = "La mujer", romaji = "la mujˈer", correct = true),
+                ChallengeOptionEntity(id = 1000152, challengeId = 100019, text = "El hombre", romaji = "el ˈombre", correct = false),
+                ChallengeOptionEntity(id = 1000153, challengeId = 100019, text = "La madre", romaji = "la mˈadhre", correct = false),
+
+                // MATCH_PAIRS 100020: {El hombre: The man, La mujer: The woman, El padre: The father, La madre: The mother}
+                ChallengeOptionEntity(id = 1000154, challengeId = 100020, text = "El hombre", romaji = "el ˈombre", correct = true),
+                ChallengeOptionEntity(id = 1000155, challengeId = 100020, text = "The man", correct = true),
+                ChallengeOptionEntity(id = 1000156, challengeId = 100020, text = "La mujer", romaji = "la mujˈer", correct = true),
+                ChallengeOptionEntity(id = 1000157, challengeId = 100020, text = "The woman", correct = true),
+                ChallengeOptionEntity(id = 1000158, challengeId = 100020, text = "El padre", romaji = "el pˈadhre", correct = true),
+                ChallengeOptionEntity(id = 1000159, challengeId = 100020, text = "The father", correct = true),
+                ChallengeOptionEntity(id = 1000160, challengeId = 100020, text = "La madre", romaji = "la mˈadhre", correct = true),
+                ChallengeOptionEntity(id = 1000161, challengeId = 100020, text = "The mother", correct = true),
+
+                // WORD_BANK 100021: "El padre y la madre"
+                ChallengeOptionEntity(id = 1000162, challengeId = 100021, text = "El", correct = true),
+                ChallengeOptionEntity(id = 1000163, challengeId = 100021, text = "padre", correct = true),
+                ChallengeOptionEntity(id = 1000164, challengeId = 100021, text = "y", correct = true),
+                ChallengeOptionEntity(id = 1000165, challengeId = 100021, text = "la", correct = true),
+                ChallengeOptionEntity(id = 1000166, challengeId = 100021, text = "madre", correct = true),
+                ChallengeOptionEntity(id = 1000167, challengeId = 100021, text = "mujer", correct = false),
+
+                // LISTEN 100022
+                ChallengeOptionEntity(id = 1000168, challengeId = 100022, text = "La familia", romaji = "la famˈilia", correct = true),
+                ChallengeOptionEntity(id = 1000169, challengeId = 100022, text = "El padre", romaji = "el pˈadhre", correct = false),
+                ChallengeOptionEntity(id = 1000170, challengeId = 100022, text = "La madre", romaji = "la mˈadhre", correct = false),
             )
         )
 
-        // Challenges for Lesson 103 (Unit 2: Introductions)
+        // Challenges for Lesson 103 (Unit 2): Introductions & Identity (ser)
         lessonDao.insertChallenges(
             listOf(
-                ChallengeEntity(id = 1013, lessonId = 103, type = ChallengeType.SELECT, question = "How do you say 'Nice to meet you'?", audioSrc = "asset:///audio/es/mucho_gusto.ogg", orderIndex = 0),
-                ChallengeEntity(
-                    id = 1014, lessonId = 103, type = ChallengeType.WORD_BANK,
-                    question = "Assemble: 'I am a boy'",
-                    orderIndex = 1,
-                    grammaticalFocus = "es.ser_present",
-                    ruleText = "ser (to be, identity) is irregular in the present: yo soy, tú eres, él es, nosotros somos, ellos son.\nAfter 'yo' the only form that fits is soy. son goes with ellos/ellas, and estar is a different verb: yo estoy.",
-                ),
-                ChallengeEntity(
-                    id = 1015, lessonId = 103, type = ChallengeType.LISTEN,
-                    question = "Tap what you hear",
-                    audioSrc = "asset:///audio/es/yo_soy_un_nino.ogg",
-                    orderIndex = 2,
-                    grammaticalFocus = "es.ser_present",
-                    ruleText = "ser (to be, identity) is irregular: yo soy, tú eres, él es. estar is a different verb: yo estoy, tú estás.\nSo 'I am a boy' is Yo soy un niño — never Yo estoy un niño.",
-                ),
+                ChallengeEntity(id = 100023, lessonId = 103, type = ChallengeType.INTRO, question = "Nice to meet you", romaji = "mˈucho gˈusto", audioSrc = "asset:///audio/es/mucho_gusto.ogg", orderIndex = 0),
+                ChallengeEntity(id = 100024, lessonId = 103, type = ChallengeType.INTRO, question = "I am", grammaticalFocus = "es.ser_present", ruleText = "ser (to be, identity): yo soy = I am", orderIndex = 1),
+                ChallengeEntity(id = 100025, lessonId = 103, type = ChallengeType.INTRO, question = "A boy", romaji = "un nˈiño", orderIndex = 2),
+                ChallengeEntity(id = 100026, lessonId = 103, type = ChallengeType.INTRO, question = "A girl", romaji = "ˈuna nˈiña", orderIndex = 3),
+                ChallengeEntity(id = 100027, lessonId = 103, type = ChallengeType.SELECT, question = "How do you say 'Nice to meet you'?", orderIndex = 4),
+                ChallengeEntity(id = 100028, lessonId = 103, type = ChallengeType.ASSIST, question = "Yo ___ un niño", grammaticalFocus = "es.ser_present", ruleText = "ser (to be, identity): yo soy = I am. Use soy with yo.", orderIndex = 5),
+                ChallengeEntity(id = 100029, lessonId = 103, type = ChallengeType.WORD_BANK, question = "Assemble: 'I am a boy'", grammaticalFocus = "es.ser_present", ruleText = "ser (to be, identity): yo soy = I am. Use soy with yo.", orderIndex = 6),
+                ChallengeEntity(id = 100030, lessonId = 103, type = ChallengeType.LISTEN, question = "Tap what you hear", audioSrc = "asset:///audio/es/yo_soy_un_nino.ogg", grammaticalFocus = "es.ser_present", ruleText = "ser (to be, identity): yo soy = I am. Use soy with yo.", orderIndex = 7),
             )
         )
         lessonDao.insertOptions(
             listOf(
-ChallengeOptionEntity(id = 10044, challengeId = 1013, text = "¡Mucho gusto!", romaji = "mˈucho gˈusto", correct = true, audioSrc = "asset:///audio/es/mucho_gusto.ogg"),
-                ChallengeOptionEntity(id = 10045, challengeId = 1013, text = "Hasta luego", correct = false),
-ChallengeOptionEntity(id = 10046, challengeId = 1013, text = "Buenos días", romaji = "bˈuenos dˈias", correct = false, audioSrc = "asset:///audio/es/buenos_dias.ogg"),
+                // INTRO cards
+                ChallengeOptionEntity(id = 1000171, challengeId = 100023, text = "¡Mucho gusto!", romaji = "mˈucho gˈusto", correct = true, audioSrc = "asset:///audio/es/mucho_gusto.ogg"),
+                ChallengeOptionEntity(id = 1000172, challengeId = 100024, text = "Yo soy", correct = true),
+                ChallengeOptionEntity(id = 1000173, challengeId = 100025, text = "Un niño", romaji = "un nˈiño", correct = true),
+                ChallengeOptionEntity(id = 1000174, challengeId = 100026, text = "Una niña", romaji = "ˈuna nˈiña", correct = true),
 
-                // Word Bank for 1014: "Yo soy un niño"
-                ChallengeOptionEntity(id = 10047, challengeId = 1014, text = "Yo", correct = true),
-                ChallengeOptionEntity(id = 10048, challengeId = 1014, text = "soy", correct = true),
-                ChallengeOptionEntity(id = 10049, challengeId = 1014, text = "un", correct = true),
-                ChallengeOptionEntity(id = 10050, challengeId = 1014, text = "niño", correct = true),
-                ChallengeOptionEntity(id = 10051, challengeId = 1014, text = "son", correct = false, errorTag = "WRONG_PERSON"),
-                ChallengeOptionEntity(id = 10052, challengeId = 1014, text = "estoy", correct = false, errorTag = "WRONG_COPULA"),
+                // SELECT 100027: "How do you say 'Nice to meet you'?"
+                ChallengeOptionEntity(id = 1000175, challengeId = 100027, text = "¡Mucho gusto!", romaji = "mˈucho gˈusto", correct = true),
+                ChallengeOptionEntity(id = 1000176, challengeId = 100027, text = "Buenos días", romaji = "bˈuenos dˈias", correct = false),
+                ChallengeOptionEntity(id = 1000177, challengeId = 100027, text = "Adiós", correct = false),
 
-ChallengeOptionEntity(id = 10053, challengeId = 1015, text = "Yo soy un niño", romaji = "yˈo sˈoi un nˈiño", correct = true),
-                ChallengeOptionEntity(id = 10054, challengeId = 1015, text = "Yo estoy un niño", correct = false, errorTag = "WRONG_COPULA"),
-                ChallengeOptionEntity(id = 10055, challengeId = 1015, text = "Yo soy un nino", correct = false),
+                // ASSIST 100028: "Yo ___ un niño"
+                ChallengeOptionEntity(id = 1000178, challengeId = 100028, text = "soy", correct = true),
+                ChallengeOptionEntity(id = 1000179, challengeId = 100028, text = "es", correct = false, errorTag = "WRONG_PERSON"),
+                ChallengeOptionEntity(id = 1000180, challengeId = 100028, text = "son", correct = false, errorTag = "WRONG_PERSON"),
+
+                // WORD_BANK 100029: "Yo soy un niño"
+                ChallengeOptionEntity(id = 1000181, challengeId = 100029, text = "Yo", correct = true),
+                ChallengeOptionEntity(id = 1000182, challengeId = 100029, text = "soy", correct = true),
+                ChallengeOptionEntity(id = 1000183, challengeId = 100029, text = "un", correct = true),
+                ChallengeOptionEntity(id = 1000184, challengeId = 100029, text = "niño", correct = true),
+                ChallengeOptionEntity(id = 1000185, challengeId = 100029, text = "son", correct = false, errorTag = "WRONG_PERSON"),
+                ChallengeOptionEntity(id = 1000186, challengeId = 100029, text = "estoy", correct = false, errorTag = "WRONG_COPULA"),
+
+                // LISTEN 100030
+                ChallengeOptionEntity(id = 1000187, challengeId = 100030, text = "Yo soy un niño", romaji = "yˈo sˈoi un nˈiño", correct = true),
+                ChallengeOptionEntity(id = 1000188, challengeId = 100030, text = "Yo estoy un niño", correct = false, errorTag = "WRONG_COPULA"),
+                ChallengeOptionEntity(id = 1000189, challengeId = 100030, text = "Tú eres un niño", correct = false),
             )
         )
     }
@@ -847,7 +965,7 @@ ChallengeOptionEntity(id = 10053, challengeId = 1015, text = "Yo soy un niño", 
                     id = 20,
                     courseId = 2,
                     title = "Unit 1: Hiragana & Greetings",
-                    description = "Learn essential Japanese sounds and daily greetings",
+                    description = "Learn essential Japanese sounds, daily greetings, and numbers",
                     orderIndex = 0,
                 ),
                 UnitEntity(
@@ -861,80 +979,253 @@ ChallengeOptionEntity(id = 10053, challengeId = 1015, text = "Yo soy un niño", 
         )
         courseDao.insertLessons(
             listOf(
-                LessonEntity(id = 200, unitId = 20, title = "Lesson 1: Greetings", orderIndex = 0),
-                LessonEntity(id = 201, unitId = 20, title = "Lesson 2: Numbers 1-3", orderIndex = 1),
+                LessonEntity(id = 200, unitId = 20, title = "Lesson 1: Vowels あ–お", orderIndex = 0),
+                LessonEntity(id = 201, unitId = 20, title = "Lesson 2: Consonants か & さ Rows", orderIndex = 1),
+                LessonEntity(id = 20001, unitId = 20, title = "Lesson 3: First Words", orderIndex = 2),
+                LessonEntity(id = 20002, unitId = 20, title = "Lesson 4: Daily Greetings", orderIndex = 3),
+                LessonEntity(id = 20003, unitId = 20, title = "Lesson 5: Numbers 1–3", orderIndex = 4),
                 LessonEntity(id = 202, unitId = 21, title = "Lesson 3: Eating & Drinking", orderIndex = 0),
                 LessonEntity(id = 203, unitId = 21, title = "Lesson 4: Politeness & Gratitude", orderIndex = 1),
             )
         )
 
-        // Challenges for Lesson 200 (Unit 1)
+        // Lesson 200 (Unit 1): the vowel row, introduced before it is tested. The
+        // five INTRO cards come first; every option in the recognition, matching
+        // and listening rounds is one of those five kana, so nothing is asked cold.
         lessonDao.insertChallenges(
             listOf(
-                ChallengeEntity(id = 2001, lessonId = 200, type = ChallengeType.SELECT, question = "Which one means 'Hello / Good day'?", audioSrc = "asset:///audio/ja/konnichiwa.ogg", orderIndex = 0),
-                ChallengeEntity(id = 2002, lessonId = 200, type = ChallengeType.ASSIST, question = "Which phrase means 'Good morning'?", audioSrc = "asset:///audio/ja/ohayou.ogg", orderIndex = 1),
-                ChallengeEntity(
-                    id = 2003, lessonId = 200, type = ChallengeType.WORD_BANK,
-                    question = "Assemble: 'Thank you very much'",
-                    orderIndex = 2,
-                    grammaticalFocus = "ja.polite_register",
-                    ruleText = "ございます is the polite form of あります. ある is what you use about yourself and people close to you (友達がいる); ございます is the polite form you use with a teacher, a customer, or anyone you do not know well.\nどうも ありがとうございます is the polite thank-you; どうも ありがとう あります is not a sentence anyone says.",
-                ),
-                ChallengeEntity(id = 2004, lessonId = 200, type = ChallengeType.LISTEN, question = "Tap what you hear", audioSrc = "asset:///audio/ja/konnichiwa.ogg", orderIndex = 3),
+                ChallengeEntity(id = 2001, lessonId = 200, type = ChallengeType.INTRO, question = "あ", orderIndex = 0),
+                ChallengeEntity(id = 2002, lessonId = 200, type = ChallengeType.INTRO, question = "い", orderIndex = 1),
+                ChallengeEntity(id = 20000, lessonId = 200, type = ChallengeType.INTRO, question = "う", orderIndex = 2),
+                ChallengeEntity(id = 20001, lessonId = 200, type = ChallengeType.INTRO, question = "え", orderIndex = 3),
+                ChallengeEntity(id = 20002, lessonId = 200, type = ChallengeType.INTRO, question = "お", orderIndex = 4),
+                ChallengeEntity(id = 20003, lessonId = 200, type = ChallengeType.SELECT, question = "Which kana is 'a'?", orderIndex = 5),
+                ChallengeEntity(id = 20004, lessonId = 200, type = ChallengeType.SELECT, question = "Which kana is 'u'?", orderIndex = 6),
+                ChallengeEntity(id = 20005, lessonId = 200, type = ChallengeType.MATCH_PAIRS, question = "Match each kana to its sound", orderIndex = 7),
+                ChallengeEntity(id = 20006, lessonId = 200, type = ChallengeType.LISTEN, question = "Tap what you hear", orderIndex = 8),
             )
         )
         lessonDao.insertOptions(
             listOf(
-                ChallengeOptionEntity(id = 20001, challengeId = 2001, text = "こんにちは", romaji = "Konnichiwa", correct = true, audioSrc = "asset:///audio/ja/konnichiwa.ogg"),
-                ChallengeOptionEntity(id = 20002, challengeId = 2001, text = "さようなら", romaji = "Sayounara", correct = false),
-                ChallengeOptionEntity(id = 20003, challengeId = 2001, text = "ありがとう", romaji = "Arigatou", correct = false, audioSrc = "asset:///audio/ja/arigatou.ogg"),
+                ChallengeOptionEntity(id = 200000, challengeId = 2001, text = "あ", romaji = "a", correct = true),
+                ChallengeOptionEntity(id = 200001, challengeId = 2002, text = "い", romaji = "i", correct = true),
+                ChallengeOptionEntity(id = 200002, challengeId = 20000, text = "う", romaji = "u", correct = true),
+                ChallengeOptionEntity(id = 200003, challengeId = 20001, text = "え", romaji = "e", correct = true),
+                ChallengeOptionEntity(id = 200004, challengeId = 20002, text = "お", romaji = "o", correct = true),
 
-                ChallengeOptionEntity(id = 20004, challengeId = 2002, text = "おはようございます", romaji = "Ohayou gozaimasu", correct = true, audioSrc = "asset:///audio/ja/ohayou.ogg"),
-                ChallengeOptionEntity(id = 20005, challengeId = 2002, text = "こんばんは", romaji = "Konbanwa", correct = false),
-                ChallengeOptionEntity(id = 20006, challengeId = 2002, text = "はい", romaji = "Hai", correct = false, audioSrc = "asset:///audio/ja/hai.ogg"),
+                ChallengeOptionEntity(id = 200005, challengeId = 20003, text = "あ", romaji = "a", correct = true),
+                ChallengeOptionEntity(id = 200006, challengeId = 20003, text = "い", romaji = "i", correct = false),
+                ChallengeOptionEntity(id = 200007, challengeId = 20003, text = "う", romaji = "u", correct = false),
 
-                // Word Bank for 2003: "どうも ありがとう ございます"
-                ChallengeOptionEntity(id = 20007, challengeId = 2003, text = "どうも", romaji = "doumo", correct = true),
-                ChallengeOptionEntity(id = 20008, challengeId = 2003, text = "ありがとう", romaji = "arigatou", correct = true, audioSrc = "asset:///audio/ja/arigatou.ogg"),
-                ChallengeOptionEntity(id = 20009, challengeId = 2003, text = "ございます", romaji = "gozaimasu", correct = true),
-                ChallengeOptionEntity(id = 20010, challengeId = 2003, text = "あります", romaji = "arimasu", correct = false, errorTag = "WRONG_REGISTER"),
-                ChallengeOptionEntity(id = 20011, challengeId = 2003, text = "こんにちは", romaji = "konnichiwa", correct = false),
+                ChallengeOptionEntity(id = 200008, challengeId = 20004, text = "う", romaji = "u", correct = true),
+                ChallengeOptionEntity(id = 200009, challengeId = 20004, text = "え", romaji = "e", correct = false),
+                ChallengeOptionEntity(id = 200010, challengeId = 20004, text = "お", romaji = "o", correct = false),
 
-                ChallengeOptionEntity(id = 20012, challengeId = 2004, text = "こんにちは", romaji = "Konnichiwa", correct = true),
-                ChallengeOptionEntity(id = 20013, challengeId = 2004, text = "こんばんは", romaji = "Konbanwa", correct = false),
-                ChallengeOptionEntity(id = 20014, challengeId = 2004, text = "こんにちわ", romaji = "Konnichiwa", correct = false),
+                // MATCH_PAIRS reads consecutive pairs in ascending option-id order.
+                ChallengeOptionEntity(id = 200011, challengeId = 20005, text = "あ", romaji = "a", correct = true),
+                ChallengeOptionEntity(id = 200012, challengeId = 20005, text = "a", correct = true),
+                ChallengeOptionEntity(id = 200013, challengeId = 20005, text = "い", romaji = "i", correct = true),
+                ChallengeOptionEntity(id = 200014, challengeId = 20005, text = "i", correct = true),
+                ChallengeOptionEntity(id = 200015, challengeId = 20005, text = "う", romaji = "u", correct = true),
+                ChallengeOptionEntity(id = 200016, challengeId = 20005, text = "u", correct = true),
+                ChallengeOptionEntity(id = 200017, challengeId = 20005, text = "え", romaji = "e", correct = true),
+                ChallengeOptionEntity(id = 200018, challengeId = 20005, text = "e", correct = true),
+                ChallengeOptionEntity(id = 200019, challengeId = 20005, text = "お", romaji = "o", correct = true),
+                ChallengeOptionEntity(id = 200020, challengeId = 20005, text = "o", correct = true),
+
+                ChallengeOptionEntity(id = 200021, challengeId = 20006, text = "あ", romaji = "a", correct = true),
+                ChallengeOptionEntity(id = 200022, challengeId = 20006, text = "い", romaji = "i", correct = false),
+                ChallengeOptionEntity(id = 200023, challengeId = 20006, text = "う", romaji = "u", correct = false),
             )
         )
 
-        // Challenges for Lesson 201 (Unit 1: Numbers)
+        // Lesson 201 (Unit 1): the か and さ rows, introduced then recognised.
         lessonDao.insertChallenges(
             listOf(
-                ChallengeEntity(id = 2005, lessonId = 201, type = ChallengeType.SELECT, question = "Which kanji is 'One (1)'?", orderIndex = 0),
-                ChallengeEntity(id = 2006, lessonId = 201, type = ChallengeType.SELECT, question = "Which kanji is 'Two (2)'?", orderIndex = 1),
-                ChallengeEntity(id = 2007, lessonId = 201, type = ChallengeType.WORD_BANK, question = "Assemble: 'One, two, three'", orderIndex = 2),
-                ChallengeEntity(id = 2008, lessonId = 201, type = ChallengeType.LISTEN, question = "Tap what you hear", audioSrc = "asset:///audio/ja/ichi_ni_san.ogg", orderIndex = 3),
+                ChallengeEntity(id = 20007, lessonId = 201, type = ChallengeType.INTRO, question = "か", orderIndex = 0),
+                ChallengeEntity(id = 20008, lessonId = 201, type = ChallengeType.INTRO, question = "き", orderIndex = 1),
+                ChallengeEntity(id = 20009, lessonId = 201, type = ChallengeType.INTRO, question = "く", orderIndex = 2),
+                ChallengeEntity(id = 20010, lessonId = 201, type = ChallengeType.INTRO, question = "け", orderIndex = 3),
+                ChallengeEntity(id = 20011, lessonId = 201, type = ChallengeType.INTRO, question = "こ", orderIndex = 4),
+                ChallengeEntity(id = 20012, lessonId = 201, type = ChallengeType.INTRO, question = "さ", orderIndex = 5),
+                ChallengeEntity(id = 20013, lessonId = 201, type = ChallengeType.INTRO, question = "し", orderIndex = 6),
+                ChallengeEntity(id = 20014, lessonId = 201, type = ChallengeType.INTRO, question = "す", orderIndex = 7),
+                ChallengeEntity(id = 20015, lessonId = 201, type = ChallengeType.INTRO, question = "せ", orderIndex = 8),
+                ChallengeEntity(id = 20016, lessonId = 201, type = ChallengeType.INTRO, question = "そ", orderIndex = 9),
+                ChallengeEntity(id = 20017, lessonId = 201, type = ChallengeType.SELECT, question = "Which kana is 'ka'?", orderIndex = 10),
+                ChallengeEntity(id = 20018, lessonId = 201, type = ChallengeType.SELECT, question = "Which kana is 'so'?", orderIndex = 11),
+                ChallengeEntity(id = 20019, lessonId = 201, type = ChallengeType.MATCH_PAIRS, question = "Match each kana to its sound", orderIndex = 12),
+                ChallengeEntity(id = 20020, lessonId = 201, type = ChallengeType.LISTEN, question = "Tap what you hear", orderIndex = 13),
             )
         )
         lessonDao.insertOptions(
             listOf(
-                ChallengeOptionEntity(id = 20015, challengeId = 2005, text = "一", romaji = "Ichi", correct = true),
-                ChallengeOptionEntity(id = 20016, challengeId = 2005, text = "二", romaji = "Ni", correct = false),
-                ChallengeOptionEntity(id = 20017, challengeId = 2005, text = "三", romaji = "San", correct = false),
+                ChallengeOptionEntity(id = 200024, challengeId = 20007, text = "か", romaji = "ka", correct = true),
+                ChallengeOptionEntity(id = 200025, challengeId = 20008, text = "き", romaji = "ki", correct = true),
+                ChallengeOptionEntity(id = 200026, challengeId = 20009, text = "く", romaji = "ku", correct = true),
+                ChallengeOptionEntity(id = 200027, challengeId = 20010, text = "け", romaji = "ke", correct = true),
+                ChallengeOptionEntity(id = 200028, challengeId = 20011, text = "こ", romaji = "ko", correct = true),
+                ChallengeOptionEntity(id = 200029, challengeId = 20012, text = "さ", romaji = "sa", correct = true),
+                ChallengeOptionEntity(id = 200030, challengeId = 20013, text = "し", romaji = "shi", correct = true),
+                ChallengeOptionEntity(id = 200031, challengeId = 20014, text = "す", romaji = "su", correct = true),
+                ChallengeOptionEntity(id = 200032, challengeId = 20015, text = "せ", romaji = "se", correct = true),
+                ChallengeOptionEntity(id = 200033, challengeId = 20016, text = "そ", romaji = "so", correct = true),
 
-                ChallengeOptionEntity(id = 20018, challengeId = 2006, text = "二", romaji = "Ni", correct = true),
-                ChallengeOptionEntity(id = 20019, challengeId = 2006, text = "一", romaji = "Ichi", correct = false),
-                ChallengeOptionEntity(id = 20020, challengeId = 2006, text = "四", romaji = "Shi", correct = false),
+                ChallengeOptionEntity(id = 200034, challengeId = 20017, text = "か", romaji = "ka", correct = true),
+                ChallengeOptionEntity(id = 200035, challengeId = 20017, text = "き", romaji = "ki", correct = false),
+                ChallengeOptionEntity(id = 200036, challengeId = 20017, text = "く", romaji = "ku", correct = false),
 
-                // Word Bank for 2007: "いち に さん"
-                ChallengeOptionEntity(id = 20021, challengeId = 2007, text = "いち", romaji = "ichi", correct = true),
-                ChallengeOptionEntity(id = 20022, challengeId = 2007, text = "に", romaji = "ni", correct = true),
-                ChallengeOptionEntity(id = 20023, challengeId = 2007, text = "さん", romaji = "san", correct = true),
-                ChallengeOptionEntity(id = 20024, challengeId = 2007, text = "よん", romaji = "yon", correct = false),
-                ChallengeOptionEntity(id = 20025, challengeId = 2007, text = "ご", romaji = "go", correct = false),
+                ChallengeOptionEntity(id = 200037, challengeId = 20018, text = "そ", romaji = "so", correct = true),
+                ChallengeOptionEntity(id = 200038, challengeId = 20018, text = "さ", romaji = "sa", correct = false),
+                ChallengeOptionEntity(id = 200039, challengeId = 20018, text = "し", romaji = "shi", correct = false),
 
-                ChallengeOptionEntity(id = 20026, challengeId = 2008, text = "いち に さん", romaji = "ichi ni san", correct = true),
-                ChallengeOptionEntity(id = 20027, challengeId = 2008, text = "いち に よん", romaji = "ichi ni yon", correct = false),
-                ChallengeOptionEntity(id = 20028, challengeId = 2008, text = "いっ に さん", romaji = "it ni san", correct = false),
+                // MATCH_PAIRS reads consecutive pairs in ascending option-id order.
+                ChallengeOptionEntity(id = 200040, challengeId = 20019, text = "か", romaji = "ka", correct = true),
+                ChallengeOptionEntity(id = 200041, challengeId = 20019, text = "ka", correct = true),
+                ChallengeOptionEntity(id = 200042, challengeId = 20019, text = "き", romaji = "ki", correct = true),
+                ChallengeOptionEntity(id = 200043, challengeId = 20019, text = "ki", correct = true),
+                ChallengeOptionEntity(id = 200044, challengeId = 20019, text = "く", romaji = "ku", correct = true),
+                ChallengeOptionEntity(id = 200045, challengeId = 20019, text = "ku", correct = true),
+                ChallengeOptionEntity(id = 200046, challengeId = 20019, text = "け", romaji = "ke", correct = true),
+                ChallengeOptionEntity(id = 200047, challengeId = 20019, text = "ke", correct = true),
+                ChallengeOptionEntity(id = 200048, challengeId = 20019, text = "こ", romaji = "ko", correct = true),
+                ChallengeOptionEntity(id = 200049, challengeId = 20019, text = "ko", correct = true),
+
+                ChallengeOptionEntity(id = 200050, challengeId = 20020, text = "か", romaji = "ka", correct = true),
+                ChallengeOptionEntity(id = 200051, challengeId = 20020, text = "き", romaji = "ki", correct = false),
+                ChallengeOptionEntity(id = 200052, challengeId = 20020, text = "さ", romaji = "sa", correct = false),
+            )
+        )
+
+        // Lesson 20001 (Unit 1): first words assembled only from the kana above.
+        lessonDao.insertChallenges(
+            listOf(
+                ChallengeEntity(id = 20021, lessonId = 20001, type = ChallengeType.INTRO, question = "あい — love", orderIndex = 0),
+                ChallengeEntity(id = 20022, lessonId = 20001, type = ChallengeType.INTRO, question = "いえ — house", orderIndex = 1),
+                ChallengeEntity(id = 20023, lessonId = 20001, type = ChallengeType.INTRO, question = "うえ — up / above", orderIndex = 2),
+                ChallengeEntity(id = 20024, lessonId = 20001, type = ChallengeType.INTRO, question = "あお — blue", orderIndex = 3),
+                ChallengeEntity(id = 20025, lessonId = 20001, type = ChallengeType.INTRO, question = "あさ — morning", orderIndex = 4),
+                ChallengeEntity(id = 20026, lessonId = 20001, type = ChallengeType.SELECT, question = "Which word means 'love'?", orderIndex = 5),
+                ChallengeEntity(id = 20027, lessonId = 20001, type = ChallengeType.SELECT, question = "Which word means 'morning'?", orderIndex = 6),
+                ChallengeEntity(id = 20028, lessonId = 20001, type = ChallengeType.WORD_BANK, question = "Assemble: 'house'", orderIndex = 7),
+                ChallengeEntity(id = 20029, lessonId = 20001, type = ChallengeType.LISTEN, question = "Tap what you hear", orderIndex = 8),
+            )
+        )
+        lessonDao.insertOptions(
+            listOf(
+                ChallengeOptionEntity(id = 200053, challengeId = 20021, text = "あい", romaji = "ai", correct = true),
+                ChallengeOptionEntity(id = 200054, challengeId = 20022, text = "いえ", romaji = "ie", correct = true),
+                ChallengeOptionEntity(id = 200055, challengeId = 20023, text = "うえ", romaji = "ue", correct = true),
+                ChallengeOptionEntity(id = 200056, challengeId = 20024, text = "あお", romaji = "ao", correct = true),
+                ChallengeOptionEntity(id = 200057, challengeId = 20025, text = "あさ", romaji = "asa", correct = true),
+
+                ChallengeOptionEntity(id = 200058, challengeId = 20026, text = "あい", romaji = "ai", correct = true),
+                ChallengeOptionEntity(id = 200059, challengeId = 20026, text = "いえ", romaji = "ie", correct = false),
+                ChallengeOptionEntity(id = 200060, challengeId = 20026, text = "あお", romaji = "ao", correct = false),
+
+                ChallengeOptionEntity(id = 200061, challengeId = 20027, text = "あさ", romaji = "asa", correct = true),
+                ChallengeOptionEntity(id = 200062, challengeId = 20027, text = "うえ", romaji = "ue", correct = false),
+                ChallengeOptionEntity(id = 200063, challengeId = 20027, text = "あい", romaji = "ai", correct = false),
+
+                // Word Bank for 20028: い + え ("house"); the decoys are taught kana.
+                ChallengeOptionEntity(id = 200064, challengeId = 20028, text = "い", romaji = "i", correct = true),
+                ChallengeOptionEntity(id = 200065, challengeId = 20028, text = "え", romaji = "e", correct = true),
+                ChallengeOptionEntity(id = 200066, challengeId = 20028, text = "あ", romaji = "a", correct = false),
+                ChallengeOptionEntity(id = 200067, challengeId = 20028, text = "う", romaji = "u", correct = false),
+
+                ChallengeOptionEntity(id = 200068, challengeId = 20029, text = "あい", romaji = "ai", correct = true),
+                ChallengeOptionEntity(id = 200069, challengeId = 20029, text = "あお", romaji = "ao", correct = false),
+                ChallengeOptionEntity(id = 200070, challengeId = 20029, text = "あさ", romaji = "asa", correct = false),
+            )
+        )
+
+        // Lesson 20002 (Unit 1): daily greetings — INTRO cards first, then
+        // recognition, a cloze, an assembly and a listening round.
+        lessonDao.insertChallenges(
+            listOf(
+                ChallengeEntity(id = 20030, lessonId = 20002, type = ChallengeType.INTRO, question = "こんにちは — Hello", audioSrc = "asset:///audio/ja/konnichiwa.ogg", orderIndex = 0),
+                ChallengeEntity(id = 20031, lessonId = 20002, type = ChallengeType.INTRO, question = "ありがとう — Thank you", audioSrc = "asset:///audio/ja/arigatou.ogg", orderIndex = 1),
+                ChallengeEntity(id = 20032, lessonId = 20002, type = ChallengeType.INTRO, question = "はい — Yes", audioSrc = "asset:///audio/ja/hai.ogg", orderIndex = 2),
+                ChallengeEntity(id = 20033, lessonId = 20002, type = ChallengeType.SELECT, question = "Which one means 'Hello'?", audioSrc = "asset:///audio/ja/konnichiwa.ogg", orderIndex = 3),
+                ChallengeEntity(id = 20034, lessonId = 20002, type = ChallengeType.SELECT, question = "How do you say 'Thank you'?", audioSrc = "asset:///audio/ja/arigatou.ogg", orderIndex = 4),
+                ChallengeEntity(id = 20035, lessonId = 20002, type = ChallengeType.ASSIST, question = "Complete the greeting: 'Thank you' = ___", orderIndex = 5),
+                ChallengeEntity(id = 20036, lessonId = 20002, type = ChallengeType.WORD_BANK, question = "Assemble: 'Yes, thank you'", orderIndex = 6),
+                ChallengeEntity(id = 20037, lessonId = 20002, type = ChallengeType.LISTEN, question = "Tap what you hear", audioSrc = "asset:///audio/ja/konnichiwa.ogg", orderIndex = 7),
+            )
+        )
+        lessonDao.insertOptions(
+            listOf(
+                ChallengeOptionEntity(id = 200071, challengeId = 20030, text = "こんにちは", romaji = "Konnichiwa", correct = true, audioSrc = "asset:///audio/ja/konnichiwa.ogg"),
+                ChallengeOptionEntity(id = 200072, challengeId = 20031, text = "ありがとう", romaji = "Arigatou", correct = true, audioSrc = "asset:///audio/ja/arigatou.ogg"),
+                ChallengeOptionEntity(id = 200073, challengeId = 20032, text = "はい", romaji = "Hai", correct = true, audioSrc = "asset:///audio/ja/hai.ogg"),
+
+                ChallengeOptionEntity(id = 200074, challengeId = 20033, text = "こんにちは", romaji = "Konnichiwa", correct = true, audioSrc = "asset:///audio/ja/konnichiwa.ogg"),
+                ChallengeOptionEntity(id = 200075, challengeId = 20033, text = "ありがとう", romaji = "Arigatou", correct = false),
+                ChallengeOptionEntity(id = 200076, challengeId = 20033, text = "はい", romaji = "Hai", correct = false),
+
+                ChallengeOptionEntity(id = 200077, challengeId = 20034, text = "ありがとう", romaji = "Arigatou", correct = true, audioSrc = "asset:///audio/ja/arigatou.ogg"),
+                ChallengeOptionEntity(id = 200078, challengeId = 20034, text = "はい", romaji = "Hai", correct = false),
+                ChallengeOptionEntity(id = 200079, challengeId = 20034, text = "こんにちは", romaji = "Konnichiwa", correct = false),
+
+                ChallengeOptionEntity(id = 200080, challengeId = 20035, text = "ありがとう", romaji = "Arigatou", correct = true),
+                ChallengeOptionEntity(id = 200081, challengeId = 20035, text = "こんにちは", romaji = "Konnichiwa", correct = false),
+                ChallengeOptionEntity(id = 200082, challengeId = 20035, text = "はい", romaji = "Hai", correct = false),
+
+                // Word Bank for 20036: はい + ありがとう ("Yes, thank you").
+                ChallengeOptionEntity(id = 200083, challengeId = 20036, text = "はい", romaji = "hai", correct = true),
+                ChallengeOptionEntity(id = 200084, challengeId = 20036, text = "ありがとう", romaji = "arigatou", correct = true),
+                ChallengeOptionEntity(id = 200085, challengeId = 20036, text = "こんにちは", romaji = "konnichiwa", correct = false),
+                ChallengeOptionEntity(id = 200086, challengeId = 20036, text = "あい", romaji = "ai", correct = false),
+
+                ChallengeOptionEntity(id = 200087, challengeId = 20037, text = "こんにちは", romaji = "Konnichiwa", correct = true),
+                ChallengeOptionEntity(id = 200088, challengeId = 20037, text = "ありがとう", romaji = "Arigatou", correct = false),
+                ChallengeOptionEntity(id = 200089, challengeId = 20037, text = "はい", romaji = "Hai", correct = false),
+            )
+        )
+
+        // Lesson 20003 (Unit 1): numbers 1-3 — the kana are introduced with the
+        // kanji mapped to them, and each number is only ever tested against the
+        // two other taught numbers. よん and ご never appear.
+        lessonDao.insertChallenges(
+            listOf(
+                ChallengeEntity(id = 20038, lessonId = 20003, type = ChallengeType.INTRO, question = "いち (一) — One (1)", orderIndex = 0),
+                ChallengeEntity(id = 20039, lessonId = 20003, type = ChallengeType.INTRO, question = "に (二) — Two (2)", orderIndex = 1),
+                ChallengeEntity(id = 20040, lessonId = 20003, type = ChallengeType.INTRO, question = "さん (三) — Three (3)", orderIndex = 2),
+                ChallengeEntity(id = 20041, lessonId = 20003, type = ChallengeType.SELECT, question = "Which kanji is 'One (1)'?", orderIndex = 3),
+                ChallengeEntity(id = 20042, lessonId = 20003, type = ChallengeType.SELECT, question = "Which kanji is 'Two (2)'?", orderIndex = 4),
+                ChallengeEntity(id = 20043, lessonId = 20003, type = ChallengeType.SELECT, question = "Which kanji is 'Three (3)'?", orderIndex = 5),
+                ChallengeEntity(id = 20044, lessonId = 20003, type = ChallengeType.WORD_BANK, question = "Assemble: 'One, two, three'", orderIndex = 6),
+                ChallengeEntity(id = 20045, lessonId = 20003, type = ChallengeType.LISTEN, question = "Tap what you hear", audioSrc = "asset:///audio/ja/ichi_ni_san.ogg", orderIndex = 7),
+            )
+        )
+        lessonDao.insertOptions(
+            listOf(
+                ChallengeOptionEntity(id = 200090, challengeId = 20038, text = "いち", romaji = "ichi", correct = true),
+                ChallengeOptionEntity(id = 200091, challengeId = 20039, text = "に", romaji = "ni", correct = true),
+                ChallengeOptionEntity(id = 200092, challengeId = 20040, text = "さん", romaji = "san", correct = true),
+
+                ChallengeOptionEntity(id = 200093, challengeId = 20041, text = "一", romaji = "ichi", correct = true),
+                ChallengeOptionEntity(id = 200094, challengeId = 20041, text = "二", romaji = "ni", correct = false),
+                ChallengeOptionEntity(id = 200095, challengeId = 20041, text = "三", romaji = "san", correct = false),
+
+                ChallengeOptionEntity(id = 200096, challengeId = 20042, text = "二", romaji = "ni", correct = true),
+                ChallengeOptionEntity(id = 200097, challengeId = 20042, text = "一", romaji = "ichi", correct = false),
+                ChallengeOptionEntity(id = 200098, challengeId = 20042, text = "三", romaji = "san", correct = false),
+
+                ChallengeOptionEntity(id = 200099, challengeId = 20043, text = "三", romaji = "san", correct = true),
+                ChallengeOptionEntity(id = 200100, challengeId = 20043, text = "一", romaji = "ichi", correct = false),
+                ChallengeOptionEntity(id = 200101, challengeId = 20043, text = "二", romaji = "ni", correct = false),
+
+                // Word Bank for 20044: いち + に + さん; decoys are taught words.
+                ChallengeOptionEntity(id = 200102, challengeId = 20044, text = "いち", romaji = "ichi", correct = true),
+                ChallengeOptionEntity(id = 200103, challengeId = 20044, text = "に", romaji = "ni", correct = true),
+                ChallengeOptionEntity(id = 200104, challengeId = 20044, text = "さん", romaji = "san", correct = true),
+                ChallengeOptionEntity(id = 200105, challengeId = 20044, text = "あい", romaji = "ai", correct = false),
+                ChallengeOptionEntity(id = 200106, challengeId = 20044, text = "あさ", romaji = "asa", correct = false),
+
+                ChallengeOptionEntity(id = 200107, challengeId = 20045, text = "いち に さん", romaji = "ichi ni san", correct = true),
+                ChallengeOptionEntity(id = 200108, challengeId = 20045, text = "いち に あさ", romaji = "ichi ni asa", correct = false),
+                ChallengeOptionEntity(id = 200109, challengeId = 20045, text = "あい に さん", romaji = "ai ni san", correct = false),
             )
         )
 

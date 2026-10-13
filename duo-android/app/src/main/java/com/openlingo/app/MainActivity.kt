@@ -49,6 +49,8 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.core.view.WindowCompat
 import androidx.compose.foundation.rememberScrollState
 import com.openlingo.app.ui.MatchPairs
+import com.openlingo.app.ui.components.FuriganaParser
+import com.openlingo.app.ui.components.FuriganaText
 import com.openlingo.app.ui.theme.OpenLingoTheme
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -173,14 +175,16 @@ class MainActivity : ComponentActivity() {
                         viewModel.clearPlacementError()
                     }
                 }
+                // Refilling is silent apart from a haptic tick: the badge this
+                // belongs to re-renders with the new count, and the sheet it was
+                // opened from closes itself. A raw Android toast fired over a
+                // Compose surface for this read as a system message rather than
+                // the app answering a tap.
                 val onFreeRefill: () -> Unit = {
                     viewModel.refillHearts()
-                    if (userProgress?.hapticsEnabled != false) com.openlingo.app.feedback.Haptics.tick(context)
-                    android.widget.Toast.makeText(
-                        context,
-                        "Hearts refilled ❤️ Learn offline. Own your progress.",
-                        android.widget.Toast.LENGTH_SHORT,
-                    ).show()
+                    if (userProgress?.hapticsEnabled != false) {
+                        com.openlingo.app.feedback.Haptics.tick(context)
+                    }
                 }
                 Scaffold(
                     modifier = Modifier.fillMaxSize(),
@@ -190,8 +194,10 @@ class MainActivity : ComponentActivity() {
                             OpenLingoTopAppBar(
                                 courses = courses,
                                 userProgress = userProgress,
+                                mistakeCount = mistakes.size,
                                 onSelectCourse = viewModel::switchCourse,
                                 onRefillHearts = onFreeRefill,
+                                onStartMistakePractice = viewModel::startMistakePractice,
                                 onOpenSettings = viewModel::openSettings,
                             )
                         }
@@ -317,7 +323,7 @@ class MainActivity : ComponentActivity() {
                                     onSelectOption = viewModel::selectOption,
                                     onSelectWordTile = viewModel::selectWordTile,
                                     onRemoveWordTile = viewModel::removeWordTile,
-                                    onPlayVoice = { src, speed -> viewModel.playVoice(src, speed) },
+                                    onPlayVoice = { src, speed, fallback -> viewModel.playVoice(src, speed, fallback) },
                                     onTypedAnswerChange = viewModel::updateTypedAnswer,
                                     onSelectPairTile = viewModel::selectPairTile,
                                     onCheckAnswer = viewModel::checkAnswer,
@@ -508,8 +514,10 @@ private fun OpenLingoBottomNavigationBar(
 private fun OpenLingoTopAppBar(
     courses: List<CourseEntity>,
     userProgress: UserProgressEntity?,
+    mistakeCount: Int,
     onSelectCourse: (Int) -> Unit,
     onRefillHearts: () -> Unit,
+    onStartMistakePractice: () -> Unit,
     onOpenSettings: () -> Unit,
 ) {
     val activeCourseId = userProgress?.activeCourseId ?: 1
@@ -585,42 +593,47 @@ private fun OpenLingoTopAppBar(
                     )
                 }
 
-                // Hearts (tap to refill FREE when below max — pulses when refillable)
-                val heartPulse = rememberInfiniteTransition(label = "heart")
-                val heartScale by heartPulse.animateFloat(
-                    initialValue = 1f,
-                    targetValue = if (hearts < 5) 1.25f else 1f,
-                    animationSpec = infiniteRepeatable(animation = tween(600)),
-                    label = "heartScale",
-                )
+                // Hearts. A pill that reads `❤️ 5/5` and opens a sheet — no green
+                // `+` badge sitting on the emoji and no 1.25x pulse. The pulse was
+                // an attention trick that fired on every frame the learner spent on
+                // this bar, and the `+` overlapped the glyph it was annotating, so
+                // a refilled heart still looked half-empty. Refilling is free and
+                // always available, so the badge's job is to *explain* hearts, not
+                // to beg.
+                var showHearts by remember { mutableStateOf(false) }
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.clickable { if (hearts < 5) onRefillHearts() },
-                ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Text(
-                            text = "❤️",
-                            fontSize = 16.sp,
-                            modifier = Modifier.scale(heartScale),
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    modifier = Modifier
+                        .background(
+                            color = Color(0xFFFDEDEC),
+                            shape = RoundedCornerShape(999.dp),
                         )
-                        if (hearts < 5) {
-                            Text(
-                                text = "+",
-                                fontSize = 10.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color.White,
-                                modifier = Modifier
-                                    .background(Color(0xFF2E9E6B), CircleShape)
-                                    .padding(horizontal = 3.dp),
-                            )
-                        }
-                    }
-                    Spacer(modifier = Modifier.width(4.dp))
+                        .clickable { showHearts = true }
+                        .padding(horizontal = 10.dp, vertical = 4.dp),
+                ) {
+                    Text(text = "❤️", fontSize = 14.sp)
                     Text(
-                        text = "$hearts",
+                        text = "$hearts/${LocalProgressRepository.MAX_HEARTS}",
                         fontWeight = FontWeight.Bold,
                         color = Color(0xFFC0392B),
-                        fontSize = 15.sp,
+                        fontSize = 14.sp,
+                    )
+                }
+
+                if (showHearts) {
+                    HeartRefillSheet(
+                        hearts = hearts,
+                        mistakeCount = mistakeCount,
+                        onRefill = {
+                            showHearts = false
+                            onRefillHearts()
+                        },
+                        onPracticeMistakes = {
+                            showHearts = false
+                            onStartMistakePractice()
+                        },
+                        onDismiss = { showHearts = false },
                     )
                 }
 
@@ -1276,7 +1289,7 @@ private fun ExerciseScreen(
     onSelectWordTile: (Int) -> Unit,
     onSelectPairTile: (Int) -> Unit = {},
     onRemoveWordTile: (Int) -> Unit,
-    onPlayVoice: (String, Float) -> Unit,
+    onPlayVoice: (String, Float, String?) -> Unit = { _, _, _ -> },
     onTypedAnswerChange: (String) -> Unit = {},
     onCheckAnswer: () -> Unit,
     onNextChallenge: () -> Unit,
@@ -1293,7 +1306,13 @@ private fun ExerciseScreen(
     val isConjugate = challenge.type == ChallengeType.CONJUGATE
     val isFillBlank = challenge.type == ChallengeType.FILL_BLANK
     val isAssist = challenge.type == ChallengeType.ASSIST
+    // An INTRO card has no options, so `selectedOptionId` is always null and the
+    // `else` branch below would keep CHECK disabled forever — a card with
+    // nothing to choose is always already "answered". `checkAnswer()` clears it
+    // as Correct(0, 0) and writes nothing, which is what turns the button into
+    // CONTINUE.
     val hasSelection = when {
+        challenge.type == ChallengeType.INTRO -> true
         isMatchPairs -> MatchPairs.isComplete(options, exercise.matchedPairIds)
         isWordBank -> exercise.selectedWordTileIds.isNotEmpty()
         isFillBlank -> exercise.typedAnswer.isNotBlank()
@@ -1318,9 +1337,31 @@ private fun ExerciseScreen(
     // keyed on challenge.id, so the choice persists across the consecutive
     // challenges of one session — re-picking per question would be tedious.
     var audioSpeed by remember { mutableStateOf(1.0f) }
-    val playAtChosenSpeed: (String) -> Unit = { src -> onPlayVoice(src, audioSpeed) }
+    val playAtChosenSpeed: (String) -> Unit = { src -> onPlayVoice(src, audioSpeed, null) }
     val ruleText = challenge.ruleText
     val showRuleCard = ruleText != null && !ruleDismissed
+    val isIntro = challenge.type == ChallengeType.INTRO
+    val introOption = options.firstOrNull()
+    // The curriculum puts the target in the option when it seeded one (option.text,
+    // with the reading in option.romaji); a card seeded with no option carries it
+    // in the question instead.
+    val introGlyph = introOption?.text?.takeIf { it.isNotBlank() } ?: challenge.question
+    // The question is the English meaning only when it is not the glyph itself.
+    val introMeaning = if (!introOption?.text.isNullOrBlank()) challenge.question else null
+    val introAudioSrc = if (isIntro) challenge.audioSrc ?: introOption?.audioSrc else null
+    // An INTRO card is a discovery, not a question: the learner is shown the new
+    // word/kana and is expected to hear it before moving on, so the clip plays
+    // once as the card appears. Keyed on challenge.id, so it fires on entering
+    // the card and never again on recomposition, and the session-scoped
+    // `audioSpeed` is read as-is. The glyph is the TTS fallback: a card with no
+    // bundled audio is still pronounceable, so it is never silent.
+    LaunchedEffect(challenge.id, introAudioSrc) {
+        if (isIntro) onPlayVoice(introAudioSrc ?: "", audioSpeed, introGlyph)
+    }
+    // A LISTEN card is "tap what you hear": with no clip on the challenge the
+    // only thing left to pronounce is the correct answer, so the speaker falls
+    // back to it through TTS instead of going silent on a blank src.
+    val listenAudioSrc = challenge.audioSrc ?: listenAnswer?.audioSrc ?: ""
 
     Scaffold(
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
@@ -1406,6 +1447,19 @@ private fun ExerciseScreen(
         ) {
             Spacer(modifier = Modifier.height(4.dp))
 
+            // An INTRO card replaces the whole body: a prompt line above an empty
+            // option list reads as a broken question, so it gets its own card
+            // instead, and the generic body below is not composed at all.
+            if (isIntro) {
+                IntroChallengeCard(
+                    glyph = introGlyph,
+                    reading = introOption?.romaji,
+                    meaning = introMeaning,
+                    ruleText = ruleText,
+                    onPlayAudio = { onPlayVoice(introAudioSrc ?: "", audioSpeed, introGlyph) },
+                    modifier = Modifier.weight(1f),
+                )
+            } else {
             // Prompt
             Text(
                 text = when (challenge.type) {
@@ -1417,6 +1471,7 @@ private fun ExerciseScreen(
                     ChallengeType.STORY -> "Read the story and answer the question"
                     ChallengeType.CONJUGATE -> "Pick the correct form"
                     ChallengeType.FILL_BLANK -> "Fill in the blank"
+                    ChallengeType.INTRO -> "New word"
                 },
                 style = MaterialTheme.typography.titleMedium,
                 color = Color(0xFF777777),
@@ -1436,7 +1491,7 @@ private fun ExerciseScreen(
                     ) {
                         AudioSpeakerButton(
                             size = 72.dp,
-                            onClick = { challenge.audioSrc?.let(playAtChosenSpeed) },
+                            onClick = { onPlayVoice(listenAudioSrc, audioSpeed, listenAnswer?.text) },
                         )
                         // WI-14: the turtle's fixed 0.6x becomes a real speed
                         // stepper, so the same control also reaches SELECT,
@@ -1444,7 +1499,7 @@ private fun ExerciseScreen(
                         AudioSpeedSelector(
                             selected = audioSpeed,
                             onSelect = { audioSpeed = it },
-                            onPlayAt = { speed -> challenge.audioSrc?.let { onPlayVoice(it, speed) } },
+                            onPlayAt = { speed -> onPlayVoice(listenAudioSrc, speed, listenAnswer?.text) },
                         )
                     }
                     Text(
@@ -1636,7 +1691,7 @@ private fun ExerciseScreen(
                 AudioSpeedSelector(
                     selected = audioSpeed,
                     onSelect = { audioSpeed = it },
-                    onPlayAt = { speed -> onPlayVoice(src, speed) },
+                    onPlayAt = { speed -> onPlayVoice(src, speed, null) },
                     modifier = Modifier.fillMaxWidth(),
                 )
             }
@@ -1716,7 +1771,145 @@ private fun ExerciseScreen(
                     }
                 }
             }
+            }
         }
+        }
+    }
+}
+
+/**
+ * Phase 1's ungraded discovery card, given a face of its own.
+ *
+ * An INTRO challenge has nothing to answer, so the generic exercise body would
+ * render a prompt line ("New word") above an empty option list - a screen that
+ * reads as broken rather than calm. This card instead states the badge, the
+ * glyph at display scale, its reading, its meaning, and the tip, with the audio
+ * button as the single interaction. Nothing here is gradeable, so nothing
+ * advertises a check: the bottom bar shows CONTINUE.
+ */
+@Composable
+private fun IntroChallengeCard(
+    glyph: String,
+    reading: String?,
+    meaning: String?,
+    ruleText: String?,
+    onPlayAudio: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    // A kana card is short and is announced as a sound; anything longer is a
+    // word. The same threshold sets the glyph size, so a two-kana digraph still
+    // gets the large display treatment rather than being shrunk as a "word".
+    val isKana = glyph.trim().length in 1..2
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .verticalScroll(rememberScrollState())
+            .padding(vertical = 8.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+    ) {
+        Surface(
+            shape = RoundedCornerShape(999.dp),
+            color = Color(0xFFEAF7EF),
+        ) {
+            Text(
+                text = if (isKana) "NEW SOUND" else "NEW WORD",
+                modifier = Modifier.padding(horizontal = 14.dp, vertical = 5.dp),
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color(0xFF2E9E6B),
+            )
+        }
+
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(20.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
+            border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFEAEAEA)),
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp, vertical = 28.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
+                if (FuriganaParser.containsKanji(glyph) && !reading.isNullOrBlank()) {
+                    FuriganaText(
+                        text = glyph,
+                        reading = reading,
+                        showRuby = true,
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            fontSize = if (isKana) 48.sp else 32.sp,
+                            lineHeight = if (isKana) 60.sp else 40.sp,
+                            fontWeight = FontWeight.Bold,
+                        ),
+                        baseColor = Color(0xFF2C2C2C),
+                    )
+                } else {
+                    Text(
+                        text = glyph,
+                        fontSize = if (isKana) 48.sp else 32.sp,
+                        lineHeight = if (isKana) 60.sp else 40.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF2C2C2C),
+                        textAlign = TextAlign.Center,
+                    )
+                    if (!reading.isNullOrBlank()) {
+                        Text(
+                            text = reading,
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = Color(0xFF666666),
+                            textAlign = TextAlign.Center,
+                        )
+                    }
+                }
+                if (!meaning.isNullOrBlank()) {
+                    Text(
+                        text = meaning,
+                        fontSize = 16.sp,
+                        color = Color(0xFF4B4B4B),
+                        textAlign = TextAlign.Center,
+                    )
+                }
+            }
+        }
+
+        // Always present: the glyph is always pronounceable, so a card whose
+        // audio asset is missing still has something to say through TTS. Gating
+        // this on a non-null clip would leave those cards with no way to hear
+        // the new sound at all.
+        AudioSpeakerButton(
+            size = 56.dp,
+            onClick = onPlayAudio,
+        )
+
+        if (!ruleText.isNullOrBlank()) {
+            // The tip is what the card exists to deliver, so it is part of the
+            // card rather than the dismissible RuleCard the graded challenges
+            // use: there is nothing here to grade, and a learner who dismisses
+            // the only content loses it.
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(14.dp),
+                color = Color(0xFFF2F8FD),
+                border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFB8DCFF)),
+            ) {
+                Row(
+                    modifier = Modifier.padding(14.dp),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                ) {
+                    Text(text = "💡", fontSize = 16.sp)
+                    Text(
+                        text = ruleText,
+                        fontSize = 14.sp,
+                        color = Color(0xFF1B4B6B),
+                        lineHeight = 20.sp,
+                    )
+                }
+            }
         }
     }
 }
@@ -2094,20 +2287,30 @@ private fun OptionCard(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
+            if (showRomaji && !romaji.isNullOrBlank() && FuriganaParser.containsJapanese(text)) {
+                FuriganaText(
                     text = text,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                    color = if (isSelected) Color(0xFF1899D6) else Color(0xFF4B4B4B),
+                    reading = romaji,
+                    showRuby = true,
+                    modifier = Modifier.weight(1f),
+                    isSelected = isSelected,
                 )
-                if (showRomaji && !romaji.isNullOrBlank()) {
+            } else {
+                Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = romaji,
-                        style = MaterialTheme.typography.bodySmall,
-                        fontSize = 13.sp,
-                        color = if (isSelected) Color(0xFF3D7EA6) else Color(0xFF777777),
+                        text = text,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                        color = if (isSelected) Color(0xFF1899D6) else Color(0xFF4B4B4B),
                     )
+                    if (showRomaji && !romaji.isNullOrBlank()) {
+                        Text(
+                            text = romaji,
+                            style = MaterialTheme.typography.bodySmall,
+                            fontSize = 13.sp,
+                            color = if (isSelected) Color(0xFF3D7EA6) else Color(0xFF777777),
+                        )
+                    }
                 }
             }
             if (hasAudio) {
@@ -2179,6 +2382,15 @@ private fun ExerciseBottomBar(
                                         else -> "On fire! 🔥"
                                     },
                                     fontSize = 13.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color(0xFFE67E22),
+                                )
+                            }
+                            if (feedback.streakRepaired) {
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(
+                                    text = "🔥 Streak Repaired!",
+                                    fontSize = 14.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = Color(0xFFE67E22),
                                 )
@@ -2336,6 +2548,100 @@ private fun OutOfHeartsSheet(
                 fontWeight = FontWeight.Bold,
                 color = Color(0xFFAFAFAF),
             )
+        }
+    }
+}
+
+/**
+ * What the top-bar heart badge opens.
+ *
+ * Refilling is free and always allowed, so this is not a paywall and does not
+ * pretend to be one — it is the place that says what hearts *are*, which the
+ * badge never could. The previous affordance was a green `+` glyph overlapping
+ * the heart and a 1.25x pulse that never stopped; both announced urgency the
+ * learner could do nothing about, because the refill was already free.
+ *
+ * Practice is offered only when it can actually do something: with no queued
+ * mistakes there is nothing to re-ask, and a button that starts a session would
+ * silently do nothing. [mistakeCount] is passed in rather than read from a flow
+ * so the sheet renders purely from what it was handed, like every other overlay
+ * in this file.
+ */
+@OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
+@Composable
+private fun HeartRefillSheet(
+    hearts: Int,
+    mistakeCount: Int,
+    onRefill: () -> Unit,
+    onPracticeMistakes: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    androidx.compose.material3.ModalBottomSheet(onDismissRequest = onDismiss) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .navigationBarsPadding()
+                .padding(horizontal = 24.dp)
+                .padding(bottom = 24.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            Text(
+                text = "❤️ $hearts / ${LocalProgressRepository.MAX_HEARTS}",
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.Bold,
+                color = Color(0xFFC0392B),
+            )
+            Text(
+                text = "Hearts protect your learning streak. Learn offline. " +
+                    "Practice to earn hearts or refill anytime.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color(0xFF4B4B4B),
+            )
+
+            Spacer(modifier = Modifier.height(6.dp))
+
+            Button(
+                onClick = onRefill,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(54.dp),
+                shape = RoundedCornerShape(14.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFC0392B)),
+            ) {
+                Text(
+                    text = "Refill to Full (FREE)",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 16.sp,
+                )
+            }
+
+            if (mistakeCount > 0 || hearts < LocalProgressRepository.MAX_HEARTS) {
+                OutlinedButton(
+                    onClick = onPracticeMistakes,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(54.dp),
+                    shape = RoundedCornerShape(14.dp),
+                ) {
+                    Text(
+                        text = "Practice Mistakes (+1 ❤️)",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 16.sp,
+                        color = Color(0xFF2E9E6B),
+                    )
+                }
+            }
+
+            TextButton(
+                onClick = onDismiss,
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text(
+                    text = "Close",
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFFAFAFAF),
+                )
+            }
         }
     }
 }
@@ -2966,7 +3272,7 @@ private fun OnboardingPager(
     var page by remember { androidx.compose.runtime.mutableStateOf(0) }
     val pages = listOf(
         Triple("🦫", "Learn offline. Own your progress.", "Spanish + Japanese lessons work 100% offline with OpenLingo. No ads, no payments, no account needed."),
-        Triple("❤️", "Hearts refill free", "Mistakes cost a heart. Tap the pulsing ❤️ pill anytime for a free refill — every midnight refills to full too."),
+        Triple("❤️", "Hearts refill free", "Mistakes cost a heart. Tap the ❤️ badge anytime for a free refill — every midnight refills to full too."),
         Triple("💾", "Yours to take anywhere", "All progress lives on your device. Export a backup file from Settings and import it on any phone — no account, no cloud."),
     )
     val (emoji, title, body) = pages[page.coerceIn(pages.indices)]

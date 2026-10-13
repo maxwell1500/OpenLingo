@@ -71,11 +71,20 @@ object UnitVocabularyIndex {
      * Comparison key for an authored target-language term.
      *
      * Option text and a scheduled word are written by hand in two different files, so
-     * case and surrounding whitespace may drift and nothing else may. Deliberately not
-     * accent-folded: whether `café` and `cafe` are the same word is a content decision,
-     * not something a matcher should decide for the author.
+     * case and surrounding whitespace may drift and nothing else may. Edge punctuation
+     * may drift too, and is stripped for the same reason and with the same character set
+     * as [com.openlingo.app.dictionary.DictionaryIndex.key] — a unit that teaches `¡Hola!`
+     * and a lesson that teaches `hola` teach one word, and this list must not show the
+     * learner two rows for it. `DictionaryIndexTest` pins the two against each other, so
+     * neither may drift alone. Deliberately not accent-folded: whether `café` and `cafe`
+     * are the same word is a content decision, not something a matcher should decide for
+     * the author.
      */
-    fun key(term: String): String = term.trim().lowercase()
+    fun key(term: String): String =
+        term.trim().trim { it in EDGE_PUNCTUATION }.lowercase()
+
+    /** Spanish and English marks that carry no part of a word's identity. */
+    private const val EDGE_PUNCTUATION = "¡!¿?.,;:"
 
     /**
      * The headwords each unit teaches, keyed by unit id, in the order the unit teaches

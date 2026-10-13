@@ -64,6 +64,34 @@ class DictionaryRepositoryTest {
         assertEquals("Hello", hola!!.gloss)
     }
 
+    /**
+     * The `¡ ! ¿ ?` bug at the seam it was found on.
+     *
+     * Unit 1's word bank (challenge 1003) spells its first tile `¡Hola!`, which
+     * used to be filed under the key `¡hola!`. The tap resolver tokenizes to the
+     * bare run `Hola` and searched for `hola`, so the app carried a headword for
+     * "hello" that its own resolver could never reach — verified on device, and
+     * the reason `DictionaryIndex.key` strips edge punctuation.
+     *
+     * This is the only place that can see it: 1003 is seeded by the repository
+     * rather than by a `UnitPayload`, so a payload-built index has no `¡Hola!` at
+     * all.
+     */
+    @Test
+    fun `an inverted-marked tile resolves through a tap on the word inside it`() = runTest {
+        repository.initializeIfNeeded()
+        val dictionary = repository.loadDictionary()
+
+        val entry = dictionary.lookup("¡Hola!")
+        assertNotNull("`¡Hola!` is a correct tile of challenge 1003", entry)
+        assertEquals(entry!!.term, dictionary.lookup("hola")!!.term)
+
+        val hit = dictionary.resolveTap("¡Hola!", 1)
+        assertNotNull("tapping the run inside `¡Hola!` resolved nothing", hit)
+        assertEquals("hola", DictionaryIndex.key(hit!!.entry.term))
+        assertEquals("Hola", "¡Hola!".substring(hit.start, hit.end))
+    }
+
     @Test
     fun `a japanese word from the repository seed carries its reading`() = runTest {
         repository.initializeIfNeeded()

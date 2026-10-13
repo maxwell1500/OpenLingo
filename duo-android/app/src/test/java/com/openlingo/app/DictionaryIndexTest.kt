@@ -14,6 +14,7 @@ import com.openlingo.app.dictionary.DictionaryIndex
 import com.openlingo.app.ui.UnitVocabularyIndex
 import java.io.File
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -70,6 +71,96 @@ class DictionaryIndexTest {
     @Test
     fun `lookup ignores case and surrounding whitespace the way the corpus writes it`() {
         assertNotNull(dictionary.lookup("  UN CAFÉ, POR FAVOR  "))
+    }
+
+    /**
+     * The `¡ ! ¿ ?` bug, found on device and worth keeping locked.
+     *
+     * Unit 1's word bank spells its first tile `¡Hola!`, so the headword used to
+     * be filed under `¡hola!` while [DictionaryIndex.tokenize] hands the resolver
+     * the bare run `Hola` — meaning the app held an entry for "hello" that its own
+     * tap resolver could never reach. Both written forms must now land on one
+     * headword.
+     *
+     * Built from a fixture rather than the corpus because Spanish Unit 1 is seeded
+     * by `LocalProgressRepository`, not by a `UnitPayload` — see
+     * `DictionaryRepositoryTest` for the same assertion against the real seed.
+     */
+    @Test
+    fun `an inverted-marked option and its bare word are one headword`() {
+        assertEquals("hola", DictionaryIndex.key("¡Hola!"))
+        assertEquals(DictionaryIndex.key("hola"), DictionaryIndex.key("¡Hola!"))
+
+        val index = DictionaryIndex.build(
+            listOf(challenge(1, ChallengeType.WORD_BANK, "Translate: 'Hello, good morning'")),
+            listOf(option(10, 1, "¡Hola!", correct = true)),
+            emptyList(),
+        )
+        assertEquals(1, index.size)
+        assertEquals(index.lookup("¡Hola!")!!.term, index.lookup("hola")!!.term)
+    }
+
+    /**
+     * Tapping the word inside `¡Hola!` is how a learner actually meets it, and
+     * the resolver's own tokenizer already excludes the punctuation — so this only
+     * passes once the key agrees with the tokenizer.
+     */
+    @Test
+    fun `a tap on a word written with surrounding punctuation finds it`() {
+        val index = DictionaryIndex.build(
+            listOf(challenge(1, ChallengeType.WORD_BANK, "Translate: 'Hello, good morning'")),
+            listOf(option(10, 1, "¡Hola!", correct = true)),
+            emptyList(),
+        )
+        val hit = index.resolveTap("¡Hola!", 1)
+        assertNotNull("tapping the run inside `¡Hola!` resolved nothing", hit)
+        assertEquals("hola", DictionaryIndex.key(hit!!.entry.term))
+        assertEquals("Hola", "¡Hola!".substring(hit.start, hit.end))
+    }
+
+    /**
+     * A full question-shaped headword — `¿Dónde está el restaurante?` — is
+     * authored with both marks, and the whole string is one headword rather than
+     * four tokens to guess from.
+     */
+    @Test
+    fun `edge punctuation is stripped from a question-shaped headword`() {
+        val index = DictionaryIndex.build(
+            listOf(challenge(1, ChallengeType.SELECT, "Which one means 'the restaurant'?")),
+            listOf(option(10, 1, "¿Dónde está el restaurante?", correct = true)),
+            emptyList(),
+        )
+        val entry = index.lookup("¿Dónde está el restaurante?")!!
+        assertEquals("Dónde está el restaurante", entry.term)
+        assertEquals(entry.term, index.lookup("dónde está el restaurante")!!.term)
+    }
+
+    /**
+     * Only the *edges* are stripped. `Un café, por favor` is one scheduled
+     * phrase whose interior comma is part of it, and a matcher that trimmed
+     * interior punctuation would key it under a form the corpus never writes.
+     */
+    @Test
+    fun `an interior comma is part of the headword, not decoration`() {
+        assertEquals("un café, por favor", DictionaryIndex.key("Un café, por favor"))
+        assertEquals("un café, por favor", DictionaryIndex.key("  Un café, por favor!  "))
+        assertNotNull(dictionary.lookup("Un café, por favor"))
+    }
+
+    /**
+     * An option that is nothing but punctuation has no word in it, and filing
+     * it under the empty key would make `lookup("")` — which the app treats as
+     * "nothing loaded" — return an entry.
+     */
+    @Test
+    fun `a punctuation-only option is not a headword`() {
+        val index = DictionaryIndex.build(
+            listOf(challenge(1, ChallengeType.SELECT, "Which one means 'yes'?")),
+            listOf(option(10, 1, "...", correct = true)),
+            emptyList(),
+        )
+        assertEquals(0, index.size)
+        assertNull(index.lookup(""))
     }
 
     // --- a distractor is not vocabulary -------------------------------------
@@ -288,9 +379,20 @@ class DictionaryIndexTest {
      */
     @Test
     fun `a prompt that quotes a slot does not become a gloss`() {
-        val form = dictionary.lookup("hablo")
-        assertNotNull("`hablo` is the correct answer of challenge 30001", form)
+        // Isolated fixture: a challenge quoting a slot ('yo') with no INTRO card must not gloss the verb as the slot.
+        val index = DictionaryIndex.build(
+            listOf(challenge(1, ChallengeType.SELECT, "Which present form of hablar goes with 'yo'?")),
+            listOf(option(10, 1, "hablo", correct = true)),
+            emptyList(),
+        )
+        val form = index.lookup("hablo")
+        assertNotNull("hablo is indexed", form)
         assertNull("'yo' is a slot, not a meaning", form!!.gloss)
+
+        // In the corpus, hablo now has a real meaning from its INTRO card ("I speak (-ar verb)"), never the slot "yo".
+        val corpusHablo = dictionary.lookup("hablo")
+        assertNotNull("hablo exists in corpus", corpusHablo)
+        assertNotEquals("a slot must never be extracted as a gloss", "yo", corpusHablo!!.gloss)
     }
 
     @Test
@@ -324,6 +426,116 @@ class DictionaryIndexTest {
                 )
             }
         }
+    }
+
+    // --- an intro card is a finished definition -----------------------------
+
+    /**
+     * An INTRO card is the curriculum introducing a word outright: the prompt
+     * *is* the English it teaches and the option is the word itself. The corpus
+     * writes the pair as `The station` / `La estación`, so the prompt is a
+     * finished definition sitting in the card and the entry has to carry it —
+     * otherwise the word the learner was just shown opens a sheet saying the
+     * app has no English for it.
+     *
+     * The reading and the clip are the other two things the card states about
+     * the word, and both have to survive the same way they do on a choice
+     * challenge.
+     */
+    @Test
+    fun `an intro card files its prompt as the gloss and keeps the reading and clip`() {
+        val index = DictionaryIndex.build(
+            listOf(
+                challenge(1, ChallengeType.INTRO, "The station")
+                    .copy(audioSrc = "asset:///audio/es/la_estacion.ogg"),
+                challenge(2, ChallengeType.INTRO, "Bread"),
+            ),
+            listOf(
+                option(10, 1, "La estación", correct = true).copy(romaji = "la estasyon"),
+                option(11, 2, "El pan", correct = true),
+            ),
+            emptyList(),
+        )
+
+        val station = index.lookup("La estación")
+        assertNotNull("La estación is the answer of an INTRO card", station)
+        assertEquals("The station", station!!.gloss)
+        assertEquals("la estasyon", station.romaji)
+        assertEquals("asset:///audio/es/la_estacion.ogg", station.audioSrc)
+
+        val bread = index.lookup("El pan")
+        assertNotNull(bread)
+        assertEquals("Bread", bread!!.gloss)
+        assertNull("no clip was authored for this card", bread.audioSrc)
+    }
+
+    /**
+     * An INTRO card carries its clip on the challenge rather than the option, so
+     * it has to be read from there — but only for INTRO. A LISTEN card's
+     * `audioSrc` is the whole sentence, and hanging it on every word the
+     * sentence contains would make the speaker button play a sentence where the
+     * sheet promises a word.
+     */
+    @Test
+    fun `only an intro card's own clip is read from the challenge`() {
+        val index = DictionaryIndex.build(
+            listOf(
+                challenge(1, ChallengeType.INTRO, "The station")
+                    .copy(audioSrc = "asset:///audio/es/la_estacion.ogg"),
+                challenge(2, ChallengeType.LISTEN, "Tap what you hear")
+                    .copy(audioSrc = "asset:///audio/es/estudio_espanol.ogg"),
+            ),
+            listOf(
+                option(10, 1, "La estación", correct = true),
+                option(11, 2, "estudio", correct = true),
+            ),
+            emptyList(),
+        )
+
+        assertEquals(
+            "asset:///audio/es/la_estacion.ogg",
+            index.lookup("La estación")!!.audioSrc,
+        )
+        assertNull(
+            "a LISTEN sentence clip is not the word's clip",
+            index.lookup("estudio")!!.audioSrc,
+        )
+    }
+
+    /**
+     * The whole corpus: every INTRO card states its word's meaning in its prompt,
+     * so the word the card introduces is glossed with that prompt.
+     *
+     * A headword can be taught by several challenges, and the first one the build
+     * meets is the one whose gloss it keeps — so this only pins the words whose
+     * first source in build order is the INTRO card, and computes that order
+     * here rather than assuming it.
+     */
+    @Test
+    fun `every intro card in the corpus glosses its word with the prompt it shows`() {
+        val optionsByChallenge = options.groupBy { it.challengeId }
+        val sources = LinkedHashMap<String, MutableList<ChallengeEntity>>()
+        challenges.forEach { challenge ->
+            optionsByChallenge[challenge.id].orEmpty().filter { it.correct }.forEach { option ->
+                sources.getOrPut(DictionaryIndex.key(option.text)) { mutableListOf() }.add(challenge)
+            }
+        }
+
+        var checked = 0
+        challenges.filter { it.type == ChallengeType.INTRO }.forEach { intro ->
+            optionsByChallenge[intro.id].orEmpty().filter { it.correct }.forEach { answer ->
+                if (sources[DictionaryIndex.key(answer.text)]!!.first().id != intro.id) return@forEach
+                val entry = dictionary.lookup(answer.text)
+                assertNotNull("${answer.text} is not indexed", entry)
+                assertEquals(
+                    "intro ${intro.id}: ${answer.text} lost the prompt it was introduced with",
+                    intro.question.trim(),
+                    entry!!.gloss,
+                )
+                checked++
+            }
+        }
+        assertTrue("no intro card contributed a gloss, so the check proved nothing", checked >= 4)
     }
 
     // --- a tap resolves to a word, not a sentence ---------------------------
@@ -556,7 +768,11 @@ class DictionaryIndexTest {
      */
     @Test
     fun `the index agrees with the unit vocabulary list on what makes the same word`() {
-        val samples = listOf("Café", "  UN CAFÉ, POR FAVOR ", "Buenos días", "駅", "Hello", "")
+        val samples = listOf(
+            "Café", "  UN CAFÉ, POR FAVOR ", "Buenos días", "駅", "Hello", "",
+            // Edge punctuation is stripped by both keys, or neither.
+            "¡Hola!", "¿Dónde está el restaurante?", "  me duele la garganta.  ", "…", "¿",
+        )
         samples.forEach { term ->
             assertEquals(term, UnitVocabularyIndex.key(term), DictionaryIndex.key(term))
         }

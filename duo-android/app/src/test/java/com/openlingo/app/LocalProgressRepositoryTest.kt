@@ -4,6 +4,8 @@ import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import app.cash.turbine.test
 import com.openlingo.app.data.local.OpenLingoDatabase
+import com.openlingo.app.data.local.entities.ChallengeEntity
+import com.openlingo.app.data.local.models.ChallengeType
 import com.openlingo.app.data.repository.AnswerResult
 import com.openlingo.app.data.repository.LocalProgressRepository
 import java.time.LocalDate
@@ -22,9 +24,9 @@ import org.robolectric.annotation.Config
 
 /**
  * Repository integration tests against an in-memory Room database.
- * Locks the content contract (24 units / 50 lessons / 246 lesson-path challenges plus
- * 22 held-out checkpoint challenges) and the hearts / XP / streak / mistake write paths
- * that previously regressed silently until manual on-device checks.
+ * Locks the content contract (the seeded unit, lesson and lesson-path challenge
+ * counts) and the hearts / XP / streak / mistake write paths that previously
+ * regressed silently until manual on-device checks.
  */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34])
@@ -75,7 +77,7 @@ class LocalProgressRepositoryTest {
                 }
             }
         }
-        assertEquals(664, challenges)
+        assertEquals(752, challenges)
 
         // Re-running the seed must not duplicate or drop rows.
         repository.initializeIfNeeded()
@@ -619,6 +621,55 @@ class LocalProgressRepositoryTest {
         repository.getCharacterMastery().test {
             val mastery = awaitItem()
             assertTrue(mastery.any { it.character == "あ" && it.attempts == 2 })
+        }
+    }
+
+    @Test
+    fun `submitting incorrect answer to LISTEN challenge does not deduct hearts`() = runTest {
+        repository.initializeIfNeeded()
+
+        // Insert a LISTEN challenge into a Spanish lesson
+        val challengeId = 9999
+        db.lessonDao().insertChallenges(
+            listOf(
+                ChallengeEntity(
+                    id = challengeId,
+                    lessonId = 100,
+                    type = ChallengeType.LISTEN,
+                    question = "Listen and select",
+                    orderIndex = 0,
+                )
+            )
+        )
+
+        val heartsBefore = db.userProgressDao().getUserProgressDirect("guest_local")!!.hearts
+        val result = repository.submitAnswer(challengeId = challengeId, isCorrect = false)
+
+        assertTrue(result is AnswerResult.Incorrect)
+        assertEquals(heartsBefore, (result as AnswerResult.Incorrect).remainingHearts)
+        assertEquals(heartsBefore, db.userProgressDao().getUserProgressDirect("guest_local")!!.hearts)
+        // The mistake is still recorded for review
+        repository.getMistakes(1).test {
+            val mistakes = awaitItem()
+            assertTrue(mistakes.any { it.challengeId == challengeId })
+        }
+    }
+
+    @Test
+    fun `completing Lesson 200 grants kana mastery in characterMasteryDao`() = runTest {
+        repository.initializeIfNeeded()
+
+        repository.recordKanaMasteryForLesson(200)
+
+        repository.getCharacterMastery().test {
+            val mastery = awaitItem()
+            val hiraganaVowels = listOf("あ", "い", "う", "え", "お")
+            hiraganaVowels.forEach { char ->
+                assertTrue(
+                    "character $char should be mastered",
+                    mastery.any { it.character == char && it.script == "HIRAGANA" },
+                )
+            }
         }
     }
 }
