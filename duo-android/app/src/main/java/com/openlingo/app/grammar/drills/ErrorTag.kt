@@ -18,6 +18,22 @@ package com.openlingo.app.grammar.drills
 object ErrorTag {
 
     /**
+     * The whole shipped `errorTag` vocabulary — the seven tags
+     * [com.openlingo.app.data.local.entities.ChallengeOptionEntity] documents and
+     * the corpus may put on a distractor. One definition, so a new tag is added
+     * here once and every surface that validates the vocabulary follows.
+     */
+    val ALL: Set<String> = setOf(
+        "WRONG_TENSE",
+        "WRONG_PERSON",
+        "WRONG_FORM",
+        "WRONG_COPULA",
+        "WRONG_CLASSIFIER",
+        "WRONG_REGISTER",
+        "UNRELATED",
+    )
+
+    /**
      * Tags that mean "the same word, the wrong form": the learner picked a different
      * member of the paradigm rather than a different word.
      */

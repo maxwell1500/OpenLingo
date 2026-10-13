@@ -1,9 +1,5 @@
 package com.openlingo.app
 
-import com.openlingo.app.data.local.curriculum.AdvancedCurriculumData
-import com.openlingo.app.data.local.curriculum.B1CurriculumData
-import com.openlingo.app.data.local.curriculum.ExpandedCurriculumData
-import com.openlingo.app.data.local.curriculum.JapaneseN4CurriculumData
 import com.openlingo.app.data.local.curriculum.UnitPayload
 import com.openlingo.app.data.local.entities.ChallengeEntity
 import com.openlingo.app.data.local.entities.ChallengeOptionEntity
@@ -39,15 +35,7 @@ import org.junit.Test
  */
 class DictionaryIndexTest {
 
-    private val payloads: List<UnitPayload> =
-        ExpandedCurriculumData.spanishExpandedUnits +
-            ExpandedCurriculumData.japaneseExpandedUnits +
-            AdvancedCurriculumData.spanishAdvancedUnits +
-            AdvancedCurriculumData.japaneseAdvancedUnits +
-            B1CurriculumData.spanishA2Units +
-            B1CurriculumData.spanishB1Units +
-            B1CurriculumData.japaneseN4Units +
-            JapaneseN4CurriculumData.japaneseN4ExtensionUnits
+    private val payloads: List<UnitPayload> = Corpus.allPayloads
 
     private val challenges = payloads.flatMap { it.challenges }
     private val options = payloads.flatMap { it.options }
@@ -750,15 +738,8 @@ class DictionaryIndexTest {
 
     @Test
     fun `every clip the index points at ships in the bundle`() {
-        val available = File("src/main/assets/audio").walkTopDown()
-            .filter { it.isFile }
-            .map { it.name }
-            .toSet()
         val referenced = dictionary.entries.mapNotNull { it.audioSrc }
-        assertTrue("no audio referenced at all", referenced.isNotEmpty())
-        referenced.forEach { src ->
-            assertTrue("missing audio asset for $src", src.substringAfterLast("/") in available)
-        }
+        AudioAssets.assertAllExist(referenced)
     }
 
     /**

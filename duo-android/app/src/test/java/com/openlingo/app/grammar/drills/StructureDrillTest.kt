@@ -1,9 +1,6 @@
 package com.openlingo.app.grammar.drills
 
-import com.openlingo.app.data.local.curriculum.AdvancedCurriculumData
-import com.openlingo.app.data.local.curriculum.B1CurriculumData
-import com.openlingo.app.data.local.curriculum.ExpandedCurriculumData
-import com.openlingo.app.data.local.curriculum.JapaneseN4CurriculumData
+import com.openlingo.app.Corpus
 import com.openlingo.app.data.local.curriculum.UnitPayload
 import com.openlingo.app.data.local.entities.ChallengeEntity
 import com.openlingo.app.data.local.entities.ChallengeOptionEntity
@@ -25,15 +22,7 @@ import org.junit.Test
  */
 class StructureDrillTest {
 
-    private val allPayloads: List<UnitPayload> =
-        ExpandedCurriculumData.spanishExpandedUnits +
-            ExpandedCurriculumData.japaneseExpandedUnits +
-            AdvancedCurriculumData.spanishAdvancedUnits +
-            AdvancedCurriculumData.japaneseAdvancedUnits +
-            B1CurriculumData.spanishA2Units +
-            B1CurriculumData.spanishB1Units +
-            B1CurriculumData.japaneseN4Units +
-            JapaneseN4CurriculumData.japaneseN4ExtensionUnits
+    private val allPayloads: List<UnitPayload> = Corpus.allPayloads
 
     /** The shipped corpus, shaped exactly as the repository hands it to the generator. */
     private val corpus: List<ChallengeWithOptions> = allPayloads.flatMap { payload ->

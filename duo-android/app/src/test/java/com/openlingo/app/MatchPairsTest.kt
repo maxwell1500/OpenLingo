@@ -1,9 +1,5 @@
 package com.openlingo.app
 
-import com.openlingo.app.data.local.curriculum.AdvancedCurriculumData
-import com.openlingo.app.data.local.curriculum.B1CurriculumData
-import com.openlingo.app.data.local.curriculum.ExpandedCurriculumData
-import com.openlingo.app.data.local.curriculum.JapaneseN4CurriculumData
 import com.openlingo.app.data.local.curriculum.UnitPayload
 import com.openlingo.app.data.local.entities.ChallengeOptionEntity
 import com.openlingo.app.data.local.models.ChallengeType
@@ -32,15 +28,7 @@ import org.junit.Test
  */
 class MatchPairsTest {
 
-    private val allPayloads: List<UnitPayload> =
-        ExpandedCurriculumData.spanishExpandedUnits +
-            ExpandedCurriculumData.japaneseExpandedUnits +
-            AdvancedCurriculumData.spanishAdvancedUnits +
-            AdvancedCurriculumData.japaneseAdvancedUnits +
-            B1CurriculumData.spanishA2Units +
-            B1CurriculumData.spanishB1Units +
-            B1CurriculumData.japaneseN4Units +
-            JapaneseN4CurriculumData.japaneseN4ExtensionUnits
+    private val allPayloads: List<UnitPayload> = Corpus.allPayloads
 
     /** Every board in the corpus, with the unit its lesson belongs to. */
     private val boards: List<Board> = allPayloads.flatMap { payload ->

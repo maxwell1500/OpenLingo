@@ -1,16 +1,12 @@
 package com.openlingo.app
 
 import com.openlingo.app.data.local.character.KanaRepository
-import com.openlingo.app.data.local.curriculum.AdvancedCurriculumData
-import com.openlingo.app.data.local.curriculum.B1CurriculumData
-import com.openlingo.app.data.local.curriculum.ExpandedCurriculumData
-import com.openlingo.app.data.local.curriculum.JapaneseN4CurriculumData
 import com.openlingo.app.data.local.curriculum.UnitPayload
 import com.openlingo.app.data.local.entities.ChallengeEntity
 import com.openlingo.app.data.local.models.ChallengeType
 import com.openlingo.app.grammar.AnswerGrader
 import com.openlingo.app.grammar.GrammarFocus
-import java.io.File
+import com.openlingo.app.grammar.drills.ErrorTag
 import java.text.Normalizer
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -24,26 +20,7 @@ import org.junit.Test
  */
 class CurriculumIntegrityTest {
 
-    private val allPayloads: List<UnitPayload> =
-        ExpandedCurriculumData.spanishExpandedUnits +
-            ExpandedCurriculumData.japaneseExpandedUnits +
-            AdvancedCurriculumData.spanishAdvancedUnits +
-            AdvancedCurriculumData.japaneseAdvancedUnits +
-            B1CurriculumData.spanishA2Units +
-            B1CurriculumData.spanishB1Units +
-            B1CurriculumData.japaneseN4Units +
-            JapaneseN4CurriculumData.japaneseN4ExtensionUnits
-
-    /** The fixed errorTag vocabulary, mirroring the KDoc on ChallengeOptionEntity.errorTag. */
-    private val errorTagVocabulary = setOf(
-        "WRONG_TENSE",
-        "WRONG_PERSON",
-        "WRONG_FORM",
-        "WRONG_COPULA",
-        "WRONG_CLASSIFIER",
-        "WRONG_REGISTER",
-        "UNRELATED",
-    )
+    private val allPayloads: List<UnitPayload> = Corpus.allPayloads
 
     /**
      * Which errorTags are honest for each grammaticalFocus the corpus ships.
@@ -279,18 +256,9 @@ class CurriculumIntegrityTest {
 
     @Test
     fun `every referenced audio file exists in assets`() {
-        val audioDir = File("src/main/assets/audio")
-        val available = audioDir.walkTopDown()
-            .filter { it.isFile }
-            .map { it.name }
-            .toSet()
         val referenced = allPayloads.flatMap { it.challenges }.mapNotNull { it.audioSrc } +
             allPayloads.flatMap { it.options }.mapNotNull { it.audioSrc }
-        assertTrue("no audio referenced at all", referenced.isNotEmpty())
-        referenced.forEach { src ->
-            val file = src.substringAfterLast("/")
-            assertTrue("missing audio asset for $src", file in available)
-        }
+        AudioAssets.assertAllExist(referenced)
     }
 
     /**
@@ -305,11 +273,7 @@ class CurriculumIntegrityTest {
      */
     @Test
     fun `every LISTEN challenge carries a clip that exists in assets`() {
-        val available = File("src/main/assets/audio")
-            .walkTopDown()
-            .filter { it.isFile }
-            .map { it.name }
-            .toSet()
+        val available = AudioAssets.available
         val dead = allPayloads.flatMap { it.challenges }
             .filter { it.type == ChallengeType.LISTEN }
             .mapNotNull { challenge ->
@@ -384,7 +348,7 @@ class CurriculumIntegrityTest {
 
     @Test
     fun `error tags stay inside the fixed vocabulary and never mark a correct option`() {
-        val vocabulary = errorTagVocabulary
+        val vocabulary = ErrorTag.ALL
         val allOptions = allPayloads.flatMap { it.options }
 
         val unknown = allOptions.mapNotNull { it.errorTag }.distinct().filter { it !in vocabulary }
@@ -1192,11 +1156,7 @@ class CurriculumIntegrityTest {
     @Test
     fun `all INTRO challenges have valid non-blank text and audio`() {
         val optionsByChallenge = allPayloads.flatMap { it.options }.groupBy { it.challengeId }
-        val available = File("src/main/assets/audio")
-            .walkTopDown()
-            .filter { it.isFile }
-            .map { it.name }
-            .toSet()
+        val available = AudioAssets.available
 
         val blanks = mutableListOf<String>()
         val brokenAudio = mutableListOf<String>()
