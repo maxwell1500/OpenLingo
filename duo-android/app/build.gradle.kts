@@ -60,7 +60,8 @@ android {
     buildTypes {
         release {
             isMinifyEnabled = false
-            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            // No proguardFiles: shrinking is off, so referencing a rules file
+            // only invents a build break for whoever enables it next.
             // With a keystore this is the release key. Without one it is the debug
             // key, which the guard below only permits when a developer asks for it
             // explicitly with -PallowDebugSigning — never silently.
@@ -183,7 +184,6 @@ dependencies {
     implementation("androidx.media3:media3-exoplayer:1.5.1")
     // Unit tests (local JVM: JUnit + Robolectric + Turbine)
     testImplementation("junit:junit:4.13.2")
-    testImplementation("androidx.room:room-testing:2.8.5")
     testImplementation("androidx.test:core:1.7.0")
     testImplementation("org.robolectric:robolectric:4.17")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2")
