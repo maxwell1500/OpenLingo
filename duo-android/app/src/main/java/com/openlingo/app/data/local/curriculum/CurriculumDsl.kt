@@ -20,6 +20,14 @@ import com.openlingo.app.data.local.models.ChallengeType
  *
  * Every helper forwards to the real entity constructor with `lastSynced` left
  * at its default, so the seeded corpus is unchanged.
+ *
+ * Entity ids stay explicit on purpose: option ids follow per-file allocation
+ * patterns (documented in each file's header), and re-deriving them would need a
+ * Room migration for zero benefit. The contract is enforced centrally instead:
+ * `CurriculumStructureTest` asserts unit/lesson/challenge/option ids are globally
+ * unique across the payload files with resolving foreign keys, and
+ * `LocalProgressRepositoryTest` asserts the same over the whole seeded corpus
+ * (the base curriculum included). A new id block must not collide with either.
  */
 
 /** Builds a [UnitPayload] from a unit block: lessons, challenges, options. */
