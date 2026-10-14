@@ -1,0 +1,1 @@
+Fixed the kana match-board UI: bottom tiles were cut off under the check bar, so pairs were unreachable. The exercise screen now scrolls.
